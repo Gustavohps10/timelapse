@@ -1,35 +1,26 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+import { useEffect, useState } from "react";
 
-function App(): JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+export function App() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    async function getMainData() {
+      try {
+        const response = await fetch("https://jsonplaceholder.typicode.com/todos/1");
+        const jsonData = await response.json();
+        setData(jsonData);
+      } catch (error) {
+        console.error("Erro ao buscar dados:", error);
+      }
+    }
+
+    getMainData();
+  }, []);
 
   return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
-  )
+    <div>
+      <h1>ATASK</h1>
+      {data ? <pre>{JSON.stringify(data, null, 2)}</pre> : <p>Carregando...</p>}
+    </div>
+  );
 }
-
-export default App
