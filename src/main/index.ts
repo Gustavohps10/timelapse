@@ -39,6 +39,16 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  ipcMain.handle("fetch-redmine", async () => {
+    try {
+      const response = await fetch("http://redmine.atakone.com.br/projects/faturamento_erp/issues.json?assigned_to_id=230&key=");
+      return await response.json();
+    } catch (error) {
+      console.error("Erro ao buscar dados do Redmine:", error);
+      return { error: "Erro ao buscar dados" };
+    }
+  });
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
