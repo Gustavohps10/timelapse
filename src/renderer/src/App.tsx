@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import './styles/global.css'
 
 export function App() {
   const [data, setData] = useState(null);
