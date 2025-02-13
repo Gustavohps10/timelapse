@@ -6,8 +6,8 @@ export function App() {
   useEffect(() => {
     async function getMainData() {
       try {
-        const response = await fetch("https://jsonplaceholder.typicode.com/todos/1");
-        const jsonData = await response.json();
+        // Acesse a função fetchRedmine da API exposta
+        const jsonData = await window.api.fetchRedmine();  // Corrigido aqui
         setData(jsonData);
       } catch (error) {
         console.error("Erro ao buscar dados:", error);

@@ -1,22 +1,22 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron';
 
-// Custom APIs for renderer
-const api = {}
+// Definir a interface para a API exposta
+interface Api {
+  fetchRedmine: () => Promise<any>;
+}
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
+const api: Api = {
+  fetchRedmine: () => ipcRenderer.invoke("fetch-redmine"),
+};
+
+// Expondo a API
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('api', api);
   } catch (error) {
-    console.error(error)
+    console.error("Erro ao expor API:", error);
   }
 } else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
+  // @ts-ignore (define em dts)
+  window.api = api;
 }
