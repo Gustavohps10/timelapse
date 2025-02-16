@@ -1,4 +1,4 @@
-import { Calendar, FileText, Home, Inbox, Search, Settings, Timer } from "lucide-react"
+import {  FileText, Home, Search, Settings, Timer } from "lucide-react"
  
 import {
   Sidebar,
@@ -9,7 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/renderer/components/ui/sidebar"
  
 // Menu items.
 const items = [
