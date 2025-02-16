@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import './styles/global.css'
 import { Button } from "@/components/ui/button";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 
 export function App() {
   const [data, setData] = useState(null);
@@ -21,8 +23,18 @@ export function App() {
 
   return (
     <div>
-      <h1>ATASK</h1>
-      <Button variant="default">Create</Button>
+      
+      <SidebarProvider>
+      <main>
+        <AppSidebar/>
+        <SidebarTrigger />
+        <h1>ATASK</h1>
+      </main>
+      </SidebarProvider>
+
+
+      
+      
       {data ? <pre>{JSON.stringify(data, null, 2)}</pre> : <p>Carregando...</p>}
     </div>
   );
