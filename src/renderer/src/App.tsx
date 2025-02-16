@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import './styles/global.css'
-import { Button } from "@/components/ui/button";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/renderer/components/app-sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/renderer/components/ui/sidebar";
 
 export function App() {
   const [data, setData] = useState(null);
