@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import './styles/global.css'
 import { AppSidebar } from "@/renderer/components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/renderer/components/ui/sidebar";
+import { ThemeProvider } from "@/renderer/components/theme-provider";
+import { ModeToggle } from "@/renderer/components/mode-toggle";
 
 export function App() {
   const [data, setData] = useState(null);
@@ -21,20 +23,16 @@ export function App() {
   }, []);
 
   return (
-    <div>
-      
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <SidebarProvider>
-      <main>
-        <AppSidebar/>
-        <SidebarTrigger />
-        <h1>ATASK</h1>
-      </main>
-      </SidebarProvider>
-
-
-      
-      
-      {data ? <pre>{JSON.stringify(data, null, 2)}</pre> : <p>Carregando...</p>}
-    </div>
+        <main>
+          <AppSidebar/>
+          <SidebarTrigger />
+          <h1>ATASK</h1>
+          <ModeToggle/>
+          {data ? <pre>{JSON.stringify(data, null, 2)}</pre> : <p>Carregando...</p>}
+        </main>
+        </SidebarProvider>
+    </ThemeProvider>
   );
 }
