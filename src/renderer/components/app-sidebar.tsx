@@ -1,4 +1,4 @@
-import {  FileText, Home, Search, Settings, Timer } from "lucide-react"
+import {  ChartLine, FileText, Search, Settings, Timer } from "lucide-react"
  
 import {
   Sidebar,
@@ -10,22 +10,23 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/renderer/components/ui/sidebar"
+import { NavLink } from "react-router-dom"
  
 // Menu items.
 const items = [
   {
-    title: "Home",
-    url: "#",
-    icon: Home,
+    title: "Dashboard",
+    url: "/",
+    icon: ChartLine,
   },
   {
     title: "Temporizador",
-    url: "#",
+    url: "/timer",
     icon: Timer,
   },
   {
     title: "Documentação",
-    url: "#",
+    url: "/docs",
     icon: FileText,
   },
   {
@@ -42,19 +43,19 @@ const items = [
  
 export function AppSidebar() {
   return (
-    <Sidebar>
+    <Sidebar collapsible="none">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>Navegar</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.title} >
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <NavLink to={item.url} >
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
