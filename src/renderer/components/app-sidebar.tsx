@@ -31,19 +31,19 @@ const items = [
   },
   {
     title: "Search",
-    url: "#",
+    url: "/",
     icon: Search,
   },
   {
     title: "Settings",
-    url: "#",
+    url: "/",
     icon: Settings,
   },
 ]
  
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="offcanvas">
+    <Sidebar collapsible="none">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Navegar</SidebarGroupLabel>

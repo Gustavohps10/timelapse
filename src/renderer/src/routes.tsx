@@ -19,10 +19,11 @@ export const router = createBrowserRouter([
         path: '/docs',
         element: <Docs />,
       },
+      {
+        path: '*',
+        element: <NotFound />,
+      }
+
     ],
-  },
-  {
-    path: '*',
-    element: <NotFound />,
   },
 ])
