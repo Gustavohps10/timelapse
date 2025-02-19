@@ -1,5 +1,5 @@
 import { Button } from "@/renderer/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/renderer/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/renderer/components/ui/card";
 import {
     ChartContainer,
     ChartLegend,
@@ -79,7 +79,7 @@ import { Calendar1, CalendarDays } from "lucide-react";
             </CardTitle>
           </CardHeader>
           <CardContent>
-          <h1 className="scroll-m-20 text-2xl mt-1 font-bold tracking-tight text-zinc-800 dark:text-zinc-300 font-mono">
+          <h1 className="scroll-m-20 text-2xl mt-1 font-bold tracking-tighter text-zinc-800 dark:text-zinc-300 font-mono">
             3:20
           </h1>
           </CardContent>
@@ -93,7 +93,7 @@ import { Calendar1, CalendarDays } from "lucide-react";
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <h1 className="scroll-m-20 text-2xl mt-1 font-bold tracking-tight text-zinc-800 dark:text-zinc-300 font-mono">
+            <h1 className="scroll-m-20 text-2xl mt-1 font-bold tracking-tighter text-zinc-800 dark:text-zinc-300 font-mono ">
             45:30
           </h1>
           </CardContent>
@@ -107,7 +107,7 @@ import { Calendar1, CalendarDays } from "lucide-react";
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <h1 className="scroll-m-20 text-2xl mt-1 font-bold tracking-tight text-zinc-800 dark:text-zinc-300 font-mono">
+            <h1 className="scroll-m-20 text-2xl mt-1 font-bold tracking-tighter text-zinc-800 dark:text-zinc-300 font-mono">
             113:45
           </h1>
           </CardContent>
