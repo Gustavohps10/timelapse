@@ -53,14 +53,14 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="none">
       <SidebarHeader>
-      <div className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-2 rounded-md flex gap-2 items-center">
-        <img src={logoAtak} className="w-8 h-8 bg-zinc-200 rounded-lg p-2" alt="Logo" />
-        <div className="flex flex-col">
-          <h1 className="scroll-m-20 text-sm font-bold tracking-tighter">Atask</h1>
-          <h2 className="text-muted-foreground scroll-m-20 text-sm font tracking-tight leading-none">Manager</h2>
+        <div className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-2 rounded-md flex gap-2 items-center">
+          <img src={logoAtak} className="w-8 h-8 bg-zinc-200 rounded-lg p-2" alt="Logo" />
+          <div className="flex flex-col">
+            <h1 className="scroll-m-20 text-sm font-bold tracking-tighter">Atask</h1>
+            <h2 className="text-muted-foreground scroll-m-20 text-sm font tracking-tight leading-none">Manager</h2>
+          </div>
+          <ModeToggle className="ml-auto cursor-pointer hover:bg-[#e7e7e9] dark:hover:bg-[#2e2e31] p-1 size-8 rounded-lg text-foreground"/>
         </div>
-        <ModeToggle className="ml-auto cursor-pointer hover:bg-[#e7e7e9] dark:hover:bg-[#2e2e31] p-1 size-8 rounded-lg text-foreground"/>
-      </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -68,14 +68,22 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <SidebarMenuItem key={item.url}>
+                <SidebarMenuButton asChild>
+                  <NavLink 
+                    to={item.url}
+                    className="[&.active]:bg-zinc-100 dark:[&.active]:bg-zinc-800 flex items-center h-9! rounded-md transition-colors"
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <item.icon className={isActive ? "text-primary" : "text-foreground"} />
+                        <span>{item.title}</span>
+                      </>
+                    )}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
