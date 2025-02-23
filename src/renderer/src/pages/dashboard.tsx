@@ -9,8 +9,7 @@ import {
     type ChartConfig,
   } from "@/renderer/components/ui/chart";
 import { Calendar1, CalendarDays } from "lucide-react";
-import { useState, useEffect } from "react";
-  import {
+import {
     LineChart,
     CartesianGrid,
     XAxis,
@@ -33,26 +32,7 @@ import { useState, useEffect } from "react";
   } satisfies ChartConfig;
   
   export function Dashboard() {
-    const [data, setData] = useState(null);
-    console.log(data);
-
-    useEffect(() => {
-      async function getMainData() {
-        try {
-          // Acesse a função fetchRedmine da API exposta
-          const jsonData = await window.api.fetchRedmine(); 
-          setData(jsonData);
-          
-        } catch (error) {
-          console.error("Erro ao buscar dados:", error);
-        }
-      }
-      
-  
-      getMainData();
-    }, []);
-
-    return (
+   return (
       <>
       <Card>
         <CardHeader>
