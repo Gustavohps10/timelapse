@@ -1,15 +1,18 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import { WindowAPI } from '../main/types/window-api.js';
 
-// Definir a interface para a API exposta
-interface Api {
-  fetchRedmine: () => Promise<any>;
-}
-
-const api: Api = {
-  fetchRedmine: () => ipcRenderer.invoke("fetch-redmine"),
+const api: WindowAPI = {
+  redmine: {
+    currentUser: (data) => ipcRenderer.invoke('currentUser', data),
+  },
+  keytar: {
+    savePassword: (service, account, password) => ipcRenderer.invoke('keytar:savePassword', { service, account, password }),
+    getPassword: (service, account) => ipcRenderer.invoke('keytar:getPassword', { service, account }),
+    deletePassword: (service, account) => ipcRenderer.invoke('keytar:deletePassword', { service, account }),
+  },
 };
 
-// Expondo a API
+// Expor no `window.api`
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('api', api);
@@ -17,6 +20,7 @@ if (process.contextIsolated) {
     console.error("Erro ao expor API:", error);
   }
 } else {
-  // @ts-ignore (define em dts)
+  // Se o contexto não for isolado, defina diretamente
+  // @ts-ignore
   window.api = api;
 }
