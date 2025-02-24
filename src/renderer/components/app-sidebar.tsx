@@ -32,7 +32,7 @@ const subItems = [
 ];
 
 export function AppSidebar() {
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
 
   const handleLogout = () => {
     logout(); 
@@ -111,8 +111,12 @@ export function AppSidebar() {
         <div className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-2 rounded-md flex gap-2 items-center">
           <User className="text-zinc-900 bg-zinc-200 rounded-lg h-8 w-8 p-2"/>
           <div className="flex flex-col">
-            <h1 className="scroll-m-20 text-sm font-bold tracking-tighter">username.aleatorio</h1>
-            <h2 className="text-muted-foreground scroll-m-20 text-sm font tracking-tight leading-none">Developer</h2>
+            <h1 className="scroll-m-20 text-sm font-bold tracking-tighter">
+              {user?.firstname && user?.lastname ? `${user?.firstname} ${user?.lastname}` : ''}
+            </h1>
+            <h2 className="text-muted-foreground scroll-m-20 text-sm font tracking-tight leading-none">
+              {user?.login || ''}
+            </h2>
           </div>
           <Button size="icon" variant="outline" className="ml-auto h-8 w-8" onClick={handleLogout}>
             <LogOut />

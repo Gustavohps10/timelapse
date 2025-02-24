@@ -8,6 +8,7 @@
     "src/renderer/contexts/**/*",
     "src/renderer/hooks/**/*",
     "src/renderer/utils/**/*",
+    "src/renderer/@types/**/*",
     "src/main/api/**/*",
     "src/main/lib/**/*",
     "src/main/types/**/*",

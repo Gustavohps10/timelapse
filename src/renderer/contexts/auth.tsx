@@ -1,7 +1,9 @@
 import React, { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
+import { User } from '../@types/User';
 
 export interface AuthContextType {
   isAuthenticated: boolean;
+  user: User | null;
   login: (key: string) => void;
   logout: () => void;
 }
@@ -14,20 +16,53 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    window.api.keytar.getPassword('atask', 'userKey').then((token) => {
-      if (!token) {
+    window.api.keytar.getPassword('atask', 'userKey').then((key) => {
+      if (!key) {
         setIsAuthenticated(false);
+        setUser(null);
         return;
       }
-      setIsAuthenticated(true);
+
+      window.api.redmine.currentUser({ key }).then((currentUserData) => {
+        setIsAuthenticated(true);
+        setUser(currentUserData.user);
+      }).catch(() => {
+        setIsAuthenticated(false);
+        setUser(null);
+      });
     });
   }, []);
-  
-  const login = useCallback((key: string) => window.api.keytar.savePassword('atask', 'userKey', key).then(() => setIsAuthenticated(true)), []);
 
-  const logout = useCallback(() => window.api.keytar.deletePassword('atask', 'userKey').then(() => setIsAuthenticated(false)), []);
+  const login = useCallback((key: string) => {
+    window.api.keytar.deletePassword('atask', 'userKey').then(() => {
+      setIsAuthenticated(false);
+      setUser(null);
+    });
+    
+    window.api.keytar.savePassword('atask', 'userKey', key).then(() => {
+      window.api.redmine.currentUser({ key }).then((currentUserData) => {
+        setIsAuthenticated(true);
+        setUser(currentUserData.user); 
+      }).catch(() => {
+        setIsAuthenticated(false);
+        setUser(null);
+      });
+    });
+  }, []);
 
-  return <AuthContext.Provider value={{ isAuthenticated, login, logout }}>{children}</AuthContext.Provider>;
+  const logout = useCallback(() => {
+    window.api.keytar.deletePassword('atask', 'userKey').then(() => {
+      setIsAuthenticated(false);
+      setUser(null);
+    });
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
