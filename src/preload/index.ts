@@ -3,6 +3,7 @@ import { WindowAPI } from '../main/types/window-api.js';
 
 const api: WindowAPI = {
   redmine: {
+    timeEntries: (data) => ipcRenderer.invoke('timeEntries', data),
     currentUser: (data) => ipcRenderer.invoke('currentUser', data),
   },
   keytar: {

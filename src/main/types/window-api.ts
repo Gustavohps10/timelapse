@@ -1,6 +1,8 @@
 import { LoginRequest, LoginResponse } from "../api/current-user.js";
+import { TimeEntriesRequest, TimeEntriesResponse } from "../api/time-entries.js";
 
 export interface Redmine {
+    timeEntries: (data: TimeEntriesRequest) => Promise<TimeEntriesResponse>
     currentUser: (data: LoginRequest) => Promise<LoginResponse>;
 }
 
