@@ -19,6 +19,12 @@ import {
   Line,
 } from "recharts";
 
+interface ChartData {
+  date: string;
+  day: 'Seg' | 'Ter' | 'Qua' | 'Qui' | 'Sex';
+  dailyHours: number;
+}
+
 const chartConfig = {
   desktop: {
     label: "Horas",
@@ -26,31 +32,45 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+
 export function Dashboard() {
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
   const { user } = useAuth();
 
-  const formatDate = (date: Date) =>
-    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  function CustomizedTick(props) {
+    const { x, y, payload } = props;
+    const index = payload.index; // Índice do dado atual
+    const formattedDate = chartData[index]?.date.split("-").slice(1).reverse().join("/"); // Converte para DD/MM
+  
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text x={0} y={0} dy={10} textAnchor="middle" fill="#666">
+          <tspan x="0">{payload.value}</tspan> {/* Exibe "Seg", "Ter", etc. */}
+          <tspan x="0" dy={18}>{formattedDate}</tspan> {/* Exibe "25/02", "26/02", etc. */}
+        </text>
+      </g>
+    );
+  }
+
+  const formatDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
   useEffect(() => {
     const today = new Date();
     const dayOfWeek = today.getDay();
 
     const monday = new Date(today);
-    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)); 
+    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
 
     const friday = new Date(monday);
     friday.setDate(monday.getDate() + 4);
 
-    const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
-    const formattedWeekDays = weekDays.map((day, index) => {
+    const weekDays: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'] = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
+    const formattedWeekDays = weekDays.map((_, index) => {
       const dayDate = new Date(monday);
       dayDate.setDate(monday.getDate() + index);
       return formatDate(dayDate);
     });
 
-    console.log(formattedWeekDays); 
     window.api.redmine.timeEntries({
       key: user?.api_key,
       userId: user?.id,
@@ -60,24 +80,17 @@ export function Dashboard() {
       const timeEntries = data.time_entries;
       const dailyHours: { [key: string]: number } = {};
 
-      // Preenchendo com os dados de horas
       timeEntries.forEach(entry => {
         const date = entry.spent_on;
         const hours = entry.hours;
-
-        if (dailyHours[date]) {
-          dailyHours[date] += hours;
-        } else {
-          dailyHours[date] = hours;
-        }
+        dailyHours[date] = dailyHours[date] ? dailyHours[date] += hours : dailyHours[date] = hours
       });
 
-      const chartData = formattedWeekDays.map((date) => ({
+      const chartData = formattedWeekDays.map((date, index) => ({
         date: date,
-        dailyHours: dailyHours[date] || 0, 
+        day: weekDays[index],
+        dailyHours: dailyHours[date] || 0,
       }));
-
-      console.log(chartData);
 
       setChartData(chartData);
     });
@@ -95,12 +108,13 @@ export function Dashboard() {
             <LineChart data={chartData}>
               <CartesianGrid vertical={false} />
               <XAxis
-                dataKey="date"
+                dataKey="day"
                 tickLine={false}
-                tickMargin={10}
+                tickMargin={20} // Aumenta a margem inferior para evitar corte
                 axisLine={false}
-                tickFormatter={(value) => value.slice(0, 3)} 
+                tick={<CustomizedTick />} // Usa o componente personalizado
               />
+
               <YAxis
                 domain={[0, 8.5]} 
                 tickFormatter={(value) => `${value}h`} 
@@ -110,6 +124,7 @@ export function Dashboard() {
               <Line
                 type="monotone"
                 dataKey="dailyHours"
+                name="Horas"
                 stroke="var(--primary)"
                 strokeWidth={2}
                 strokeLinecap="round"
