@@ -1,7 +1,7 @@
 import { Moon, Sun } from "lucide-react"
  
-import { Button } from "@/renderer/components/ui/button"
-import { useTheme } from "@/renderer/components/theme-provider"
+import { Button } from "@/presentation/renderer/components/ui/button"
+import { useTheme } from "@/presentation/renderer/components/theme-provider"
  
 export function ModeToggle({...props }: React.HTMLAttributes<HTMLButtonElement>) {
   const { setTheme, theme } = useTheme()

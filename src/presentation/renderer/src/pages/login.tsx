@@ -6,13 +6,13 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 
-import { LoginRequest } from '@/main/api/current-user'
-import { Loader } from '@/renderer/components/loader'
-import { Button } from '@/renderer/components/ui/button'
-import { Card, CardContent, CardTitle } from '@/renderer/components/ui/card'
-import { Input } from '@/renderer/components/ui/input'
-import { Label } from '@/renderer/components/ui/label'
-import { useAuth } from '@/renderer/hooks/use-auth'
+import { LoginRequest } from '@/presentation/main/api/current-user'
+import { Loader } from '@/presentation/renderer/components/loader'
+import { Button } from '@/presentation/renderer/components/ui/button'
+import { Card, CardContent, CardTitle } from '@/presentation/renderer/components/ui/card'
+import { Input } from '@/presentation/renderer/components/ui/input'
+import { Label } from '@/presentation/renderer/components/ui/label'
+import { useAuth } from '@/presentation/renderer/hooks/use-auth'
 
 const formSchema = z.object({
   username: z.string(),

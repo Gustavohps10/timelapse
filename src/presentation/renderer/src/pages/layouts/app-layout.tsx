@@ -1,6 +1,6 @@
-import { AppSidebar } from '@/renderer/components/app-sidebar'
-import { Header } from '@/renderer/components/header'
-import { SidebarProvider } from '@/renderer/components/ui/sidebar'
+import { AppSidebar } from '@/presentation/renderer/components/app-sidebar'
+import { Header } from '@/presentation/renderer/components/header'
+import { SidebarProvider } from '@/presentation/renderer/components/ui/sidebar'
 import { Outlet } from 'react-router'
 
 export function AppLayout() {

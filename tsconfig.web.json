@@ -1,20 +1,20 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
-    "src/renderer/src/env.d.ts",
-    "src/renderer/src/**/*",
-    "src/renderer/components/**/*",
-    "src/renderer/lib/**/*",
-    "src/renderer/contexts/**/*",
-    "src/renderer/hooks/**/*",
-    "src/renderer/utils/**/*",
-    "src/renderer/@types/**/*",
-    "src/main/api/**/*",
-    "src/main/lib/**/*",
-    "src/main/types/**/*",
-    "src/main/utils/**/*",
-    "src/renderer/src/**/*.tsx",
-    "src/preload/*.d.ts", "src/main/lib/axios.ts",
+    "src/presentation/renderer/src/env.d.ts",
+    "src/presentation/renderer/src/**/*",
+    "src/presentation/renderer/components/**/*",
+    "src/presentation/renderer/lib/**/*",
+    "src/presentation/renderer/contexts/**/*",
+    "src/presentation/renderer/hooks/**/*",
+    "src/presentation/renderer/utils/**/*",
+    "src/presentation/renderer/@types/**/*",
+    "src/presentation/main/api/**/*",
+    "src/presentation/main/lib/**/*",
+    "src/presentation/main/types/**/*",
+    "src/presentation/main/utils/**/*",
+    "src/presentation/renderer/src/**/*.tsx",
+    "src/presentation/preload/*.d.ts", "src/main/lib/axios.ts",
     //"src/**/*"
   ],
   "compilerOptions": {
@@ -23,7 +23,7 @@
     "baseUrl": ".",
     "paths": {
       "@renderer/*": [
-        "src/renderer/src/*"
+        "src/renderer/presentation/src/*"
       ],
       "@/*": ["./src/*"]
     }
