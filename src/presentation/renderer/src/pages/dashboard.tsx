@@ -1,5 +1,5 @@
-import { Button } from "@/renderer/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/renderer/components/ui/card";
+import { Button } from "@/presentation/renderer/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/presentation/renderer/components/ui/card";
 import {
   ChartContainer,
   ChartLegend,
@@ -7,8 +7,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/renderer/components/ui/chart";
-import { useAuth } from "@/renderer/hooks/use-auth";
+} from "@/presentation/renderer/components/ui/chart";
+import { useAuth } from "@/presentation/renderer/hooks/use-auth";
 import { Calendar1, CalendarDays } from "lucide-react";
 import { useEffect, useState } from "react";
 import {

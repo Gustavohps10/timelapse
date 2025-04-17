@@ -1,7 +1,7 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
-import { useAuth } from '@/renderer/hooks/use-auth'
+import { useAuth } from '@/presentation/renderer/hooks/use-auth'
 
 interface ProtectedRouteProps {
   element: React.ReactElement

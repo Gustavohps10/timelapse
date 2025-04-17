@@ -12,8 +12,8 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubItem,
-} from "@/renderer/components/ui/sidebar";
-import { NavLink, useNavigate } from "react-router-dom";
+} from "@/presentation/renderer/components/ui/sidebar";
+import { NavLink } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import logoAtak from '../src/assets/images/icon-atak.png'
 import { ModeToggle } from "./mode-toggle";
