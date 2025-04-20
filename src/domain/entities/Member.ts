@@ -4,28 +4,28 @@ export class Member {
   #email: string
 
   constructor(name: string, email: string) {
-      this.#id = crypto.randomUUID()
-      this.#name = name
-      this.#email = email
+    this.#id = crypto.randomUUID()
+    this.#name = name
+    this.#email = email
   }
 
   get id(): string {
-      return this.#id
+    return this.#id
   }
 
   get name(): string {
-      return this.#name
+    return this.#name
   }
 
   set name(newName: string) {
-      this.#name = newName
+    this.#name = newName
   }
 
   get email(): string {
-      return this.#email
+    return this.#email
   }
 
   set email(newEmail: string) {
-      this.#email = newEmail
+    this.#email = newEmail
   }
 }

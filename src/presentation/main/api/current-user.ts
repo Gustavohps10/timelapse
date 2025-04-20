@@ -1,4 +1,4 @@
-import { api } from "../lib/axios.js"
+import { api } from '../lib/axios.js'
 
 export type LoginRequest = {
   username?: string
@@ -34,19 +34,23 @@ export async function CurrentUser({ username, password, key }: LoginRequest) {
 
   const { data } = await api.get<LoginResponse>(`/users/current.json`, {
     headers: credentials.headers,
-    params: credentials.params
+    params: credentials.params,
   })
 
   return data
 }
 
-function getCredentials({ username, password, key }: LoginRequest): Credentials {
+function getCredentials({
+  username,
+  password,
+  key,
+}: LoginRequest): Credentials {
   // Caso ja possua a key, utilize apenas ela
   if (key) {
     return {
       params: {
-        key
-      }
+        key,
+      },
     }
   }
 
@@ -54,7 +58,7 @@ function getCredentials({ username, password, key }: LoginRequest): Credentials 
   const base64Auth = btoa(`${username}:${password}`)
   return {
     headers: {
-      'Authorization': `Basic ${base64Auth}`
-    }
+      Authorization: `Basic ${base64Auth}`,
+    },
   }
 }

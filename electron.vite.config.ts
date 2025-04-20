@@ -8,31 +8,31 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: 'src/presentation/main/index.ts',
-      }
+      },
     },
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
   },
   preload: {
     build: {
       rollupOptions: {
         input: 'src/presentation/preload/index.ts',
-      }
+      },
     },
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
   },
   renderer: {
     root: 'src/presentation/renderer',
     build: {
       rollupOptions: {
-        input: resolve(__dirname, 'src/presentation/renderer/index.html')
-      }
+        input: resolve(__dirname, 'src/presentation/renderer/index.html'),
+      },
     },
     resolve: {
       alias: {
         '@renderer': resolve('src/presentation/renderer/src'),
-        '@': resolve(__dirname, 'src')
-      }
+        '@': resolve(__dirname, 'src'),
+      },
     },
-    plugins: [react(), tailwindcss()]
-  }
+    plugins: [react(), tailwindcss()],
+  },
 })

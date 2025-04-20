@@ -1,5 +1,11 @@
-import { Button } from "@/presentation/renderer/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/presentation/renderer/components/ui/card";
+import { Button } from '@/presentation/renderer/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/presentation/renderer/components/ui/card'
 import {
   ChartContainer,
   ChartLegend,
@@ -7,94 +13,105 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/presentation/renderer/components/ui/chart";
-import { useAuth } from "@/presentation/renderer/hooks/use-auth";
-import { Calendar1, CalendarDays } from "lucide-react";
-import { useEffect, useState } from "react";
-import {
-  LineChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Line,
-} from "recharts";
+} from '@/presentation/renderer/components/ui/chart'
+import { useAuth } from '@/presentation/renderer/hooks/use-auth'
+import { Calendar1, CalendarDays } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { LineChart, CartesianGrid, XAxis, YAxis, Line } from 'recharts'
 
 interface ChartData {
-  date: string;
-  day: 'Seg' | 'Ter' | 'Qua' | 'Qui' | 'Sex';
-  dailyHours: number;
+  date: string
+  day: 'Seg' | 'Ter' | 'Qua' | 'Qui' | 'Sex'
+  dailyHours: number
 }
 
 const chartConfig = {
   desktop: {
-    label: "Horas",
-    color: "var(--primary)",
+    label: 'Horas',
+    color: 'var(--primary)',
   },
-} satisfies ChartConfig;
-
+} satisfies ChartConfig
 
 export function Dashboard() {
-  const [chartData, setChartData] = useState<ChartData[]>([]);
-  const { user } = useAuth();
+  const [chartData, setChartData] = useState<ChartData[]>([])
+  const { user } = useAuth()
 
   function CustomizedTick(props) {
-    const { x, y, payload } = props;
-    const index = payload.index; // Índice do dado atual
-    const formattedDate = chartData[index]?.date.split("-").slice(1).reverse().join("/"); // Converte para DD/MM
-  
+    const { x, y, payload } = props
+    const index = payload.index // Índice do dado atual
+    const formattedDate = chartData[index]?.date
+      .split('-')
+      .slice(1)
+      .reverse()
+      .join('/') // Converte para DD/MM
+
     return (
       <g transform={`translate(${x},${y})`}>
         <text x={0} y={0} dy={10} textAnchor="middle" fill="#666">
           <tspan x="0">{payload.value}</tspan> {/* Exibe "Seg", "Ter", etc. */}
-          <tspan x="0" dy={18}>{formattedDate}</tspan> {/* Exibe "25/02", "26/02", etc. */}
+          <tspan x="0" dy={18}>
+            {formattedDate}
+          </tspan>{' '}
+          {/* Exibe "25/02", "26/02", etc. */}
         </text>
       </g>
-    );
+    )
   }
 
-  const formatDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const formatDate = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
   useEffect(() => {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
+    const today = new Date()
+    const dayOfWeek = today.getDay()
 
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    const monday = new Date(today)
+    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
 
-    const friday = new Date(monday);
-    friday.setDate(monday.getDate() + 4);
+    const friday = new Date(monday)
+    friday.setDate(monday.getDate() + 4)
 
-    const weekDays: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'] = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
+    const weekDays: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'] = [
+      'Seg',
+      'Ter',
+      'Qua',
+      'Qui',
+      'Sex',
+    ]
     const formattedWeekDays = weekDays.map((_, index) => {
-      const dayDate = new Date(monday);
-      dayDate.setDate(monday.getDate() + index);
-      return formatDate(dayDate);
-    });
+      const dayDate = new Date(monday)
+      dayDate.setDate(monday.getDate() + index)
+      return formatDate(dayDate)
+    })
 
-    window.api.redmine.timeEntries({
-      key: user?.api_key,
-      userId: user?.id,
-      initialDate: formatDate(monday),
-      finalDate: formatDate(friday),
-    }).then((data) => {
-      const timeEntries = data.time_entries;
-      const dailyHours: { [key: string]: number } = {};
+    window.api.redmine
+      .timeEntries({
+        key: user?.api_key,
+        userId: user?.id,
+        initialDate: formatDate(monday),
+        finalDate: formatDate(friday),
+      })
+      .then((data) => {
+        const timeEntries = data.time_entries
+        const dailyHours: { [key: string]: number } = {}
 
-      timeEntries.forEach(entry => {
-        const date = entry.spent_on;
-        const hours = entry.hours;
-        dailyHours[date] = dailyHours[date] ? dailyHours[date] += hours : dailyHours[date] = hours
-      });
+        timeEntries.forEach((entry) => {
+          const date = entry.spent_on
+          const hours = entry.hours
+          dailyHours[date] = dailyHours[date]
+            ? (dailyHours[date] += hours)
+            : (dailyHours[date] = hours)
+        })
 
-      const chartData = formattedWeekDays.map((date, index) => ({
-        date: date,
-        day: weekDays[index],
-        dailyHours: dailyHours[date] || 0,
-      }));
+        const chartData = formattedWeekDays.map((date, index) => ({
+          date: date,
+          day: weekDays[index],
+          dailyHours: dailyHours[date] || 0,
+        }))
 
-      setChartData(chartData);
-    });
-  }, [user]);
+        setChartData(chartData)
+      })
+  }, [user])
 
   return (
     <>
@@ -115,10 +132,7 @@ export function Dashboard() {
                 tick={<CustomizedTick />} // Usa o componente personalizado
               />
 
-              <YAxis
-                domain={[0, 8.5]} 
-                tickFormatter={(value) => `${value}h`} 
-              />
+              <YAxis domain={[0, 8.5]} tickFormatter={(value) => `${value}h`} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ChartLegend content={<ChartLegendContent />} />
               <Line
@@ -134,16 +148,20 @@ export function Dashboard() {
         </CardContent>
       </Card>
 
-      <div className="flex gap-2 my-2 justify-between">
+      <div className="my-2 flex justify-between gap-2">
         <Card className="flex-1">
           <CardHeader className="pb-0 text-sm">
             <CardTitle className="flex justify-between">
-              <span>  Horas lançadas <br />(hoje)  </span>
+              <span>
+                {' '}
+                Horas lançadas <br />
+                (hoje){' '}
+              </span>
               <Calendar1 />
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <h1 className="scroll-m-20 text-2xl mt-1 font-bold tracking-tighter text-zinc-800 dark:text-zinc-300 font-mono">
+            <h1 className="mt-1 scroll-m-20 font-mono text-2xl font-bold tracking-tighter text-zinc-800 dark:text-zinc-300">
               3:20
             </h1>
           </CardContent>
@@ -152,12 +170,15 @@ export function Dashboard() {
         <Card className="flex-1">
           <CardHeader className="pb-0 text-sm font-normal">
             <CardTitle className="flex justify-between">
-              <span className="block">Horas lançadas <br />(semana)</span>
+              <span className="block">
+                Horas lançadas <br />
+                (semana)
+              </span>
               <CalendarDays />
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <h1 className="scroll-m-20 text-2xl mt-1 font-bold tracking-tighter text-zinc-800 dark:text-zinc-300 font-mono">
+            <h1 className="mt-1 scroll-m-20 font-mono text-2xl font-bold tracking-tighter text-zinc-800 dark:text-zinc-300">
               45:30
             </h1>
           </CardContent>
@@ -166,12 +187,15 @@ export function Dashboard() {
         <Card className="flex-1">
           <CardHeader className="pb-0 text-sm">
             <CardTitle className="flex justify-between">
-              <span className="block">Horas lançadas <br />(mês)</span>
+              <span className="block">
+                Horas lançadas <br />
+                (mês)
+              </span>
               <CalendarDays />
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <h1 className="scroll-m-20 text-2xl mt-1 font-bold tracking-tighter text-zinc-800 dark:text-zinc-300 font-mono">
+            <h1 className="mt-1 scroll-m-20 font-mono text-2xl font-bold tracking-tighter text-zinc-800 dark:text-zinc-300">
               113:45
             </h1>
           </CardContent>
@@ -179,5 +203,5 @@ export function Dashboard() {
       </div>
       <Button className="cursor-pointer">Novo Apontamento</Button>
     </>
-  );
+  )
 }

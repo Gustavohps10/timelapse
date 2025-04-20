@@ -1,7 +1,3 @@
 export function Header() {
-    return  (
-        <>
-        TROCAR HEADER
-        </>
-    )    
+  return <>TROCAR HEADER</>
 }

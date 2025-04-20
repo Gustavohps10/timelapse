@@ -9,7 +9,11 @@ import { z } from 'zod'
 import { LoginRequest } from '@/presentation/main/api/current-user'
 import { Loader } from '@/presentation/renderer/components/loader'
 import { Button } from '@/presentation/renderer/components/ui/button'
-import { Card, CardContent, CardTitle } from '@/presentation/renderer/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardTitle,
+} from '@/presentation/renderer/components/ui/card'
 import { Input } from '@/presentation/renderer/components/ui/input'
 import { Label } from '@/presentation/renderer/components/ui/label'
 import { useAuth } from '@/presentation/renderer/hooks/use-auth'
@@ -26,9 +30,7 @@ export function Login() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (isAuthenticated) 
-      navigate('/')
-  
+    if (isAuthenticated) navigate('/')
   }, [isAuthenticated, navigate])
 
   const {
@@ -42,11 +44,11 @@ export function Login() {
   const { mutate, isPending } = useMutation({
     mutationFn: (data: LoginRequest) => window.api.redmine.currentUser(data),
     onSuccess: (data) => {
-      console.log(data);
+      console.log(data)
       login(data.user.api_key)
     },
     onError: (error: AxiosError) => {
-      console.log("ERROR", error);
+      console.log('ERROR', error)
     },
   })
 
@@ -55,11 +57,11 @@ export function Login() {
   }
 
   return (
-    <div className="flex items-center justify-center my-36">
-      <Card className="max-w-sm w-full p-6 rounded-lg">
+    <div className="my-36 flex items-center justify-center">
+      <Card className="w-full max-w-sm rounded-lg p-6">
         <CardContent>
           <CardTitle className="text-2xl font-bold">Entrar</CardTitle>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 my-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="my-4 space-y-4">
             <div>
               <Label htmlFor="username">Username</Label>
               <Input
@@ -70,7 +72,9 @@ export function Login() {
                 {...register('username')}
               />
               {errors.username && (
-                <p className="text-red-500 text-sm">{errors.username.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.username.message}
+                </p>
               )}
             </div>
             <div>
@@ -83,16 +87,16 @@ export function Login() {
                 {...register('password')}
               />
               {errors.password && (
-                <p className="text-red-500 text-sm">
+                <p className="text-sm text-red-500">
                   {errors.password.message}
                 </p>
               )}
             </div>
-            <Button type="submit" className="w-full" disabled={isPending} >
+            <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? <Loader /> : 'Entrar'}
             </Button>
           </form>
-          <span className="mt-6 font-xs">
+          <span className="font-xs mt-6">
             Não possui uma conta?{' '}
             <Button variant="link" className="p-0" asChild>
               <Link to="/sign-up">Cadastre-se</Link>

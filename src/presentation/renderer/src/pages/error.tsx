@@ -1,3 +1,3 @@
 export function Error() {
-    return <>500</>
+  return <>500</>
 }
