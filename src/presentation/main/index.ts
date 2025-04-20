@@ -2,7 +2,6 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 
-import icon from '../resources/icon.png?asset'
 import { registerHandlers } from './utils/handlers.js'
 
 const createWindow = () => {
@@ -11,7 +10,7 @@ const createWindow = () => {
     height: 670,
     show: false,
     autoHideMenuBar: false,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    // ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false,

@@ -1,5 +1,7 @@
-import { Task } from '@/domain/entities'
+import { TaskDTO } from '@/application/dto/TaskDTO'
+import { AppError } from '@/cross-cutting/AppError'
+import { Either } from '@/cross-cutting/Either'
 
-export interface ListTasks {
-  execute(): Promise<Task[]>
+export interface IListTasksUseCase {
+  execute(): Promise<Either<AppError, TaskDTO[]>>
 }

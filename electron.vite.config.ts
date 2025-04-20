@@ -21,15 +21,15 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
   },
   renderer: {
-    root: 'src/presentation/renderer',
+    root: 'src/ui',
     build: {
       rollupOptions: {
-        input: resolve(__dirname, 'src/presentation/renderer/index.html'),
+        input: resolve(__dirname, 'src/ui/index.html'),
       },
     },
     resolve: {
       alias: {
-        '@renderer': resolve('src/presentation/renderer/src'),
+        // '@renderer': resolve('src/presentation/renderer/src'),
         '@': resolve(__dirname, 'src'),
       },
     },
