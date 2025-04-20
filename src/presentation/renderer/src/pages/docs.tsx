@@ -1,5 +1,5 @@
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
 
 const initialContent = `
         # Título Nível 1
@@ -19,22 +19,21 @@ const initialContent = `
       `
 
 export function Docs() {
-
   // Inicializa o editor com o conteúdo obtido
   const editor = useEditor({
     extensions: [StarterKit],
     content: initialContent,
-  });
+  })
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div
-        className="prose lg:prose-xl bg-white shadow-md p-16 m-20 border"
+        className="prose lg:prose-xl m-20 border bg-white p-16 shadow-md"
         style={{ width: '793.7px', height: '1122.5px' }}
       >
         {/* Renderiza o conteúdo do editor */}
         <EditorContent editor={editor} />
       </div>
     </div>
-  );
+  )
 }

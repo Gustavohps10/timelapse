@@ -8,7 +8,6 @@ import { Login } from './pages/login'
 import { AuthLayout } from './pages/layouts/auth-layout'
 import { ProtectedRoute } from '../utils/protected-route'
 
-
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -17,11 +16,11 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <ProtectedRoute element={<Dashboard/>} />,
+        element: <ProtectedRoute element={<Dashboard />} />,
       },
       {
         path: '/docs',
-        element: <ProtectedRoute element={<Docs/>} />,
+        element: <ProtectedRoute element={<Docs />} />,
       },
     ],
   },
