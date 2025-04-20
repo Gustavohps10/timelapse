@@ -1,24 +1,25 @@
 import js from '@eslint/js'
-import globals from 'globals'
-import ts from '@typescript-eslint/eslint-plugin'
-import pluginReact from 'eslint-plugin-react'
-import pluginReactHooks from 'eslint-plugin-react-hooks'
+import parser from '@typescript-eslint/parser'
+import { defineConfig } from 'eslint/config'
 import pluginImport from 'eslint-plugin-import'
 import pluginJsxA11y from 'eslint-plugin-jsx-a11y'
 import prettier from 'eslint-plugin-prettier'
-import { defineConfig } from 'eslint/config'
-import parser from '@typescript-eslint/parser'
+import pluginReact from 'eslint-plugin-react'
+import pluginReactHooks from 'eslint-plugin-react-hooks'
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
+import pluginUnusedImports from 'eslint-plugin-unused-imports'
+import globals from 'globals'
 
 export default defineConfig({
-  ignores: ['node_modules', 'dist', 'out', '.gitignore'],
+  ignores: ['node_modules', 'dist', 'out/**', '.gitignore'],
   files: ['**/*.{js,jsx,ts,tsx}'],
   languageOptions: {
-    parser: parser, // Usando o parser correto para TypeScript
+    parser: parser,
     parserOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
       ecmaFeatures: { jsx: true },
-      tsx: true, // Para lidar com arquivos .tsx
+      tsx: true,
     },
     globals: {
       ...globals.browser,
@@ -32,6 +33,13 @@ export default defineConfig({
     import: pluginImport,
     'jsx-a11y': pluginJsxA11y,
     prettier,
+    'simple-import-sort': simpleImportSort,
+    'unused-imports': pluginUnusedImports,
+  },
+  settings: {
+    react: {
+      version: 'detect',
+    },
   },
   rules: {
     'react/self-closing-comp': 'error',
@@ -62,5 +70,18 @@ export default defineConfig({
     'jsx-a11y/role-has-required-aria-props': 'warn',
     'jsx-a11y/role-supports-aria-props': 'warn',
     'react/no-unknown-property': 'error',
+    'simple-import-sort/imports': 'error',
+    'simple-import-sort/exports': 'error',
+    'unused-imports/no-unused-imports': 'error',
+    'unused-imports/no-unused-vars': [
+      'warn',
+      {
+        vars: 'all',
+        varsIgnorePattern: '^_',
+        args: 'after-used',
+        argsIgnorePattern: '^_',
+      },
+    ],
+    // 'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
   },
 })

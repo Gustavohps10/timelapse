@@ -6,6 +6,11 @@
   "author": "example.com",
   "homepage": "https://electron-vite.org",
   "type": "module",
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts"
+    ]
+  },
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
@@ -19,7 +24,8 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux"
+    "build:linux": "electron-vite build && electron-builder --linux",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
@@ -54,9 +60,12 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",
     "@electron-toolkit/eslint-config-ts": "^2.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@eslint/js": "^9.25.0",
     "@types/node": "^20.17.18",
     "@types/react": "19.0.9",
     "@types/react-dom": "19.0.3",
@@ -74,7 +83,11 @@
     "eslint-plugin-prettier": "^5.2.6",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "globals": "^16.0.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.5.1",
     "postcss": "^8.5.2",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
@@ -82,6 +95,7 @@
     "react-dom": "19.0.0",
     "tailwindcss": "4.0.6",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.30.1",
     "vite": "^5.3.1"
   }
 }

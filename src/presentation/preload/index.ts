@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+
 import { WindowAPI } from '../main/types/window-api.js'
 
 const api: WindowAPI = {

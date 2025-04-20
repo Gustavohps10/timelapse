@@ -1,3 +1,7 @@
+import { Calendar1, CalendarDays } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
+
 import { Button } from '@/presentation/renderer/components/ui/button'
 import {
   Card,
@@ -7,17 +11,14 @@ import {
   CardTitle,
 } from '@/presentation/renderer/components/ui/card'
 import {
+  type ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from '@/presentation/renderer/components/ui/chart'
 import { useAuth } from '@/presentation/renderer/hooks/use-auth'
-import { Calendar1, CalendarDays } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { LineChart, CartesianGrid, XAxis, YAxis, Line } from 'recharts'
 
 interface ChartData {
   date: string
