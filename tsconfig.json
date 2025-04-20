@@ -4,7 +4,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@entities/*": ["src/domain/entities/*"],
+      "@/*": ["src/*"]
     }
   }
 }
