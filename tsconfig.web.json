@@ -1,31 +1,15 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
-    "src/presentation/renderer/src/env.d.ts",
-    "src/presentation/renderer/src/**/*",
-    "src/presentation/renderer/components/**/*",
-    "src/presentation/renderer/lib/**/*",
-    "src/presentation/renderer/contexts/**/*",
-    "src/presentation/renderer/hooks/**/*",
-    "src/presentation/renderer/utils/**/*",
-    "src/presentation/renderer/@types/**/*",
-    "src/presentation/main/api/**/*",
-    "src/presentation/main/lib/**/*",
-    "src/presentation/main/types/**/*",
-    "src/presentation/main/utils/**/*",
-    "src/presentation/renderer/src/**/*.tsx",
-    "src/presentation/preload/*.d.ts", "src/main/lib/axios.ts",
-    //"src/**/*"
+    "src/**/*"
   ],
   "compilerOptions": {
     "composite": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@renderer/*": [
-        "src/renderer/presentation/src/*"
-      ],
-      "@/*": ["./src/*"]
+      "@entities/*": ["src/domain/entities/*"],
+      "@/*": ["src/*"]
     }
   }
 }
