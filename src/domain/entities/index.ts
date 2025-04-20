@@ -1,2 +1,2 @@
-export * from './Task'
 export * from './Member'
+export * from './Task'

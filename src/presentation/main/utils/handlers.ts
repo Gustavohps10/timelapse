@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
 import Keytar from 'keytar'
+
 import { CurrentUser } from '../api/current-user.js'
 import { TimeEntries } from '../api/time-entries.js'
 

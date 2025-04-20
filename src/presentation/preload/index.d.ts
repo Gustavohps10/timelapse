@@ -1,10 +1,6 @@
-import { contextBridge } from 'electron'
-import {
-  CurrentUser,
-  SignInRequest,
-  SignInResponse,
-} from '../api/current-user.js'
-import { WindowAPI } from '@/main/types/window-api.js'
+import { ElectronAPI } from '@electron-toolkit/preload'
+
+import { WindowAPI } from '../main/types/window-api'
 
 declare global {
   interface Window {

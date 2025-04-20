@@ -1,7 +1,7 @@
 import { Moon, Sun } from 'lucide-react'
 
-import { Button } from '@/presentation/renderer/components/ui/button'
 import { useTheme } from '@/presentation/renderer/components/theme-provider'
+import { Button } from '@/presentation/renderer/components/ui/button'
 
 export function ModeToggle({
   ...props

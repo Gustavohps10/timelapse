@@ -1,13 +1,15 @@
 import {
   ChartLine,
+  ChevronRight,
   FileText,
+  LogOut,
   Search,
   Settings,
   Timer,
-  ChevronRight,
   User,
-  LogOut,
 } from 'lucide-react'
+import { NavLink } from 'react-router-dom'
+
 import {
   Sidebar,
   SidebarContent,
@@ -22,16 +24,16 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
 } from '@/presentation/renderer/components/ui/sidebar'
-import { NavLink } from 'react-router-dom'
+
+import { useAuth } from '../hooks/use-auth'
+import logoAtak from '../src/assets/images/icon-atak.png'
+import { ModeToggle } from './mode-toggle'
+import { Button } from './ui/button'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from './ui/collapsible'
-import logoAtak from '../src/assets/images/icon-atak.png'
-import { ModeToggle } from './mode-toggle'
-import { Button } from './ui/button'
-import { useAuth } from '../hooks/use-auth'
 
 const mainItems = [
   { title: 'Dashboard', url: '/', icon: ChartLine },

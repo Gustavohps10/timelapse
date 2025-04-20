@@ -1,5 +1,6 @@
-import { Role } from '../value-objects/Role'
 import { Member, Task } from '@/domain/entities'
+
+import { Role } from '../value-objects/Role'
 
 export class TaskResponsibility {
   #id: string
