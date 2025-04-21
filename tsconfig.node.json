@@ -1,7 +1,14 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
-  "include": ["electron.vite.config.*", "src/presentation/main/**/*", "src/presentation/preload/**/*", "src/adapters/http/axios.ts"],
+  "include": [
+    "electron.vite.config.*",
+    // "src/presentation/main/**/*",
+    // "src/presentation/preload/**/*",
+    // "src/adapters/http/axios.ts"
+  ],
   "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "moduleResolution": "nodenext",
     "module": "NodeNext",
     "target": "ES2022",
