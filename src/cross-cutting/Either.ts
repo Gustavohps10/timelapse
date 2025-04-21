@@ -1,25 +1,25 @@
 export class Either<Failure, Success> {
   private constructor(
-    private readonly _failure: Failure | null,
-    private readonly _success: Success | null,
+    private readonly _failure: Failure | undefined,
+    private readonly _success: Success | undefined,
   ) {}
 
   // ========= Failure Factory Methods =========
-  static success<Success>(value: Success): Either<null, Success> {
-    return new Either(null, value)
+  static success<Success>(value: Success): Either<never, Success> {
+    return new Either<never, Success>(undefined, value)
   }
 
-  static failure<Failure>(value: Failure): Either<Failure, null> {
-    return new Either(value, null)
+  static failure<Failure>(value: Failure): Either<Failure, never> {
+    return new Either<Failure, never>(value, undefined)
   }
 
   // ========= Succes Status Checkers =========
   isFailure(): boolean {
-    return this._failure !== null
+    return this._failure !== undefined
   }
 
   isSuccess(): boolean {
-    return this._success !== null
+    return this._success !== undefined
   }
 
   // ========= Value Getters =========
@@ -36,14 +36,14 @@ export class Either<Failure, Success> {
   // ========= Transformations =========
   map<U>(fn: (s: Success) => U): Either<Failure, U> {
     return this.isSuccess()
-      ? new Either<Failure, U>(null, fn(this.success))
-      : new Either<Failure, U>(this.failure, null)
+      ? new Either<Failure, U>(undefined, fn(this.success))
+      : new Either<Failure, U>(this.failure, undefined)
   }
 
   flatMap<U>(fn: (s: Success) => Either<Failure, U>): Either<Failure, U> {
     return this.isSuccess()
       ? fn(this.success)
-      : new Either<Failure, U>(this.failure, null)
+      : new Either<Failure, U>(this.failure, undefined)
   }
 
   getOrElse(defaultValue: Success): Success {
