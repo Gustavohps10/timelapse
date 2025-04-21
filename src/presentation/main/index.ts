@@ -2,7 +2,9 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 
-import { registerHandlers } from './utils/handlers.js'
+// Aqui importamos a injeção de dependência
+import { DependencyInjection } from '@/Ioc/DependencyInjection.js'
+import { registerHandlers } from '@/presentation/main/utils/handlers'
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -10,7 +12,6 @@ const createWindow = () => {
     height: 670,
     show: false,
     autoHideMenuBar: false,
-    // ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false,
@@ -27,6 +28,8 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
+  DependencyInjection.initialize()
+
   registerHandlers()
   electronApp.setAppUserModelId('com.electron')
   app.on('browser-window-created', (_, w) => optimizer.watchWindowShortcuts(w))

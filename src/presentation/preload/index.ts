@@ -1,23 +1,14 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge } from 'electron'
 
-import { WindowAPI } from '../main/types/window-api.js'
+import { tasks } from '@/presentation/preload/invokes'
+import { WindowAPI } from '@/presentation/types/WindowApi'
 
 const api: WindowAPI = {
-  redmine: {
-    timeEntries: (data) => ipcRenderer.invoke('timeEntries', data),
-    currentUser: (data) => ipcRenderer.invoke('currentUser', data),
-  },
-  keytar: {
-    savePassword: (service, account, password) =>
-      ipcRenderer.invoke('keytar:savePassword', { service, account, password }),
-    getPassword: (service, account) =>
-      ipcRenderer.invoke('keytar:getPassword', { service, account }),
-    deletePassword: (service, account) =>
-      ipcRenderer.invoke('keytar:deletePassword', { service, account }),
+  services: {
+    tasks,
   },
 }
 
-// Expor no `window.api`
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('api', api)
