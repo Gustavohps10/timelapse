@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
+import logoAtak from '@/ui/assets/logo-atak.png'
 import {
   Sidebar,
   SidebarContent,
@@ -26,7 +27,6 @@ import {
 } from '@/ui/components/ui/sidebar'
 
 import { useAuth } from '../hooks/use-auth'
-import logoAtak from '../src/assets/images/icon-atak.png'
 import { ModeToggle } from './mode-toggle'
 import { Button } from './ui/button'
 import {
