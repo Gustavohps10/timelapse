@@ -1,5 +1,3 @@
-import { api } from '../lib/axios.js'
-
 export type LoginRequest = {
   username?: string
   password?: string
