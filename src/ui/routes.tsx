@@ -1,14 +1,14 @@
 import { createBrowserRouter } from 'react-router-dom'
 
-import { Dashboard } from '@/ui/src/pages/dashboard'
-import { Error } from '@/ui/src/pages/error'
-import { AppLayout } from '@/ui/src/pages/layouts/app-layout'
-import { NotFound } from '@/ui/src/pages/not-found'
+import { Dashboard } from '@/ui/pages/dashboard'
+import { Error } from '@/ui/pages/error'
+import { AppLayout } from '@/ui/pages/layouts/app-layout'
+import { NotFound } from '@/ui/pages/not-found'
 
-import { ProtectedRoute } from '../utils/protected-route'
 import { Docs } from './pages/docs'
 import { AuthLayout } from './pages/layouts/auth-layout'
 import { Login } from './pages/login'
+import { ProtectedRoute } from './utils/protected-route'
 
 export const router = createBrowserRouter([
   {
