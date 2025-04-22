@@ -1,10 +1,11 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+// Aqui importamos a injeção de dependência
+import { DependencyInjection } from '@Ioc/DependencyInjection'
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 
-// Aqui importamos a injeção de dependência
-import { DependencyInjection } from '@/Ioc/DependencyInjection.js'
-import { registerHandlers } from '@/presentation/main/utils/handlers'
+import { TaskHandler } from '@/presentation/handlers/TaskHandler'
+// import { registerHandlers } from '@/presentation/main/utils/handlers'
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -30,7 +31,8 @@ const createWindow = () => {
 app.whenReady().then(() => {
   DependencyInjection.initialize()
 
-  registerHandlers()
+  TaskHandler.register()
+
   electronApp.setAppUserModelId('com.electron')
   app.on('browser-window-created', (_, w) => optimizer.watchWindowShortcuts(w))
   createWindow()

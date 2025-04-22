@@ -11,6 +11,13 @@ export default defineConfig({
       },
     },
     plugins: [externalizeDepsPlugin()],
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, 'src'),
+        '@Ioc': resolve(__dirname, 'src/Ioc'),
+        '@entities': resolve(__dirname, 'src/domain/entities'),
+      },
+    },
   },
   preload: {
     build: {
@@ -19,6 +26,13 @@ export default defineConfig({
       },
     },
     plugins: [externalizeDepsPlugin()],
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, 'src'),
+        '@Ioc': resolve(__dirname, 'src/Ioc'),
+        '@entities': resolve(__dirname, 'src/domain/entities'),
+      },
+    },
   },
   renderer: {
     root: 'src/ui',
@@ -29,8 +43,9 @@ export default defineConfig({
     },
     resolve: {
       alias: {
-        // '@renderer': resolve('src/presentation/renderer/src'),
         '@': resolve(__dirname, 'src'),
+        '@Ioc': resolve(__dirname, 'src/Ioc'),
+        '@entities': resolve(__dirname, 'src/domain/entities'),
       },
     },
     plugins: [react(), tailwindcss()],

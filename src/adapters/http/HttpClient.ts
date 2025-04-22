@@ -4,13 +4,13 @@ import { IHttpClient } from '@/adapters/interfaces/IHttpClient'
 import { AppError } from '@/cross-cutting/AppError'
 import { Either } from '@/cross-cutting/Either'
 
-export class AxiosHttpClient implements IHttpClient {
-  private readonly axios: AxiosInstance
+export class HttpClient implements IHttpClient {
+  private axiosInstance!: AxiosInstance
 
-  constructor(baseURL: string) {
-    this.axios = axios.create({
-      timeout: 10000,
+  configure(baseURL: string): void {
+    this.axiosInstance = axios.create({
       baseURL,
+      timeout: 10000,
     })
   }
 
@@ -19,7 +19,7 @@ export class AxiosHttpClient implements IHttpClient {
     config?: AxiosRequestConfig,
   ): Promise<Either<AppError, T>> {
     try {
-      const { data } = await this.axios.get<T>(url, config)
+      const { data } = await this.axiosInstance.get<T>(url, config)
       return Either.success(data)
     } catch (error) {
       return this.handleError(error)
@@ -32,7 +32,7 @@ export class AxiosHttpClient implements IHttpClient {
     config?: AxiosRequestConfig,
   ): Promise<Either<AppError, T>> {
     try {
-      const response = await this.axios.post<T>(url, data, config)
+      const response = await this.axiosInstance.post<T>(url, data, config)
       return Either.success(response.data)
     } catch (error) {
       return this.handleError(error)
@@ -45,7 +45,7 @@ export class AxiosHttpClient implements IHttpClient {
     config?: AxiosRequestConfig,
   ): Promise<Either<AppError, T>> {
     try {
-      const response = await this.axios.put<T>(url, data, config)
+      const response = await this.axiosInstance.put<T>(url, data, config)
       return Either.success(response.data)
     } catch (error) {
       return this.handleError(error)
@@ -58,7 +58,7 @@ export class AxiosHttpClient implements IHttpClient {
     config?: AxiosRequestConfig,
   ): Promise<Either<AppError, T>> {
     try {
-      const response = await this.axios.patch<T>(url, data, config)
+      const response = await this.axiosInstance.patch<T>(url, data, config)
       return Either.success(response.data)
     } catch (error) {
       return this.handleError(error)
@@ -70,7 +70,7 @@ export class AxiosHttpClient implements IHttpClient {
     config?: AxiosRequestConfig,
   ): Promise<Either<AppError, T>> {
     try {
-      const response = await this.axios.delete<T>(url, config)
+      const response = await this.axiosInstance.delete<T>(url, config)
       return Either.success(response.data)
     } catch (error) {
       return this.handleError(error)

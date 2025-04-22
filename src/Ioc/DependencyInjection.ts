@@ -1,30 +1,31 @@
-import { Container } from 'inversify'
+import { asClass, createContainer, InjectionMode } from 'awilix'
 
+import { HttpClient } from '@/adapters/http/HttpClient'
 import { TaskRepository } from '@/adapters/repositories/redmine/TaskRepository'
-import { ITaskRepository } from '@/application/contracts/ITaskRepository'
 import { ListTaskService } from '@/application/services/ListTasksService'
-import { IListTasksUseCase } from '@/domain/use-cases/IListTasksUseCase'
 import { InterfaceMapping } from '@/Ioc/interface-mapping'
 
-// Necessario o nome da Interface em String para injecao de dependencia funcionar corretamente
-
 export class DependencyInjection {
-  private static container: Container
+  private static container: ReturnType<typeof createContainer>
 
   public static initialize(): void {
-    this.container = new Container()
+    this.container = createContainer({
+      injectionMode: InjectionMode.CLASSIC,
+    })
 
-    /* eslint-disable prettier/prettier */
-    this.container.bind<IListTasksUseCase>(InterfaceMapping.IListTasksUseCase).to(ListTaskService).inRequestScope()
-    this.container.bind<ITaskRepository>(InterfaceMapping.ITaskRepository).to(TaskRepository).inRequestScope()
+    this.container.register({
+      [InterfaceMapping.IHttpClient]: asClass(HttpClient).scoped(),
+      [InterfaceMapping.ITaskRepository]: asClass(TaskRepository).scoped(),
+      [InterfaceMapping.IListTasksUseCase]: asClass(ListTaskService).scoped(),
+    })
   }
 
-  public static get<T>(type: symbol): T {
+  public static get<T>(type: string): T {
     if (!this.container) throw new Error('DependencyInjection not initialized')
-    return this.container.get<T>(type)
+    return this.container.resolve<T>(type)
   }
 
-  public static getContainer(): Container {
+  public static getContainer() {
     if (!this.container) throw new Error('DependencyInjection not initialized')
     return this.container
   }
