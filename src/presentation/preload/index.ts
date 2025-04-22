@@ -1,6 +1,6 @@
 import { contextBridge } from 'electron'
 
-import { tasks } from '@/presentation/preload/invokes'
+import { tasks } from '@/presentation/invokes'
 import { WindowAPI } from '@/presentation/types/WindowApi'
 
 const api: WindowAPI = {

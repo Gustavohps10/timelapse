@@ -4,12 +4,15 @@
     "src/**/*"
   ],
   "compilerOptions": {
+    "emitDecoratorMetadata": true, 
+    "experimentalDecorators": true,
     "composite": true,
     "target": "ES2022",
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
       "@entities/*": ["src/domain/entities/*"],
+      "@Ioc/*": ["src/Ioc/*"],
       "@/*": ["src/*"]
     }
   }

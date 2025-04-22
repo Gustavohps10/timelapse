@@ -1,7 +1,7 @@
-import { IpcHandler } from '@/presentation/adapters/ipcHandler'
+import { IpcInvoker } from '@/presentation/adapters/IpcInvoker'
 import { ListTaskViewModel } from '@/presentation/view-models/ListTasksViewModel'
 
 export const tasks = {
   listTasks: (): Promise<ListTaskViewModel> =>
-    IpcHandler.invoke<ListTaskViewModel>('TASKS_LIST'),
+    IpcInvoker.invoke<ListTaskViewModel>('TASKS_LIST'),
 }
