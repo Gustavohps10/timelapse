@@ -26,51 +26,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    window.api.keytar.getPassword('atask', 'userKey').then((key) => {
-      if (!key) {
-        setIsAuthenticated(false)
-        setUser(null)
-        return
-      }
-
-      window.api.redmine
-        .currentUser({ key })
-        .then((currentUserData) => {
-          setIsAuthenticated(true)
-          setUser(currentUserData.user)
-        })
-        .catch(() => {
-          setIsAuthenticated(false)
-          setUser(null)
-        })
-    })
+    // window.api.keytar.getPassword('atask', 'userKey').then((key) => {
+    //   if (!key) {
+    //     setIsAuthenticated(false)
+    //     setUser(null)
+    //     return
+    //   }
+    //   window.api.redmine
+    //     .currentUser({ key })
+    //     .then((currentUserData) => {
+    //       setIsAuthenticated(true)
+    //       setUser(currentUserData.user)
+    //     })
+    //     .catch(() => {
+    //       setIsAuthenticated(false)
+    //       setUser(null)
+    //     })
+    // })
   }, [])
 
   const login = useCallback((key: string) => {
-    window.api.keytar.deletePassword('atask', 'userKey').then(() => {
-      setIsAuthenticated(false)
-      setUser(null)
-    })
-
-    window.api.keytar.savePassword('atask', 'userKey', key).then(() => {
-      window.api.redmine
-        .currentUser({ key })
-        .then((currentUserData) => {
-          setIsAuthenticated(true)
-          setUser(currentUserData.user)
-        })
-        .catch(() => {
-          setIsAuthenticated(false)
-          setUser(null)
-        })
-    })
+    // window.api.keytar.deletePassword('atask', 'userKey').then(() => {
+    //   setIsAuthenticated(false)
+    //   setUser(null)
+    // })
+    // window.api.keytar.savePassword('atask', 'userKey', key).then(() => {
+    //   window.api.redmine
+    //     .currentUser({ key })
+    //     .then((currentUserData) => {
+    //       setIsAuthenticated(true)
+    //       setUser(currentUserData.user)
+    //     })
+    //     .catch(() => {
+    //       setIsAuthenticated(false)
+    //       setUser(null)
+    //     })
+    // })
   }, [])
 
   const logout = useCallback(() => {
-    window.api.keytar.deletePassword('atask', 'userKey').then(() => {
-      setIsAuthenticated(false)
-      setUser(null)
-    })
+    // window.api.keytar.deletePassword('atask', 'userKey').then(() => {
+    //   setIsAuthenticated(false)
+    //   setUser(null)
+    // })
   }, [])
 
   return (
