@@ -14,10 +14,14 @@ export class DependencyInjection {
     })
 
     this.container.register({
-      [InterfaceMapping.IHttpClient]: asClass(HttpClient).scoped(),
-      [InterfaceMapping.ITaskRepository]: asClass(TaskRepository).scoped(),
+      httpClient: asClass(HttpClient).scoped(),
+      taskRepository: asClass(TaskRepository).scoped(),
       [InterfaceMapping.IListTasksUseCase]: asClass(ListTaskService).scoped(),
     })
+
+    // Verifique o registro para cada dependência
+    console.log('Container initialized and dependencies registered:')
+    console.log(this.container)
   }
 
   public static get<T>(type: string): T {

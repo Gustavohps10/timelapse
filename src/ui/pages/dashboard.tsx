@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+
 import { type ChartConfig } from '@/ui/components/ui/chart'
 
 interface ChartData {
@@ -14,6 +16,7 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function Dashboard() {
+  useEffect(() => {}, [])
   return <>TESTE</>
 }
 // export function Dashboard() {

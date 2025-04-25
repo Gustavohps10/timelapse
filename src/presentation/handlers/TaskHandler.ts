@@ -4,7 +4,7 @@ import { Either } from '@/cross-cutting/Either'
 import { IListTasksUseCase } from '@/domain/use-cases/IListTasksUseCase'
 import { DependencyInjection } from '@/Ioc/DependencyInjection'
 import { InterfaceMapping } from '@/Ioc/interface-mapping'
-import { IpcHandler } from '@/presentation/adapters/IpcHandler'
+import { IpcHandler } from '@/presentation/adapters/ipcHandler'
 import { ListTaskViewModel } from '@/presentation/view-models/ListTasksViewModel'
 
 export class TaskHandler {
