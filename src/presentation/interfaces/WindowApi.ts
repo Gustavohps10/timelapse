@@ -1,4 +1,4 @@
-import { Services } from '@/presentation/types'
+import { Services } from '@/presentation/interfaces'
 
 export interface WindowAPI {
   services: Services

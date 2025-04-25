@@ -1,7 +1,7 @@
 import { contextBridge } from 'electron'
 
+import { WindowAPI } from '@/presentation/interfaces/WindowApi'
 import { tasks } from '@/presentation/invokes'
-import { WindowAPI } from '@/presentation/types/WindowApi'
 
 const api: WindowAPI = {
   services: {

@@ -4,6 +4,7 @@
     "src/**/*"
   ],
   "compilerOptions": {
+    "typeRoots": ["./node_modules/@types", "./src/presentation/preload"],
     "emitDecoratorMetadata": true, 
     "experimentalDecorators": true,
     "composite": true,
