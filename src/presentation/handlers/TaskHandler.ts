@@ -3,8 +3,7 @@ import { AppError } from '@/cross-cutting/AppError'
 import { Either } from '@/cross-cutting/Either'
 import { IListTasksUseCase } from '@/domain/use-cases/IListTasksUseCase'
 import { DependencyInjection } from '@/Ioc/DependencyInjection'
-import { InterfaceMapping } from '@/Ioc/interface-mapping'
-import { IpcHandler } from '@/presentation/adapters/ipcHandler'
+import { IpcHandler } from '@/presentation/adapters/IpcHandler'
 import { ListTaskViewModel } from '@/presentation/view-models/ListTasksViewModel'
 
 export class TaskHandler {
@@ -15,9 +14,8 @@ export class TaskHandler {
     IpcHandler.handle<ListTaskViewModel>(
       'TASKS_LIST',
       async (_event): Promise<ListTaskViewModel> => {
-        const listTasksService = DependencyInjection.get<IListTasksUseCase>(
-          InterfaceMapping.IListTasksUseCase,
-        )
+        const listTasksService =
+          DependencyInjection.get<IListTasksUseCase>('listTaskService')
 
         const result: Either<AppError, TaskDTO[]> =
           await listTasksService.execute()
