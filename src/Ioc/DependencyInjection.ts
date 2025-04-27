@@ -1,9 +1,9 @@
 import { asClass, createContainer, InjectionMode } from 'awilix'
 
 import { HttpClient } from '@/adapters/http/HttpClient'
-import { TaskRepository } from '@/adapters/repositories/redmine/TaskRepository'
+import { TaskMutation } from '@/adapters/mutations/redmine/TaskMutation'
+import { TaskQuery } from '@/adapters/queries/redmine/TaskQuery'
 import { ListTaskService } from '@/application/services/ListTasksService'
-import { InterfaceMapping } from '@/Ioc/interface-mapping'
 
 export class DependencyInjection {
   private static container: ReturnType<typeof createContainer>
@@ -13,10 +13,12 @@ export class DependencyInjection {
       injectionMode: InjectionMode.CLASSIC,
     })
 
+    // Atencao ao registar uma nova dependencia, a propriedade deve conter o mesmo nome de quando for injedata
     this.container.register({
       httpClient: asClass(HttpClient).scoped(),
-      taskRepository: asClass(TaskRepository).scoped(),
-      [InterfaceMapping.IListTasksUseCase]: asClass(ListTaskService).scoped(),
+      taskQuery: asClass(TaskQuery).scoped(),
+      taskMutation: asClass(TaskMutation).scoped(),
+      listTaskService: asClass(ListTaskService).scoped(),
     })
 
     // Verifique o registro para cada dependência
