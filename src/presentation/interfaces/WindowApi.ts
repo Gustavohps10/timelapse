@@ -1,5 +1,5 @@
-import { Services } from '@/presentation/interfaces'
+import { IServices } from '@/presentation/interfaces'
 
 export interface WindowAPI {
-  services: Services
+  services: IServices
 }

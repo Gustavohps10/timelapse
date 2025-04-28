@@ -3,10 +3,10 @@ import { ipcRenderer } from 'electron'
 import { IpcChannels } from '@/presentation/constants/IpcChannels'
 
 export class IpcInvoker {
-  static invoke<R>(
+  static invoke<Req, Res>(
     channel: keyof typeof IpcChannels,
-    ...args: any[]
-  ): Promise<R> {
-    return ipcRenderer.invoke(channel, ...args)
+    payload?: Req,
+  ): Promise<Res> {
+    return ipcRenderer.invoke(channel, payload)
   }
 }

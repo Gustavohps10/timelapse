@@ -4,7 +4,7 @@ import { TaskDTO } from '@/application/dto/TaskDTO'
 import { AppError } from '@/cross-cutting/AppError'
 import { Either } from '@/cross-cutting/Either'
 
-export class TaskMutation implements ITaskMutation {
+export class RedmineTaskMutation implements ITaskMutation {
   constructor(private readonly httpClient: IHttpClient) {}
 
   async create(taskData: TaskDTO): Promise<Either<AppError, TaskDTO>> {
