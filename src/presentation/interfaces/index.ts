@@ -1,3 +1,3 @@
-export * from './Services'
-export * from './Tasks'
+export * from './IServices'
+export * from './ITasks'
 export * from './WindowApi'

@@ -4,8 +4,7 @@ import { DependencyInjection } from '@Ioc/DependencyInjection'
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 
-import { TaskHandler } from '@/presentation/handlers/TaskHandler'
-// import { registerHandlers } from '@/presentation/main/utils/handlers'
+import { AuthHandler, TaskHandler } from '@/presentation/handlers'
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -31,6 +30,7 @@ const createWindow = () => {
 app.whenReady().then(() => {
   DependencyInjection.initialize()
 
+  AuthHandler.register()
   TaskHandler.register()
 
   electronApp.setAppUserModelId('com.electron')

@@ -1,9 +1,12 @@
 import { asClass, createContainer, InjectionMode } from 'awilix'
 
 import { HttpClient } from '@/adapters/http/HttpClient'
-import { TaskMutation } from '@/adapters/mutations/redmine/TaskMutation'
-import { TaskQuery } from '@/adapters/queries/redmine/TaskQuery'
+import { RedmineTaskMutation } from '@/adapters/mutations/redmine/RedmineTaskMutation'
+import { RedmineMemberQuery } from '@/adapters/queries/redmine/RedmineMemberQuery'
+import { RedmineTaskQuery } from '@/adapters/queries/redmine/RedmineTaskQuery'
+import { AuthenticationService } from '@/application/services/AuthenticationService'
 import { ListTaskService } from '@/application/services/ListTasksService'
+import { RedmineAuthenticationStrategy } from '@/application/strategies/RedmineAuthenticationStrategy'
 
 export class DependencyInjection {
   private static container: ReturnType<typeof createContainer>
@@ -13,11 +16,14 @@ export class DependencyInjection {
       injectionMode: InjectionMode.CLASSIC,
     })
 
-    // Atencao ao registar uma nova dependencia, a propriedade deve conter o mesmo nome de quando for injedata
+    // Atencao ao registar uma nova propriedade, ela deve conter o mesmo nome do parametro de quem a usa como dependencia
     this.container.register({
       httpClient: asClass(HttpClient).scoped(),
-      taskQuery: asClass(TaskQuery).scoped(),
-      taskMutation: asClass(TaskMutation).scoped(),
+      taskQuery: asClass(RedmineTaskQuery).scoped(),
+      memberQuery: asClass(RedmineMemberQuery).scoped(),
+      taskMutation: asClass(RedmineTaskMutation).scoped(),
+      authenticationStrategy: asClass(RedmineAuthenticationStrategy).scoped(),
+      authenticationService: asClass(AuthenticationService).scoped(),
       listTaskService: asClass(ListTaskService).scoped(),
     })
 

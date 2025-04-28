@@ -1,31 +1,107 @@
 export class Member {
-  #id: string
-  #name: string
-  #email: string
+  #id: number
+  #login: string
+  #firstname: string
+  #lastname: string
+  #admin: boolean
+  #created_on: string
+  #last_login_on: string
+  #redmine_api_key: string
+  #custom_fields: { id: number; name: string; value: string }[]
 
-  constructor(name: string, email: string) {
-    this.#id = crypto.randomUUID()
-    this.#name = name
-    this.#email = email
+  // Construtor
+  constructor(
+    id: number,
+    login: string,
+    firstname: string,
+    lastname: string,
+    admin: boolean,
+    created_on: string,
+    last_login_on: string,
+    redmine_api_key: string,
+    custom_fields: { id: number; name: string; value: string }[],
+  ) {
+    this.#id = id
+    this.#login = login
+    this.#firstname = firstname
+    this.#lastname = lastname
+    this.#admin = admin
+    this.#created_on = created_on
+    this.#last_login_on = last_login_on
+    this.#redmine_api_key = redmine_api_key
+    this.#custom_fields = custom_fields
   }
 
-  get id(): string {
+  // Getters e Setters
+  get id(): number {
     return this.#id
   }
 
-  get name(): string {
-    return this.#name
+  set id(value: number) {
+    this.#id = value
   }
 
-  set name(newName: string) {
-    this.#name = newName
+  get login(): string {
+    return this.#login
   }
 
-  get email(): string {
-    return this.#email
+  set login(value: string) {
+    this.#login = value
   }
 
-  set email(newEmail: string) {
-    this.#email = newEmail
+  get firstname(): string {
+    return this.#firstname
+  }
+
+  set firstname(value: string) {
+    this.#firstname = value
+  }
+
+  get lastname(): string {
+    return this.#lastname
+  }
+
+  set lastname(value: string) {
+    this.#lastname = value
+  }
+
+  get admin(): boolean {
+    return this.#admin
+  }
+
+  set admin(value: boolean) {
+    this.#admin = value
+  }
+
+  get created_on(): string {
+    return this.#created_on
+  }
+
+  set created_on(value: string) {
+    this.#created_on = value
+  }
+
+  get last_login_on(): string {
+    return this.#last_login_on
+  }
+
+  set last_login_on(value: string) {
+    this.#last_login_on = value
+  }
+
+  get redmine_api_key(): string {
+    return this.#redmine_api_key
+  }
+
+  set redmine_api_key(value: string) {
+    this.#redmine_api_key = value
+  }
+
+  get custom_fields(): { id: number; name: string; value: string }[] {
+    return this.#custom_fields
+  }
+
+  set custom_fields(value: { id: number; name: string; value: string }[]) {
+    this.#custom_fields = value
   }
 }
