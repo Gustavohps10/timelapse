@@ -2,7 +2,7 @@ import { DependencyInjection } from '@Ioc/DependencyInjection'
 
 import { AuthenticationDTO } from '@/application/dto/AuthenticationDTO'
 import { IAuthenticationUseCase } from '@/domain/use-cases/IAuthenticationUseCase'
-import { IpcHandler } from '@/presentation/adapters/IpcHandler'
+import { IpcHandler } from '@/presentation/adapters/ipcHandler'
 import { AuthenticationViewModel } from '@/presentation/view-models/AuthenticationViewModel'
 import { ViewModel } from '@/presentation/view-models/ViewModel'
 
@@ -42,8 +42,7 @@ export class AuthHandler {
         }
 
         return {
-          isSuccess: true,
-          error: result.failure.messageKey,
+          isSuccess: result.isSuccess(),
           data: authenticationViewModel,
         }
       },

@@ -6,7 +6,7 @@ export interface IMemberQuery {
   //   create(taskData: TaskDTO): Promise<Either<AppError, TaskDTO>>
   findMeById(id: string): Promise<Either<AppError, MemberDTO>>
   findMeByCredentials(
-    email: string,
+    login: string,
     password: string,
   ): Promise<Either<AppError, MemberDTO>>
 }
