@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 
+import { client } from '@/ui/client/client'
 import { Button } from '@/ui/components/ui/button'
 import { Card, CardContent, CardTitle } from '@/ui/components/ui/card'
 import { Input } from '@/ui/components/ui/input'
@@ -38,7 +39,7 @@ export function Login() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: ({ username, password }: FormValues) =>
-      window.api.services.auth.login({ login: username, password }),
+      client.auth.login({ login: username, password }),
     onSettled: (data, error) => {
       console.log(data)
     },

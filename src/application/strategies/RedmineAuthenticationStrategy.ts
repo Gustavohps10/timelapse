@@ -13,16 +13,12 @@ export class RedmineAuthenticationStrategy implements IAuthenticationStrategy {
   ): Promise<Either<AppError, MemberDTO>> {
     const result = await this.memberQuery.findMeByCredentials(login, password)
 
-    if (result.isFailure()) return result
-
-    const member = result.success
-
-    if (!member) {
+    console.log(result)
+    if (result.isFailure())
       return Either.failure(
         new AppError('Não foi possivel autenticar com Redmine', undefined, 404),
       )
-    }
 
-    return Either.success(member)
+    return Either.success(result.success)
   }
 }
