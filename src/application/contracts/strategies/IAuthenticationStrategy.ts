@@ -4,7 +4,7 @@ import { Either } from '@/cross-cutting/Either'
 
 export interface IAuthenticationStrategy {
   authenticate(
-    email: string,
+    login: string,
     password: string,
   ): Promise<Either<AppError, MemberDTO>>
 }

@@ -3,7 +3,7 @@ import { AppError } from '@/cross-cutting/AppError'
 import { Either } from '@/cross-cutting/Either'
 import { IListTasksUseCase } from '@/domain/use-cases/IListTasksUseCase'
 import { DependencyInjection } from '@/Ioc/DependencyInjection'
-import { IpcHandler } from '@/presentation/adapters/IpcHandler'
+import { IpcHandler } from '@/presentation/adapters/ipcHandler'
 import { PaginatedViewModel } from '@/presentation/view-models/PaginatedViewModel'
 import { TaskViewModel } from '@/presentation/view-models/TaskViewModel'
 

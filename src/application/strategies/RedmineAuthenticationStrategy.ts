@@ -8,10 +8,10 @@ export class RedmineAuthenticationStrategy implements IAuthenticationStrategy {
   constructor(private readonly memberQuery: IMemberQuery) {}
 
   async authenticate(
-    email: string,
+    login: string,
     password: string,
   ): Promise<Either<AppError, MemberDTO>> {
-    const result = await this.memberQuery.findMeByCredentials(email, password)
+    const result = await this.memberQuery.findMeByCredentials(login, password)
 
     if (result.isFailure()) return result
 

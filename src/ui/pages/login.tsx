@@ -1,21 +1,21 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { Loader } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
-import { Label } from 'recharts'
 import { z } from 'zod'
 
-import { LoginRequest } from '@/presentation/main/api/current-user'
 import { Button } from '@/ui/components/ui/button'
 import { Card, CardContent, CardTitle } from '@/ui/components/ui/card'
 import { Input } from '@/ui/components/ui/input'
+import { Label } from '@/ui/components/ui/label'
 import { useAuth } from '@/ui/hooks/use-auth'
 
 const formSchema = z.object({
-  username: z.string(),
-  password: z.string(),
+  username: z.string().min(1, 'Username é obrigatório'),
+  password: z.string().min(1, 'Senha é obrigatória'),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -37,10 +37,10 @@ export function Login() {
   })
 
   const { mutate, isPending } = useMutation({
-    mutationFn: ({ username, password }: LoginRequest) =>
-      window.api.services.auth.login(username, password),
-    onSuccess: (data) => {
-      console.log(data.data?.member.api_key)
+    mutationFn: ({ username, password }: FormValues) =>
+      window.api.services.auth.login({ login: username, password }),
+    onSettled: (data, error) => {
+      console.log(data)
     },
     onError: (error: AxiosError) => {
       console.log('ERROR', error)
@@ -101,20 +101,4 @@ export function Login() {
       </Card>
     </div>
   )
-}
-function zodResolver(
-  formSchema: z.ZodObject<
-    { username: z.ZodString; password: z.ZodString },
-    'strip',
-    z.ZodTypeAny,
-    { username: string; password: string },
-    { username: string; password: string }
-  >,
-):
-  | import('react-hook-form').Resolver<
-      { username: string; password: string },
-      any
-    >
-  | undefined {
-  throw new Error('Function not implemented.')
 }
