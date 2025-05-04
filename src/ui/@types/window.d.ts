@@ -1,10 +1,10 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
-import { WindowAPI } from '@/presentation/interfaces/WindowApi'
+import { IWindowAPI } from '@/presentation/interfaces/IWindowApi'
 
 declare global {
   interface Window {
     electron: ElectronAPI
-    api: WindowAPI
+    api: IWindowAPI
   }
 }

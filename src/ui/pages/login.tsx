@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { AxiosError } from 'axios'
 import { Loader } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
@@ -39,12 +38,15 @@ export function Login() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: ({ username, password }: FormValues) =>
-      client.auth.login({ login: username, password }),
-    onSettled: (data, error) => {
-      console.log(data)
-    },
-    onError: (error: AxiosError) => {
-      console.log('ERROR', error)
+      client.services.auth.login({ login: username, password }),
+    onSettled: (response) => {
+      if (!response?.isSuccess || !response.data) {
+        console.log('Falha na autenticação', response?.error)
+        return
+      }
+
+      const { member } = response.data
+      login(member, member.api_key)
     },
   })
 

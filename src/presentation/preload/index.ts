@@ -1,12 +1,15 @@
 import { contextBridge } from 'electron'
 
 import { IWindowAPI } from '@/presentation/interfaces'
-import { auth, tasks } from '@/presentation/invokes'
+import { auth, tasks, tokenStorage } from '@/presentation/invokers'
 
 const api: IWindowAPI = {
   services: {
     tasks,
     auth,
+  },
+  modules: {
+    tokenStorage,
   },
 }
 

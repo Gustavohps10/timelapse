@@ -6,12 +6,13 @@ import React, {
   useState,
 } from 'react'
 
-import { User } from '../@types/User'
+import { MemberViewModel } from '@/presentation/view-models/MemberViewModel'
+import { client } from '@/ui/client/client'
 
 export interface AuthContextType {
   isAuthenticated: boolean
-  user: User | null
-  login: (key: string) => void
+  user: MemberViewModel | null
+  login: (user: MemberViewModel, token: string) => void
   logout: () => void
 }
 
@@ -23,52 +24,63 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<MemberViewModel | null>(null)
 
+  // Auto login se token estiver salvo
   useEffect(() => {
-    // window.api.keytar.getPassword('atask', 'userKey').then((key) => {
-    //   if (!key) {
-    //     setIsAuthenticated(false)
-    //     setUser(null)
-    //     return
-    //   }
-    //   window.api.redmine
-    //     .currentUser({ key })
-    //     .then((currentUserData) => {
-    //       setIsAuthenticated(true)
-    //       setUser(currentUserData.user)
-    //     })
-    //     .catch(() => {
-    //       setIsAuthenticated(false)
-    //       setUser(null)
-    //     })
-    // })
+    client.modules.tokenStorage
+      .getToken({ service: 'atask', account: 'userKey' })
+      .then((res) => {
+        if (!res.isSuccess || !res.data) {
+          setIsAuthenticated(false)
+          setUser(null)
+          return
+        }
+
+        // client.services.auth
+        //   .currentUser({ key: res.data })
+        //   .then((currentUserData) => {
+        //     setIsAuthenticated(true)
+        //     setUser(currentUserData.user)
+        //   })
+        //   .catch(() => {
+        //     setIsAuthenticated(false)
+        //     setUser(null)
+        //   })
+      })
   }, [])
 
-  const login = useCallback((key: string) => {
-    // window.api.keytar.deletePassword('atask', 'userKey').then(() => {
-    //   setIsAuthenticated(false)
-    //   setUser(null)
-    // })
-    // window.api.keytar.savePassword('atask', 'userKey', key).then(() => {
-    //   window.api.redmine
-    //     .currentUser({ key })
-    //     .then((currentUserData) => {
-    //       setIsAuthenticated(true)
-    //       setUser(currentUserData.user)
-    //     })
-    //     .catch(() => {
-    //       setIsAuthenticated(false)
-    //       setUser(null)
-    //     })
-    // })
+  // Login com user e token
+  const login = useCallback(async (user: MemberViewModel, token: string) => {
+    console.log('SALVANDO TOKEN')
+    console.log('TOKEN ', token)
+    console.log('USER ', user)
+
+    const response = await client.modules.tokenStorage.saveToken({
+      service: 'atask',
+      account: 'userKey',
+      token,
+    })
+
+    console.log(response)
+    if (!response.isSuccess) {
+      setIsAuthenticated(false)
+      setUser(null)
+      return
+    }
+
+    console.log('TRUE')
+    setIsAuthenticated(true)
+    setUser(user)
   }, [])
 
   const logout = useCallback(() => {
-    // window.api.keytar.deletePassword('atask', 'userKey').then(() => {
-    //   setIsAuthenticated(false)
-    //   setUser(null)
-    // })
+    client.modules.tokenStorage
+      .deleteToken({ service: 'atask', account: 'userKey' })
+      .then(() => {
+        setIsAuthenticated(false)
+        setUser(null)
+      })
   }, [])
 
   return (

@@ -17,7 +17,7 @@ const chartConfig = {
 
 export function Dashboard() {
   useEffect(() => {}, [])
-  return <>TESTE</>
+  return <>TESTE DASHBOARD LOGADA COM SUCESSo</>
 }
 // export function Dashboard() {
 //   const [chartData, setChartData] = useState<ChartData[]>([])
