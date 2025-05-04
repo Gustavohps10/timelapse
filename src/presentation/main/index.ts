@@ -5,6 +5,7 @@ import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 
 import { AuthHandler, TaskHandler } from '@/presentation/handlers'
+import { TokenHandler } from '@/presentation/handlers/TokenHandler'
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -32,6 +33,7 @@ app.whenReady().then(() => {
 
   AuthHandler.register()
   TaskHandler.register()
+  TokenHandler.register()
 
   electronApp.setAppUserModelId('com.electron')
   app.on('browser-window-created', (_, w) => optimizer.watchWindowShortcuts(w))

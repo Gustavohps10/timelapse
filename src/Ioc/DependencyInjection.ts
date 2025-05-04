@@ -4,6 +4,7 @@ import { HttpClient } from '@/adapters/http/HttpClient'
 import { RedmineTaskMutation } from '@/adapters/mutations/redmine/RedmineTaskMutation'
 import { RedmineMemberQuery } from '@/adapters/queries/redmine/RedmineMemberQuery'
 import { RedmineTaskQuery } from '@/adapters/queries/redmine/RedmineTaskQuery'
+import { KeytarTokenStorage } from '@/adapters/storage/LocalTokenStorage'
 import { AuthenticationService } from '@/application/services/AuthenticationService'
 import { ListTaskService } from '@/application/services/ListTasksService'
 import { RedmineAuthenticationStrategy } from '@/application/strategies/RedmineAuthenticationStrategy'
@@ -19,6 +20,7 @@ export class DependencyInjection {
     // Atencao ao registar uma nova propriedade, ela deve conter o mesmo nome do parametro de quem a usa como dependencia
     this.container.register({
       httpClient: asClass(HttpClient).scoped(),
+      tokenStorage: asClass(KeytarTokenStorage),
       taskQuery: asClass(RedmineTaskQuery).scoped(),
       memberQuery: asClass(RedmineMemberQuery).scoped(),
       taskMutation: asClass(RedmineTaskMutation).scoped(),
