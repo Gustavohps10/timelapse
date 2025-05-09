@@ -4,9 +4,11 @@ import { HttpClient } from '@/adapters/http/HttpClient'
 import { RedmineTaskMutation } from '@/adapters/mutations/redmine/RedmineTaskMutation'
 import { RedmineMemberQuery } from '@/adapters/queries/redmine/RedmineMemberQuery'
 import { RedmineTaskQuery } from '@/adapters/queries/redmine/RedmineTaskQuery'
-import { KeytarTokenStorage } from '@/adapters/storage/LocalTokenStorage'
+import { RedmineTimeEntryQuery } from '@/adapters/queries/redmine/RedmineTimeEntryQuery'
+import { KeytarTokenStorage } from '@/adapters/storage/KeytarTokenStorage'
 import { AuthenticationService } from '@/application/services/AuthenticationService'
 import { ListTaskService } from '@/application/services/ListTasksService'
+import { ListTimeEntriesService } from '@/application/services/ListTimeEntriesService'
 import { RedmineAuthenticationStrategy } from '@/application/strategies/RedmineAuthenticationStrategy'
 
 export class DependencyInjection {
@@ -24,9 +26,11 @@ export class DependencyInjection {
       taskQuery: asClass(RedmineTaskQuery).scoped(),
       memberQuery: asClass(RedmineMemberQuery).scoped(),
       taskMutation: asClass(RedmineTaskMutation).scoped(),
+      timeEntryQuery: asClass(RedmineTimeEntryQuery).scoped(),
       authenticationStrategy: asClass(RedmineAuthenticationStrategy).scoped(),
       authenticationService: asClass(AuthenticationService).scoped(),
-      listTaskService: asClass(ListTaskService).scoped(),
+      listTasksService: asClass(ListTaskService).scoped(),
+      listTimeEntriesService: asClass(ListTimeEntriesService).scoped(),
     })
 
     // Verifique o registro para cada dependência

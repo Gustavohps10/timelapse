@@ -2,7 +2,7 @@ import { DependencyInjection } from '@Ioc/DependencyInjection'
 
 import { AuthenticationDTO } from '@/application/dto/AuthenticationDTO'
 import { IAuthenticationUseCase } from '@/domain/use-cases/IAuthenticationUseCase'
-import { IpcHandler } from '@/presentation/adapters/ipcHandler'
+import { IpcHandler } from '@/presentation/adapters/IpcHandler'
 import { AuthenticationViewModel } from '@/presentation/view-models/AuthenticationViewModel'
 import { ViewModel } from '@/presentation/view-models/ViewModel'
 
