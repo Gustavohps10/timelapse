@@ -1,7 +1,7 @@
 import { DependencyInjection } from '@Ioc/DependencyInjection'
 
 import { ITokenStorage } from '@/application/contracts/storage/ITokenStorage'
-import { IpcHandler } from '@/presentation/adapters/ipcHandler'
+import { IpcHandler } from '@/presentation/adapters/IpcHandler'
 import { ViewModel } from '@/presentation/view-models/ViewModel'
 
 export interface TokenRequest {

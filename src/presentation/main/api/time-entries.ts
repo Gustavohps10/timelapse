@@ -27,8 +27,8 @@ export type TimeEntry = {
   hours: number
   comments: string
   spent_on: string
-  created_on: string
-  updated_on: string
+  created_at: string
+  updated_at: string
 }
 
 export type TimeEntriesResponse = {

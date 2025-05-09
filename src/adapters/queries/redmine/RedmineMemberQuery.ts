@@ -10,7 +10,7 @@ type RedmineUserResponse = {
 
 export class RedmineMemberQuery implements IMemberQuery {
   constructor(private readonly httpClient: IHttpClient) {
-    this.httpClient.configure('http://redmine.atakone.com.br')
+    this.httpClient.configure({ baseURL: 'http://redmine.atakone.com.br' })
   }
 
   public async findMeById(id: string): Promise<Either<AppError, MemberDTO>> {
