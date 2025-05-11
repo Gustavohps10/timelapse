@@ -4,18 +4,20 @@ import { MemberDTO } from '@/application/dto/MemberDTO'
 import { AppError } from '@/cross-cutting/AppError'
 import { Either } from '@/cross-cutting/Either'
 import { IAuthenticationUseCase } from '@/domain/use-cases/IAuthenticationUseCase'
+import { IJWTService } from '@/presentation/contracts/IJWTService'
 
 export class AuthenticationService implements IAuthenticationUseCase {
   constructor(
     private readonly authenticationStrategy: IAuthenticationStrategy,
+    private readonly jwtService: IJWTService,
   ) {}
 
   public async execute(
-    email: string,
+    login: string,
     password: string,
   ): Promise<Either<AppError, AuthenticationDTO>> {
     const memberResult = await this.authenticationStrategy.authenticate(
-      email,
+      login,
       password,
     )
 
@@ -23,9 +25,14 @@ export class AuthenticationService implements IAuthenticationUseCase {
 
     const member: MemberDTO = memberResult.success
 
+    const token = await this.jwtService.generateToken({
+      id: member.id.toString(),
+      name: member.lastname + ' ' + member.lastname,
+    })
+
     const authenticationDTO: AuthenticationDTO = {
       member,
-      token: 'GERANDO JWT RANDOM',
+      token,
     }
 
     return Either.success(authenticationDTO)

@@ -82,6 +82,7 @@ export function Dashboard() {
       'Qui',
       'Sex',
     ]
+
     const formattedWeekDays = weekDays.map((_, index) => {
       const dayDate = new Date(monday)
       dayDate.setDate(monday.getDate() + index)
@@ -94,9 +95,12 @@ export function Dashboard() {
 
     client.services.timeEntries
       .findByMemberId({
-        memberId: user.id.toString(),
-        startDate: monday,
-        endDate: friday,
+        body: {
+          memberId: user.id.toString(),
+          startDate: monday,
+          endDate: friday,
+        },
+        headers: { authorization: 'asdasd' },
       })
       .then((response) => {
         const timeEntries = response.data ?? []

@@ -45,8 +45,9 @@ export function Login() {
         return
       }
 
-      const { member } = response.data
-      login(member, member.api_key)
+      const { member, token } = response.data
+
+      login(member, token)
     },
   })
 

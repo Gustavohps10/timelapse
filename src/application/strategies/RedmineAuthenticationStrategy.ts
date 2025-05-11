@@ -1,4 +1,5 @@
 import { IMemberQuery } from '@/application/contracts/data/queries/IMemberQuery'
+import { ITokenStorage } from '@/application/contracts/storage/ITokenStorage'
 import { IAuthenticationStrategy } from '@/application/contracts/strategies/IAuthenticationStrategy'
 import { IUnitOfWork } from '@/application/contracts/workflow/IUnitOfWork'
 import { MemberDTO } from '@/application/dto/MemberDTO'
@@ -7,9 +8,11 @@ import { Either } from '@/cross-cutting/Either'
 
 export class RedmineAuthenticationStrategy implements IAuthenticationStrategy {
   private readonly memberQuery: IMemberQuery
+  private readonly tokenStorage: ITokenStorage
 
-  constructor(unitOfWork: IUnitOfWork) {
+  constructor(unitOfWork: IUnitOfWork, tokenStorage: ITokenStorage) {
     this.memberQuery = unitOfWork.memberQuery
+    this.tokenStorage = tokenStorage
   }
 
   async authenticate(
@@ -24,6 +27,11 @@ export class RedmineAuthenticationStrategy implements IAuthenticationStrategy {
       )
     }
 
-    return Either.success(result.success)
+    const member = result.success
+
+    const key = `redmine-key-${member.id}`
+    await this.tokenStorage.saveToken('atask', key, member.api_key)
+
+    return Either.success(member)
   }
 }

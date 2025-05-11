@@ -11,6 +11,12 @@ import { RedmineTimeEntryQuery } from '@/infra/data/queries/redmine/RedmineTimeE
 import { HttpClient } from '@/infra/http/HttpClient'
 import { KeytarTokenStorage } from '@/infra/storage/KeytarTokenStorage'
 import { UnitOfWork } from '@/infra/workflow/UnitOfWork'
+import {
+  AuthHandler,
+  TaskHandler,
+  TimeEntriesHandler,
+  TokenHandler,
+} from '@/presentation/handlers'
 
 export class DependencyInjection {
   private static container: ReturnType<typeof createContainer>
@@ -53,6 +59,14 @@ export class DependencyInjection {
     // Unit of Work
     this.container.register({
       unitOfWork: asClass(UnitOfWork).scoped(),
+    })
+
+    // Handlers
+    this.container.register({
+      authHandler: asClass(AuthHandler).scoped(),
+      taskHandler: asClass(TaskHandler).scoped(),
+      timeEntriesHandler: asClass(TimeEntriesHandler).scoped(),
+      tokenHandler: asClass(TokenHandler).scoped(),
     })
 
     console.log('Container initialized and dependencies registered:')
