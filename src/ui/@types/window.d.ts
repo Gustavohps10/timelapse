@@ -1,10 +1,10 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
-import { IWindowAPI } from '@/presentation/interfaces/IWindowApi'
+import { IWindowAPIInvoker } from '@/presentation/contracts/invokers/IWindowApiInvoker'
 
 declare global {
   interface Window {
     electron: ElectronAPI
-    api: IWindowAPI
+    api: IWindowAPIInvoker
   }
 }

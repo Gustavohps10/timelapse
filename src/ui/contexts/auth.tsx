@@ -28,55 +28,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Auto login se token estiver salvo
   useEffect(() => {
-    client.modules.tokenStorage
-      .getToken({ service: 'atask', account: 'userKey' })
-      .then((res) => {
-        if (!res.isSuccess || !res.data) {
-          setIsAuthenticated(false)
-          setUser(null)
-          return
-        }
-
-        // client.services.auth
-        //   .currentUser({ key: res.data })
-        //   .then((currentUserData) => {
-        //     setIsAuthenticated(true)
-        //     setUser(currentUserData.user)
-        //   })
-        //   .catch(() => {
-        //     setIsAuthenticated(false)
-        //     setUser(null)
-        //   })
-      })
+    // client.modules.tokenStorage
+    //   .getToken({ body: { service: 'atask', account: 'userKey' } })
+    //   .then((res) => {
+    //     if (!res.isSuccess || !res.data) {
+    //       setIsAuthenticated(false)
+    //       setUser(null)
+    //       return
+    //     }
+    //     // client.services.auth
+    //     //   .currentUser({ key: res.data })
+    //     //   .then((currentUserData) => {
+    //     //     setIsAuthenticated(true)
+    //     //     setUser(currentUserData.user)
+    //     //   })
+    //     //   .catch(() => {
+    //     //     setIsAuthenticated(false)
+    //     //     setUser(null)
+    //     //   })
+    //   })
   }, [])
 
   // Login com user e token
   const login = useCallback(async (user: MemberViewModel, token: string) => {
-    console.log('SALVANDO TOKEN')
-    console.log('TOKEN ', token)
-    console.log('USER ', user)
-
     const response = await client.modules.tokenStorage.saveToken({
-      service: 'atask',
-      account: 'userKey',
-      token,
+      body: {
+        service: 'atask',
+        account: 'jwt',
+        token,
+      },
     })
 
-    console.log(response)
     if (!response.isSuccess) {
       setIsAuthenticated(false)
       setUser(null)
       return
     }
 
-    console.log('TRUE')
+    client.setDefaultHeaders({
+      authorization: `Bearer ${token}`,
+    })
+
     setIsAuthenticated(true)
     setUser(user)
   }, [])
 
   const logout = useCallback(() => {
     client.modules.tokenStorage
-      .deleteToken({ service: 'atask', account: 'userKey' })
+      .deleteToken({ body: { service: 'atask', account: 'userKey' } })
       .then(() => {
         setIsAuthenticated(false)
         setUser(null)

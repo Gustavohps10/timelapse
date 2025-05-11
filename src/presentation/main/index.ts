@@ -4,9 +4,7 @@ import { DependencyInjection } from '@Ioc/DependencyInjection'
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 
-import { AuthHandler, TaskHandler } from '@/presentation/handlers'
-import { TimeEntriesHandler } from '@/presentation/handlers/TimeEntriesHandler'
-import { TokenHandler } from '@/presentation/handlers/TokenHandler'
+import { registerIpcRoutes } from '@/presentation/registerIpcRoutes'
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -31,11 +29,7 @@ const createWindow = () => {
 
 app.whenReady().then(() => {
   DependencyInjection.initialize()
-
-  AuthHandler.register()
-  TaskHandler.register()
-  TokenHandler.register()
-  TimeEntriesHandler.register()
+  registerIpcRoutes()
 
   electronApp.setAppUserModelId('com.electron')
   app.on('browser-window-created', (_, w) => optimizer.watchWindowShortcuts(w))

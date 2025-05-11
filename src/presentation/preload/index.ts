@@ -1,17 +1,36 @@
 import { contextBridge } from 'electron'
 
-import { IWindowAPI } from '@/presentation/interfaces'
-import { auth, tasks, timeEntries, tokenStorage } from '@/presentation/invokers'
+const defaultHeaders: Record<string, string> = {}
 
-const api: IWindowAPI = {
+import { IRequest } from '@/presentation/contracts/http'
+import { IWindowAPIInvoker } from '@/presentation/contracts/invokers'
+import {
+  authInvoker,
+  tasksInvoker,
+  timeEntriesInvoker,
+  tokenStorageInvoker,
+} from '@/presentation/invokers'
+
+const api: IWindowAPIInvoker = {
   services: {
-    tasks,
-    auth,
-    timeEntries,
+    tasks: tasksInvoker,
+    auth: authInvoker,
+    timeEntries: timeEntriesInvoker,
   },
   modules: {
-    tokenStorage,
+    tokenStorage: tokenStorageInvoker,
   },
+  requestInterceptor: async (requestOptions: IRequest<any>) => {
+    requestOptions.headers = {
+      ...defaultHeaders,
+      ...(requestOptions.headers ?? {}),
+    }
+    return requestOptions
+  },
+  setDefaultHeaders: (headers) => {
+    Object.assign(defaultHeaders, headers)
+  },
+  getDefaultHeaders: () => ({ ...defaultHeaders }),
 }
 
 if (process.contextIsolated) {
