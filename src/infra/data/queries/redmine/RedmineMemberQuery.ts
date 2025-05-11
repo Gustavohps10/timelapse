@@ -1,19 +1,35 @@
-import { IHttpClient } from '@/adapters/interfaces/IHttpClient'
-import { IMemberQuery } from '@/application/contracts/queries/IMemberQuery'
+import { IMemberQuery } from '@/application/contracts/data/queries/IMemberQuery'
 import { MemberDTO } from '@/application/dto/MemberDTO'
 import { AppError } from '@/cross-cutting/AppError'
 import { Either } from '@/cross-cutting/Either'
+import { IHttpClient } from '@/infra/contracts/IHttpClient'
+import { RedmineQueryBase } from '@/infra/data/queries/redmine/RedmineQueryBase'
 
 type RedmineUserResponse = {
   user: MemberDTO
 }
 
-export class RedmineMemberQuery implements IMemberQuery {
-  constructor(private readonly httpClient: IHttpClient) {
-    this.httpClient.configure({ baseURL: 'http://redmine.atakone.com.br' })
+export class RedmineMemberQuery
+  extends RedmineQueryBase
+  implements IMemberQuery
+{
+  constructor(httpClient: IHttpClient) {
+    super(httpClient)
   }
 
-  public async findMeById(id: string): Promise<Either<AppError, MemberDTO>> {
+  findMeById(id: string): Promise<Either<AppError, MemberDTO>> {
+    throw new Error('Method not implemented.')
+  }
+
+  findAll(): Promise<Either<AppError, MemberDTO[]>> {
+    throw new Error('Method not implemented.')
+  }
+
+  findById(id: string): Promise<Either<AppError, MemberDTO | null>> {
+    throw new Error('Method not implemented.')
+  }
+
+  exists(criteria: Partial<MemberDTO>): Promise<Either<AppError, boolean>> {
     throw new Error('Method not implemented.')
   }
 

@@ -1,9 +1,9 @@
-import { IHttpClient } from '@/adapters/interfaces/IHttpClient'
-import { ITimeEntryQuery } from '@/application/contracts/queries/ITimeEntryQuery'
-import { ITokenStorage } from '@/application/contracts/storage/ITokenStorage'
+import { ITimeEntryQuery } from '@/application/contracts/data/queries/ITimeEntryQuery'
 import { TimeEntryDTO } from '@/application/dto/TimeEntryDTO'
 import { AppError } from '@/cross-cutting/AppError'
 import { Either } from '@/cross-cutting/Either'
+import { IHttpClient } from '@/infra/contracts/IHttpClient'
+import { RedmineQueryBase } from '@/infra/data/queries/redmine/RedmineQueryBase'
 
 type RedmineTimeEntry = {
   id: number
@@ -25,24 +25,22 @@ type RedmineTimeEntriesResponse = {
   limit: number
 }
 
-export class RedmineTimeEntryQuery implements ITimeEntryQuery {
-  constructor(
-    private readonly httpClient: IHttpClient,
-    private readonly tokenStorage: ITokenStorage,
-  ) {
-    this.configureHttpClient()
+export class RedmineTimeEntryQuery
+  extends RedmineQueryBase
+  implements ITimeEntryQuery
+{
+  constructor(httpClient: IHttpClient) {
+    super(httpClient)
   }
 
-  private async configureHttpClient(): Promise<void> {
-    const token = await this.tokenStorage.getToken('atask', 'userKey')
-    if (!token) throw new Error('Token não encontrado')
-
-    this.httpClient.configure({
-      baseURL: 'http://redmine.atakone.com.br',
-      params: {
-        key: token,
-      },
-    })
+  findAll(): Promise<Either<AppError, TimeEntryDTO[]>> {
+    throw new Error('Method not implemented.')
+  }
+  findById(id: string): Promise<Either<AppError, TimeEntryDTO | null>> {
+    throw new Error('Method not implemented.')
+  }
+  exists(criteria: Partial<TimeEntryDTO>): Promise<Either<AppError, boolean>> {
+    throw new Error('Method not implemented.')
   }
 
   public async findByMemberId(
@@ -51,7 +49,7 @@ export class RedmineTimeEntryQuery implements ITimeEntryQuery {
     endDate: Date,
   ): Promise<Either<AppError, TimeEntryDTO[]>> {
     const response = await this.httpClient.get<RedmineTimeEntriesResponse>(
-      '/projects/faturamento_erp/time_entries.json?key',
+      '/projects/faturamento_erp/time_entries.json?key=e1b299175dc912db8c48431b8e4da2000fff0544',
       {
         params: {
           user_id: memberId,

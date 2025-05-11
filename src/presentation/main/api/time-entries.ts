@@ -1,4 +1,4 @@
-import { api } from '../../../adapters/http/axios.js'
+import { api } from '../../../infra/http/axios.js'
 
 export type TimeEntriesRequest = {
   key?: string
