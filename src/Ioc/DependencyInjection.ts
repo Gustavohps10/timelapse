@@ -1,15 +1,16 @@
 import { asClass, createContainer, InjectionMode } from 'awilix'
 
-import { HttpClient } from '@/adapters/http/HttpClient'
-import { RedmineTaskMutation } from '@/adapters/mutations/redmine/RedmineTaskMutation'
-import { RedmineMemberQuery } from '@/adapters/queries/redmine/RedmineMemberQuery'
-import { RedmineTaskQuery } from '@/adapters/queries/redmine/RedmineTaskQuery'
-import { RedmineTimeEntryQuery } from '@/adapters/queries/redmine/RedmineTimeEntryQuery'
-import { KeytarTokenStorage } from '@/adapters/storage/KeytarTokenStorage'
 import { AuthenticationService } from '@/application/services/AuthenticationService'
 import { ListTaskService } from '@/application/services/ListTasksService'
 import { ListTimeEntriesService } from '@/application/services/ListTimeEntriesService'
 import { RedmineAuthenticationStrategy } from '@/application/strategies/RedmineAuthenticationStrategy'
+import { RedmineTaskMutation } from '@/infra/data/mutations/redmine/RedmineTaskMutation'
+import { RedmineMemberQuery } from '@/infra/data/queries/redmine/RedmineMemberQuery'
+import { RedmineTaskQuery } from '@/infra/data/queries/redmine/RedmineTaskQuery'
+import { RedmineTimeEntryQuery } from '@/infra/data/queries/redmine/RedmineTimeEntryQuery'
+import { HttpClient } from '@/infra/http/HttpClient'
+import { KeytarTokenStorage } from '@/infra/storage/KeytarTokenStorage'
+import { UnitOfWork } from '@/infra/workflow/UnitOfWork'
 
 export class DependencyInjection {
   private static container: ReturnType<typeof createContainer>
@@ -19,21 +20,41 @@ export class DependencyInjection {
       injectionMode: InjectionMode.CLASSIC,
     })
 
-    // Atencao ao registar uma nova propriedade, ela deve conter o mesmo nome do parametro de quem a usa como dependencia
+    // Infrastructure
     this.container.register({
       httpClient: asClass(HttpClient).scoped(),
       tokenStorage: asClass(KeytarTokenStorage),
+    })
+
+    // Queries
+    this.container.register({
       taskQuery: asClass(RedmineTaskQuery).scoped(),
       memberQuery: asClass(RedmineMemberQuery).scoped(),
-      taskMutation: asClass(RedmineTaskMutation).scoped(),
       timeEntryQuery: asClass(RedmineTimeEntryQuery).scoped(),
+    })
+
+    // Mutations
+    this.container.register({
+      taskMutation: asClass(RedmineTaskMutation).scoped(),
+    })
+
+    // Strategies
+    this.container.register({
       authenticationStrategy: asClass(RedmineAuthenticationStrategy).scoped(),
+    })
+
+    // Services
+    this.container.register({
       authenticationService: asClass(AuthenticationService).scoped(),
       listTasksService: asClass(ListTaskService).scoped(),
       listTimeEntriesService: asClass(ListTimeEntriesService).scoped(),
     })
 
-    // Verifique o registro para cada dependência
+    // Unit of Work
+    this.container.register({
+      unitOfWork: asClass(UnitOfWork).scoped(),
+    })
+
     console.log('Container initialized and dependencies registered:')
     console.log(this.container)
   }

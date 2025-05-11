@@ -1,8 +1,8 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
 
-import { IHttpClient } from '@/adapters/interfaces/IHttpClient'
 import { AppError } from '@/cross-cutting/AppError'
 import { Either } from '@/cross-cutting/Either'
+import { IHttpClient } from '@/infra/contracts/IHttpClient'
 
 export class HttpClient implements IHttpClient {
   private axiosInstance!: AxiosInstance
