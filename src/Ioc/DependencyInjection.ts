@@ -4,6 +4,8 @@ import { AuthenticationService } from '@/application/services/AuthenticationServ
 import { ListTaskService } from '@/application/services/ListTasksService'
 import { ListTimeEntriesService } from '@/application/services/ListTimeEntriesService'
 import { RedmineAuthenticationStrategy } from '@/application/strategies/RedmineAuthenticationStrategy'
+import { SessionManager } from '@/application/workflow/SessionManager'
+import { JwtService } from '@/infra/auth/JWTService'
 import { RedmineTaskMutation } from '@/infra/data/mutations/redmine/RedmineTaskMutation'
 import { RedmineMemberQuery } from '@/infra/data/queries/redmine/RedmineMemberQuery'
 import { RedmineTaskQuery } from '@/infra/data/queries/redmine/RedmineTaskQuery'
@@ -28,8 +30,10 @@ export class DependencyInjection {
 
     // Infrastructure
     this.container.register({
+      unitOfWork: asClass(UnitOfWork).scoped(),
       httpClient: asClass(HttpClient).scoped(),
-      tokenStorage: asClass(KeytarTokenStorage),
+      tokenStorage: asClass(KeytarTokenStorage).scoped(),
+      jwtService: asClass(JwtService).scoped(),
     })
 
     // Queries
@@ -51,14 +55,10 @@ export class DependencyInjection {
 
     // Services
     this.container.register({
+      sessionManager: asClass(SessionManager).scoped(),
       authenticationService: asClass(AuthenticationService).scoped(),
       listTasksService: asClass(ListTaskService).scoped(),
       listTimeEntriesService: asClass(ListTimeEntriesService).scoped(),
-    })
-
-    // Unit of Work
-    this.container.register({
-      unitOfWork: asClass(UnitOfWork).scoped(),
     })
 
     // Handlers

@@ -1,4 +1,5 @@
 export * from './IAuthenticationInvoker'
+export * from './IHeadersInvoker'
 export * from './IModulesInvoker'
 export * from './IServicesInvoker'
 export * from './IServicesInvoker'

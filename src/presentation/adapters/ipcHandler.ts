@@ -29,10 +29,13 @@ export class IpcHandler {
         middlewaresOrHandler,
       )
       this.handle(channel, handlerWithMiddleware)
+      return
     }
 
-    if (typeof middlewaresOrHandler === 'function')
+    if (typeof middlewaresOrHandler === 'function') {
       this.handle(channel, middlewaresOrHandler)
+      return
+    }
 
     throw new Error('Invalid arguments for IpcHandler.register')
   }

@@ -1,4 +1,6 @@
 import { ITimeEntryQuery } from '@/application/contracts/data/queries/ITimeEntryQuery'
+import { ITokenStorage } from '@/application/contracts/storage/ITokenStorage'
+import { ISessionManager } from '@/application/contracts/workflow/ISessionManager'
 import { TimeEntryDTO } from '@/application/dto/TimeEntryDTO'
 import { AppError } from '@/cross-cutting/AppError'
 import { Either } from '@/cross-cutting/Either'
@@ -29,8 +31,12 @@ export class RedmineTimeEntryQuery
   extends RedmineQueryBase
   implements ITimeEntryQuery
 {
-  constructor(httpClient: IHttpClient) {
-    super(httpClient)
+  constructor(
+    httpClient: IHttpClient,
+    sessionManager: ISessionManager,
+    tokenStorage: ITokenStorage,
+  ) {
+    super(httpClient, sessionManager, tokenStorage)
   }
 
   findAll(): Promise<Either<AppError, TimeEntryDTO[]>> {
@@ -49,7 +55,7 @@ export class RedmineTimeEntryQuery
     endDate: Date,
   ): Promise<Either<AppError, TimeEntryDTO[]>> {
     const response = await this.httpClient.get<RedmineTimeEntriesResponse>(
-      '/projects/faturamento_erp/time_entries.json?key=e1b299175dc912db8c48431b8e4da2000fff0544',
+      '/projects/faturamento_erp/time_entries.json',
       {
         params: {
           user_id: memberId,

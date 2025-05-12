@@ -65,7 +65,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return
     }
 
-    client.setDefaultHeaders({
+    console.log(token)
+
+    client.modules.headers.setDefaultHeaders({
       authorization: `Bearer ${token}`,
     })
 

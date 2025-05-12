@@ -4,7 +4,7 @@ import { DependencyInjection } from '@Ioc/DependencyInjection'
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 
-import { registerIpcRoutes } from '@/presentation/registerIpcRoutes'
+import { registerIpcRoutes } from '@/presentation/routes/registerIpcRoutes'
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -15,6 +15,7 @@ const createWindow = () => {
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false,
+      contextIsolation: true,
     },
   })
 

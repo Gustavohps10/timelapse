@@ -1,4 +1,5 @@
 import { ITokenStorage } from '@/application/contracts/storage/ITokenStorage'
+import { IRequest } from '@/presentation/contracts/http'
 import { ViewModel } from '@/presentation/view-models/ViewModel'
 
 export interface TokenRequest {
@@ -12,7 +13,7 @@ export class TokenHandler {
 
   public async saveToken(
     _event: Electron.IpcMainInvokeEvent,
-    { service, account, token }: TokenRequest,
+    { body: { service, account, token } }: IRequest<TokenRequest>,
   ): Promise<ViewModel<void>> {
     try {
       if (!token) {

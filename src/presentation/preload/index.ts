@@ -1,15 +1,13 @@
-import { contextBridge } from 'electron'
-
-const defaultHeaders: Record<string, string> = {}
-
-import { IRequest } from '@/presentation/contracts/http'
 import { IWindowAPIInvoker } from '@/presentation/contracts/invokers'
 import {
   authInvoker,
+  headersInvoker,
   tasksInvoker,
   timeEntriesInvoker,
   tokenStorageInvoker,
 } from '@/presentation/invokers'
+
+const { contextBridge } = require('electron')
 
 const api: IWindowAPIInvoker = {
   services: {
@@ -18,29 +16,20 @@ const api: IWindowAPIInvoker = {
     timeEntries: timeEntriesInvoker,
   },
   modules: {
+    headers: headersInvoker,
     tokenStorage: tokenStorageInvoker,
   },
-  requestInterceptor: async (requestOptions: IRequest<any>) => {
-    requestOptions.headers = {
-      ...defaultHeaders,
-      ...(requestOptions.headers ?? {}),
-    }
-    return requestOptions
-  },
-  setDefaultHeaders: (headers) => {
-    Object.assign(defaultHeaders, headers)
-  },
-  getDefaultHeaders: () => ({ ...defaultHeaders }),
 }
 
 if (process.contextIsolated) {
   try {
+    console.log('Exposing API in isolated context')
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
-    console.error('Erro ao expor API:', error)
+    console.error('Error while exposing API:', error)
   }
 } else {
-  // Se o contexto não for isolado, defina diretamente
+  console.log('Exposing API directly in window')
   // @ts-ignore
   window.api = api
 }

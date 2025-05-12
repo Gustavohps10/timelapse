@@ -1,4 +1,6 @@
 import { IMemberQuery } from '@/application/contracts/data/queries/IMemberQuery'
+import { ITokenStorage } from '@/application/contracts/storage/ITokenStorage'
+import { ISessionManager } from '@/application/contracts/workflow/ISessionManager'
 import { MemberDTO } from '@/application/dto/MemberDTO'
 import { AppError } from '@/cross-cutting/AppError'
 import { Either } from '@/cross-cutting/Either'
@@ -13,8 +15,12 @@ export class RedmineMemberQuery
   extends RedmineQueryBase
   implements IMemberQuery
 {
-  constructor(httpClient: IHttpClient) {
-    super(httpClient)
+  constructor(
+    httpClient: IHttpClient,
+    sessionManager: ISessionManager,
+    tokenStorage: ITokenStorage,
+  ) {
+    super(httpClient, sessionManager, tokenStorage)
   }
 
   findMeById(id: string): Promise<Either<AppError, MemberDTO>> {
