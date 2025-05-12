@@ -7,6 +7,9 @@ export const IpcChannels = {
   DELETE_TOKEN: 'token:delete',
 
   LIST_TIME_ENTRIES: 'time-entries',
+
+  SET_HEADERS: 'set-headers',
+  GET_HEADERS: 'get-headers',
 } as const
 
 export type IpcChannelType = keyof typeof IpcChannels

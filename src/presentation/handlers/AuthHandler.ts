@@ -1,5 +1,6 @@
 import { AuthenticationDTO } from '@/application/dto/AuthenticationDTO'
 import { IAuthenticationUseCase } from '@/domain/use-cases/IAuthenticationUseCase'
+import { IRequest } from '@/presentation/contracts/http'
 import { AuthenticationViewModel } from '@/presentation/view-models/AuthenticationViewModel'
 import { ViewModel } from '@/presentation/view-models/ViewModel'
 
@@ -13,10 +14,11 @@ export class AuthHandler {
 
   public async login(
     _event: Electron.IpcMainInvokeEvent,
-    { login, password }: LoginRequest,
+    { body: { login, password } }: IRequest<LoginRequest>,
   ): Promise<ViewModel<AuthenticationViewModel>> {
     const result = await this.authenticationService.execute(login, password)
 
+    console.log(result)
     if (result.isFailure()) {
       return {
         isSuccess: false,
@@ -25,11 +27,11 @@ export class AuthHandler {
       }
     }
 
-    const { member, token, key }: AuthenticationDTO = result.success
+    const { member, token }: AuthenticationDTO = result.success
 
     return {
       isSuccess: true,
-      data: { member, token, key },
+      data: { member, token },
     }
   }
 }

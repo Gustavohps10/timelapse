@@ -1,6 +1,6 @@
 import { DependencyInjection } from '@Ioc/DependencyInjection'
 
-import { IUnitOfWork } from '@/application/contracts/workflow/IUnitOfWork'
+import { ISessionManager } from '@/application/contracts/workflow/ISessionManager'
 import { AppError } from '@/cross-cutting/AppError'
 import { Either } from '@/cross-cutting/Either'
 import { IRequest } from '@/presentation/contracts/http'
@@ -11,8 +11,9 @@ export async function ensureAuthenticatedMiddleware<TReq, TRes>(
   request: IRequest<TReq>,
   next: () => Promise<Either<AppError, TRes>>,
 ): Promise<Either<AppError, TRes>> {
-  const unitOfWork = DependencyInjection.get<IUnitOfWork>('unitOfWork')
   const jwtService = DependencyInjection.get<IJWTService>('jwtService')
+  const sessionManager =
+    DependencyInjection.get<ISessionManager>('sessionManager')
 
   const authToken = request.headers?.authorization?.split(' ')[1]
 
@@ -26,11 +27,11 @@ export async function ensureAuthenticatedMiddleware<TReq, TRes>(
 
   const { id, name } = payload
 
-  unitOfWork.sessionUser = {
+  sessionManager.setCurrentUser({
     id,
     name,
     role: 'admin',
-  }
+  })
 
   return next()
 }

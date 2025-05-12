@@ -7,9 +7,7 @@ export const WindowClient: IWindowAPIInvoker = {
     timeEntries: window.api.services.timeEntries,
   },
   modules: {
+    headers: window.api.modules.headers,
     tokenStorage: window.api.modules.tokenStorage,
   },
-  requestInterceptor: window.api.requestInterceptor,
-  setDefaultHeaders: window.api.setDefaultHeaders,
-  getDefaultHeaders: window.api.getDefaultHeaders,
 }

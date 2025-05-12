@@ -1,5 +1,5 @@
 import { ITokenStorage } from '@/application/contracts/storage/ITokenStorage'
-import { IUnitOfWork } from '@/application/contracts/workflow/IUnitOfWork'
+import { ISessionManager } from '@/application/contracts/workflow/ISessionManager'
 import { IHttpClient } from '@/infra/contracts/IHttpClient'
 
 export abstract class RedmineQueryBase {
@@ -8,14 +8,14 @@ export abstract class RedmineQueryBase {
 
   constructor(
     protected readonly httpClient: IHttpClient,
-    protected readonly unitOfWork: IUnitOfWork,
+    protected readonly sessionManager: ISessionManager,
     protected readonly tokenStorage: ITokenStorage,
   ) {
     this.configureHttpClient()
   }
 
   private async configureHttpClient(): Promise<void> {
-    const user = this.unitOfWork.sessionUser
+    const user = this.sessionManager.getCurrentUser()
     const storageKey = `redmine-key-${user?.id}`
 
     const key = await this.tokenStorage.getToken('atask', storageKey)
