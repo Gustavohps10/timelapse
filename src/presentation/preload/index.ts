@@ -23,13 +23,11 @@ const api: IWindowAPIInvoker = {
 
 if (process.contextIsolated) {
   try {
-    console.log('Exposing API in isolated context')
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
     console.error('Error while exposing API:', error)
   }
 } else {
-  console.log('Exposing API directly in window')
   // @ts-ignore
   window.api = api
 }

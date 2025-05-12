@@ -54,6 +54,8 @@ export class RedmineTimeEntryQuery
     startDate: Date,
     endDate: Date,
   ): Promise<Either<AppError, TimeEntryDTO[]>> {
+    this.configureHttpClient()
+
     const response = await this.httpClient.get<RedmineTimeEntriesResponse>(
       '/projects/faturamento_erp/time_entries.json',
       {

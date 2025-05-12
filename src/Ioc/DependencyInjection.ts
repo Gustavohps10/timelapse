@@ -22,6 +22,7 @@ import {
 
 export class DependencyInjection {
   private static container: ReturnType<typeof createContainer>
+  private static currentScope: ReturnType<typeof createContainer> | null = null
 
   public static initialize(): void {
     this.container = createContainer({
@@ -71,6 +72,17 @@ export class DependencyInjection {
 
     console.log('Container initialized and dependencies registered:')
     console.log(this.container)
+  }
+
+  public static createOrGetScope(): ReturnType<typeof createContainer> {
+    if (!this.currentScope) {
+      this.currentScope = this.container.createScope()
+    }
+    return this.currentScope
+  }
+
+  public static clearScope(): void {
+    this.currentScope = null
   }
 
   public static get<T>(type: string): T {

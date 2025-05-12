@@ -27,7 +27,7 @@ export class AuthenticationService implements IAuthenticationUseCase {
 
     const token = await this.jwtService.generateToken({
       id: member.id.toString(),
-      name: member.lastname + ' ' + member.lastname,
+      name: member.firstname + ' ' + member.lastname,
     })
 
     const authenticationDTO: AuthenticationDTO = {

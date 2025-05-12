@@ -14,25 +14,26 @@ export abstract class RedmineQueryBase {
     this.configureHttpClient()
   }
 
-  private async configureHttpClient(): Promise<void> {
+  protected async configureHttpClient(): Promise<void> {
     const user = this.sessionManager.getCurrentUser()
-    const storageKey = `redmine-key-${user?.id}`
-    console.log('USUARIO: ', user)
 
-    const key = await this.tokenStorage.getToken('atask', storageKey)
-
-    if (!key) {
+    if (!user) {
       this.httpClient.configure({
         baseURL: this.baseURL,
       })
       return
     }
 
+    const storageKey = `redmine-key-${user.id}`
+    const key = await this.tokenStorage.getToken('atask', storageKey)
+
+    const params: Record<string, string> = {}
+
+    if (key) params.key = key
+
     this.httpClient.configure({
       baseURL: this.baseURL,
-      params: {
-        key,
-      },
+      params,
     })
   }
 }

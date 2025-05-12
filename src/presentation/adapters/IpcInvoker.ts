@@ -13,7 +13,6 @@ export class IpcInvoker {
     const request = payload ?? ({ body: {} } as IRequest<any>)
     const updatedRequest = await this.requestInterceptor(request)
 
-    console.log('INVOKER: ', channel, updatedRequest)
     return ipcRenderer.invoke(channel, updatedRequest)
   }
 
