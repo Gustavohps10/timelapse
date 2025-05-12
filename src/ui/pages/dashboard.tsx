@@ -100,7 +100,6 @@ export function Dashboard() {
           startDate: monday,
           endDate: friday,
         },
-        headers: { authorization: 'asdasd' },
       })
       .then((response) => {
         const timeEntries = response.data ?? []

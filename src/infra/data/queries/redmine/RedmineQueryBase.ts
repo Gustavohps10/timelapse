@@ -17,6 +17,7 @@ export abstract class RedmineQueryBase {
   private async configureHttpClient(): Promise<void> {
     const user = this.sessionManager.getCurrentUser()
     const storageKey = `redmine-key-${user?.id}`
+    console.log('USUARIO: ', user)
 
     const key = await this.tokenStorage.getToken('atask', storageKey)
 
