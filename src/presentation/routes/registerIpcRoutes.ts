@@ -5,42 +5,58 @@ import { AuthHandler } from '@/presentation/handlers/AuthHandler'
 import { TaskHandler } from '@/presentation/handlers/TaskHandler'
 import { TimeEntriesHandler } from '@/presentation/handlers/TimeEntriesHandler'
 import { TokenHandler } from '@/presentation/handlers/TokenHandler'
-import { ensureAuthenticatedMiddleware } from '@/presentation/middlewares/ensureAuthenticatedMiddleware'
+import { ensureAuthenticated } from '@/presentation/middlewares/ensureAuthenticated'
 
 export function registerIpcRoutes(): void {
-  const tokenHandler = DependencyInjection.get<TokenHandler>('tokenHandler')
-  const authHandler = DependencyInjection.get<AuthHandler>('authHandler')
-  const taskHandler = DependencyInjection.get<TaskHandler>('taskHandler')
-  const timeEntriesHandler =
-    DependencyInjection.get<TimeEntriesHandler>('timeEntriesHandler')
+  /*
+   * TOKEN
+   */
+  IpcHandler.register('SAVE_TOKEN', async (...args) => {
+    const scoped = DependencyInjection.createOrGetScope()
+    const handler = scoped.resolve<TokenHandler>('tokenHandler')
+    return handler.saveToken(...args)
+  })
+
+  IpcHandler.register('GET_TOKEN', async (...args) => {
+    const scoped = DependencyInjection.createOrGetScope()
+    const handler = scoped.resolve<TokenHandler>('tokenHandler')
+    return handler.getToken(...args)
+  })
+
+  IpcHandler.register('DELETE_TOKEN', async (...args) => {
+    const scoped = DependencyInjection.createOrGetScope()
+    const handler = scoped.resolve<TokenHandler>('tokenHandler')
+    return handler.deleteToken(...args)
+  })
 
   /*
-  TOKEN
-  */
-  IpcHandler.handle('SAVE_TOKEN', tokenHandler.saveToken.bind(tokenHandler))
-  IpcHandler.handle('GET_TOKEN', tokenHandler.getToken.bind(tokenHandler))
-  IpcHandler.handle('DELETE_TOKEN', tokenHandler.deleteToken.bind(tokenHandler))
+   * AUTH
+   */
+  IpcHandler.register('LOGIN', async (...args) => {
+    const scoped = DependencyInjection.createOrGetScope()
+    const handler = scoped.resolve<AuthHandler>('authHandler')
+    return handler.login(...args)
+  })
 
   /*
-  AUTH
-  */
-  IpcHandler.handle('LOGIN', authHandler.login.bind(authHandler))
+   * TASK
+   */
+  IpcHandler.register('TASKS_LIST', [ensureAuthenticated], async (...args) => {
+    const scoped = DependencyInjection.createOrGetScope()
+    const handler = scoped.resolve<TaskHandler>('taskHandler')
+    return handler.listTasks(...args)
+  })
 
   /*
-  TASK
-  */
-  IpcHandler.register(
-    'TASKS_LIST',
-    [ensureAuthenticatedMiddleware],
-    taskHandler.listTasks.bind(taskHandler),
-  )
-
-  /*
-  TIME_ENTRIES
-  */
+   * TIME_ENTRIES
+   */
   IpcHandler.register(
     'LIST_TIME_ENTRIES',
-    [ensureAuthenticatedMiddleware],
-    timeEntriesHandler.listTimeEntries.bind(timeEntriesHandler),
+    [ensureAuthenticated],
+    async (...args) => {
+      const scoped = DependencyInjection.createOrGetScope()
+      const handler = scoped.resolve<TimeEntriesHandler>('timeEntriesHandler')
+      return handler.listTimeEntries(...args)
+    },
   )
 }

@@ -12,7 +12,11 @@ export class KeytarTokenStorage implements ITokenStorage {
   }
 
   async getToken(service: string, account: string): Promise<string | null> {
-    return keytar.getPassword(service, account)
+    try {
+      return keytar.getPassword(service, account)
+    } catch {
+      return null
+    }
   }
 
   async deleteToken(service: string, account: string): Promise<void> {

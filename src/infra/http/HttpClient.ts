@@ -5,10 +5,14 @@ import { Either } from '@/cross-cutting/Either'
 import { IHttpClient } from '@/infra/contracts/IHttpClient'
 
 export class HttpClient implements IHttpClient {
-  private axiosInstance!: AxiosInstance
+  private axiosInstance: AxiosInstance
   private defaultParams: Record<string, string> = {}
 
-  configure(config: {
+  constructor() {
+    this.axiosInstance = axios.create()
+  }
+
+  public configure(config: {
     baseURL: string
     params?: Record<string, string>
   }): void {

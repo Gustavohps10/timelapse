@@ -6,14 +6,15 @@ import { Either } from '@/cross-cutting/Either'
 import { IRequest } from '@/presentation/contracts/http'
 import { IJWTService } from '@/presentation/contracts/IJWTService'
 
-export async function ensureAuthenticatedMiddleware<TReq, TRes>(
+export async function ensureAuthenticated<TReq, TRes>(
   _: Electron.IpcMainInvokeEvent,
   request: IRequest<TReq>,
   next: () => Promise<Either<AppError, TRes>>,
 ): Promise<Either<AppError, TRes>> {
-  const jwtService = DependencyInjection.get<IJWTService>('jwtService')
-  const sessionManager =
-    DependencyInjection.get<ISessionManager>('sessionManager')
+  const scope = DependencyInjection.createOrGetScope()
+
+  const jwtService = scope.resolve<IJWTService>('jwtService')
+  const sessionManager = scope.resolve<ISessionManager>('sessionManager')
 
   const authToken = request.headers?.authorization?.split(' ')[1]
 

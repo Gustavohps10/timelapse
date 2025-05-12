@@ -38,8 +38,6 @@ export function Dashboard() {
   const [chartData, setChartData] = useState<ChartData[]>([])
   const { user } = useAuth()
 
-  console.log(user, 'USUARIO')
-
   function CustomizedTick(props) {
     const { x, y, payload } = props
     const index = payload.index // Índice do dado atual
@@ -90,8 +88,6 @@ export function Dashboard() {
     })
 
     if (!user) return
-
-    console.log(user, monday, friday)
 
     client.services.timeEntries
       .findByMemberId({

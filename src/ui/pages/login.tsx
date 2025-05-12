@@ -41,7 +41,7 @@ export function Login() {
       client.services.auth.login({ body: { login: username, password } }),
     onSettled: (response) => {
       if (!response?.isSuccess || !response.data) {
-        console.log('Falha na autenticação', response?.error)
+        console.log('Falha na autenticação EXIBIR EM TELA', response?.error)
         return
       }
 

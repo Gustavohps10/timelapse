@@ -18,7 +18,6 @@ export class AuthHandler {
   ): Promise<ViewModel<AuthenticationViewModel>> {
     const result = await this.authenticationService.execute(login, password)
 
-    console.log(result)
     if (result.isFailure()) {
       return {
         isSuccess: false,
