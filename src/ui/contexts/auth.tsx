@@ -28,25 +28,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Auto login se token estiver salvo
   useEffect(() => {
-    // client.modules.tokenStorage
-    //   .getToken({ body: { service: 'atask', account: 'userKey' } })
-    //   .then((res) => {
-    //     if (!res.isSuccess || !res.data) {
-    //       setIsAuthenticated(false)
-    //       setUser(null)
-    //       return
-    //     }
-    //     // client.services.auth
-    //     //   .currentUser({ key: res.data })
-    //     //   .then((currentUserData) => {
-    //     //     setIsAuthenticated(true)
-    //     //     setUser(currentUserData.user)
-    //     //   })
-    //     //   .catch(() => {
-    //     //     setIsAuthenticated(false)
-    //     //     setUser(null)
-    //     //   })
-    //   })
+    const autoLogin = async () => {
+      console.log('TOKEN JA EXISTENTE')
+      const res = await client.modules.tokenStorage.getToken({
+        body: { service: 'atask', account: 'jwt' },
+      })
+
+      console.log('TOKEN JA EXISTENTE', res)
+
+      if (!res.isSuccess || !res.data) {
+        setIsAuthenticated(false)
+        setUser(null)
+        return
+      }
+
+      client.modules.headers.setDefaultHeaders({
+        authorization: `Bearer ${res.data}`,
+      })
+
+      setIsAuthenticated(true)
+      setUser({
+        id: 230,
+        admin: false,
+        firstname: 'JOAOZINHO',
+        lastname: 'LOGADO',
+        last_login_on: '2025-04-05',
+        api_key: '123123',
+        created_on: '2025-04-05',
+        custom_fields: [],
+        login: 'usuario.que.ja.esta.logado',
+      }) // TODO: Pegar os dados reais do token futuramente
+    }
+
+    autoLogin()
   }, [])
 
   // Login com user e token
@@ -65,8 +79,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return
     }
 
-    console.log(token)
-
     client.modules.headers.setDefaultHeaders({
       authorization: `Bearer ${token}`,
     })
@@ -75,13 +87,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(user)
   }, [])
 
-  const logout = useCallback(() => {
-    client.modules.tokenStorage
-      .deleteToken({ body: { service: 'atask', account: 'userKey' } })
-      .then(() => {
-        setIsAuthenticated(false)
-        setUser(null)
-      })
+  // Logout
+  const logout = useCallback(async () => {
+    await client.modules.tokenStorage.deleteToken({
+      body: { service: 'atask', account: 'jwt' },
+    })
+    setIsAuthenticated(false)
+    setUser(null)
   }, [])
 
   return (

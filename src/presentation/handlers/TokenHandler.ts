@@ -41,10 +41,13 @@ export class TokenHandler {
 
   public async getToken(
     _event: Electron.IpcMainInvokeEvent,
-    { service, account }: TokenRequest,
+    { body: { service, account } }: IRequest<TokenRequest>,
   ): Promise<ViewModel<string | null>> {
     try {
       const token = await this.tokenStorage.getToken(service, account)
+
+      console.log(service, account)
+      console.log(token)
 
       return {
         isSuccess: true,
@@ -61,7 +64,7 @@ export class TokenHandler {
 
   public async deleteToken(
     _event: Electron.IpcMainInvokeEvent,
-    { service, account }: TokenRequest,
+    { body: { service, account } }: IRequest<TokenRequest>,
   ): Promise<ViewModel<void>> {
     try {
       await this.tokenStorage.deleteToken(service, account)
