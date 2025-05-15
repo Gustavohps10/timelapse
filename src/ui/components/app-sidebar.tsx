@@ -37,7 +37,7 @@ import {
 
 const mainItems = [
   { title: 'Dashboard', url: '/', icon: ChartLine },
-  { title: 'Temporizador', url: '/timer', icon: Timer },
+  { title: 'Apontamento', url: '/time-entries', icon: Timer },
   { title: 'Documentação', url: '/docs', icon: FileText },
 ]
 
