@@ -43,9 +43,10 @@ export class RedmineMemberQuery
     login: string,
     password: string,
   ): Promise<Either<AppError, MemberDTO>> {
+    const client = await this.getConfiguredHttpClient()
     const base64 = Buffer.from(`${login}:${password}`).toString('base64')
 
-    const response = await this.httpClient.get<RedmineUserResponse>(
+    const response = await client.get<RedmineUserResponse>(
       '/users/current.json',
       {
         headers: {

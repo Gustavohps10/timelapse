@@ -4,17 +4,25 @@ import { IHttpClient } from '@/infra/contracts/IHttpClient'
 
 export abstract class RedmineQueryBase {
   protected readonly baseURL = 'http://redmine.atakone.com.br'
-  protected userKey?: string = undefined
+  private isConfigured = false
 
   constructor(
-    protected readonly httpClient: IHttpClient,
+    private readonly httpClient: IHttpClient,
     protected readonly sessionManager: ISessionManager,
     protected readonly tokenStorage: ITokenStorage,
-  ) {
-    this.configureHttpClient()
+  ) {}
+
+  // Método para garantir configuração do client antes do uso
+  protected async getConfiguredHttpClient(): Promise<IHttpClient> {
+    if (!this.isConfigured) {
+      await this.configureHttpClient()
+      this.isConfigured = true
+    }
+    return this.httpClient
   }
 
-  protected async configureHttpClient(): Promise<void> {
+  private async configureHttpClient(): Promise<void> {
+    console.log('------- CONFIGURANDO HTTP CLIENT')
     const user = this.sessionManager.getCurrentUser()
 
     if (!user) {
