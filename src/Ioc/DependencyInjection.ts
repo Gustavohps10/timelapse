@@ -32,7 +32,7 @@ export class DependencyInjection {
     // Infrastructure
     this.container.register({
       unitOfWork: asClass(UnitOfWork).scoped(),
-      httpClient: asClass(HttpClient).scoped(),
+      httpClient: asClass(HttpClient).transient(),
       tokenStorage: asClass(KeytarTokenStorage).scoped(),
       jwtService: asClass(JwtService).scoped(),
     })

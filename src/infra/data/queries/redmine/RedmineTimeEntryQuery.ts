@@ -42,9 +42,11 @@ export class RedmineTimeEntryQuery
   findAll(): Promise<Either<AppError, TimeEntryDTO[]>> {
     throw new Error('Method not implemented.')
   }
+
   findById(id: string): Promise<Either<AppError, TimeEntryDTO | null>> {
     throw new Error('Method not implemented.')
   }
+
   exists(criteria: Partial<TimeEntryDTO>): Promise<Either<AppError, boolean>> {
     throw new Error('Method not implemented.')
   }
@@ -54,9 +56,9 @@ export class RedmineTimeEntryQuery
     startDate: Date,
     endDate: Date,
   ): Promise<Either<AppError, TimeEntryDTO[]>> {
-    this.configureHttpClient()
+    const client = await this.getConfiguredHttpClient()
 
-    const response = await this.httpClient.get<RedmineTimeEntriesResponse>(
+    const response = await client.get<RedmineTimeEntriesResponse>(
       '/projects/faturamento_erp/time_entries.json',
       {
         params: {
@@ -68,15 +70,7 @@ export class RedmineTimeEntryQuery
       },
     )
 
-    if (response.isFailure()) {
-      return Either.failure(
-        new AppError(
-          'Erro ao buscar lançamentos no Redmine',
-          response.failure?.details,
-          500,
-        ),
-      )
-    }
+    if (response.isFailure()) return Either.failure(response.failure)
 
     const entries = response.success.time_entries.map<TimeEntryDTO>(
       (entry) => ({
