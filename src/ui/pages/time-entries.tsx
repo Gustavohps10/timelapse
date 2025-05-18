@@ -14,6 +14,7 @@ import {
   Hash,
   LifeBuoy,
   Palette,
+  Pin,
   Play,
   SearchCode,
   Settings,
@@ -78,42 +79,55 @@ export function TimeEntries() {
 
   return (
     <Card className="space-y-4 p-4">
-      <div className="flex items-center gap-2">
-        <div className="flex items-stretch">
-          <div className="border-input flex w-10 items-center justify-center rounded-l-md border">
-            <Hash size={16} />
+      <div className="flex items-stretch gap-2">
+        {/* Coluna esquerda com inputs */}
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-stretch">
+              <div className="border-input flex w-10 items-center justify-center rounded-l-md border">
+                <Hash size={16} />
+              </div>
+              <Input placeholder="Ticket" className="w-24 rounded-l-none" />
+            </div>
+
+            <Select>
+              <SelectTrigger className="w-3xs cursor-pointer">
+                <SelectValue placeholder="Atividade" />
+              </SelectTrigger>
+              <SelectContent>
+                {items.map(({ value, label, icon: IconComponent }) => (
+                  <SelectItem
+                    key={value}
+                    value={value}
+                    className="cursor-pointer"
+                  >
+                    {!!IconComponent && <IconComponent size={16} />}
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Input placeholder="Ticket" className="rounded-l-none" />
+
+          <Input placeholder="Descrição" className="w-full" />
         </div>
 
-        <Select>
-          <SelectTrigger className="w-3xs cursor-pointer">
-            <SelectValue placeholder="Atividade" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectContent>
-              {items.map(({ value, label, icon: IconComponent }) => (
-                <SelectItem
-                  key={value}
-                  value={value}
-                  className="cursor-pointer"
-                >
-                  {!!IconComponent && <IconComponent size={16} />}
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
+            <Button className="rounded-xl">
+              Iniciar <Play />
+            </Button>
 
-        <Button className="rounded-xl">
-          <Play />
-        </Button>
+            <Button variant="secondary" className="rounded-xl">
+              Marcar <Pin />
+            </Button>
+          </div>
 
-        <div className="flex w-40 items-center justify-center rounded-md border p-2">
-          <span className="mt-1 scroll-m-20 font-mono text-4xl leading-tight font-bold tracking-tighter text-zinc-800 dark:text-zinc-300">
-            00:00
-          </span>
+          <div className="flex h-full w-40 items-center justify-center rounded-md border p-2">
+            <span className="mt-1 scroll-m-20 font-mono text-4xl leading-tight font-bold tracking-tighter text-zinc-800 dark:text-zinc-300">
+              00:00
+            </span>
+          </div>
         </div>
       </div>
 
@@ -147,6 +161,8 @@ export function TimeEntries() {
           <DataTable columns={columns} data={timeEntries} />
         </div>
       </div>
+
+      <Button>Lancar Horas</Button>
     </Card>
   )
 }

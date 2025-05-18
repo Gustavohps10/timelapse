@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 
 import { client } from '@/ui/client/client'
-import { Button } from '@/ui/components/ui/button'
 import {
   Card,
   CardContent,
@@ -208,7 +207,6 @@ export function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      <Button className="cursor-pointer">Novo Apontamento</Button>
     </>
   )
 }
