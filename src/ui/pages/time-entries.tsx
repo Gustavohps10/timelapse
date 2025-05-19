@@ -22,13 +22,14 @@ import {
   Users,
   Wrench,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 
 import { columns, Row } from '@/ui/components/time-entries-table/columns'
 import {
   DataTable,
   TimeEntry,
 } from '@/ui/components/time-entries-table/data-table'
+import { Timer } from '@/ui/components/timer'
 import { Button } from '@/ui/components/ui/button'
 import { Calendar } from '@/ui/components/ui/calendar'
 import { Card } from '@/ui/components/ui/card'
@@ -45,6 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/ui/components/ui/select'
+import { TimeEntriesContext } from '@/ui/contexts/TimeEntriesContext'
 
 const items = [
   { value: '-', label: '--- Selecione ---', icon: null },
@@ -162,11 +164,12 @@ const groupedEntries = groupByIssue(timeEntries)
 
 export function TimeEntries() {
   const [date, setDate] = useState<Date | undefined>(new Date())
+  const { activeTimeEntry, createNewTimeEntry, interruptCurrentTimeEntry } =
+    useContext(TimeEntriesContext)
 
   return (
     <Card className="space-y-4 p-4">
       <div className="container mx-auto flex items-stretch justify-between gap-2">
-        {/* Coluna esquerda com inputs */}
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-stretch">
@@ -200,28 +203,30 @@ export function TimeEntries() {
 
         <div className="flex gap-2">
           <div className="flex flex-col gap-2">
-            <Button className="rounded-xl">
+            <Button
+              onClick={() =>
+                createNewTimeEntry({ minutesAmount: 60, task: 'TESTE' })
+              }
+            >
               Iniciar <Play />
             </Button>
 
-            <Button variant="secondary" className="rounded-xl">
+            <Button variant="secondary">
               Marcar <Pin />
             </Button>
           </div>
 
           <div className="flex h-full w-40 items-center justify-center rounded-md border p-2">
-            <span className="mt-1 scroll-m-20 font-mono text-4xl leading-tight font-bold tracking-tighter text-zinc-800 dark:text-zinc-300">
-              00:00
-            </span>
+            <Timer />
           </div>
         </div>
       </div>
 
       <div className="container mx-auto py-4">
         <div className="flex items-center gap-2">
-          <Button variant="outline">Anterior</Button>
+          {/* <Button variant="outline">Anterior</Button>
           <Button variant="outline">Hoje</Button>
-          <Button variant="outline">Próximo</Button>
+          <Button variant="outline">Próximo</Button> */}
 
           <Popover>
             <PopoverTrigger asChild>
