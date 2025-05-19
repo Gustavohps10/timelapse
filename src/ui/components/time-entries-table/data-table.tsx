@@ -7,11 +7,14 @@ export type TimeEntry = {
   activity_id?: number
   comments?: string
   user_id?: number
+  sincStatus?: 'synced' | 'pending' | 'failed'
 }
+
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
 
@@ -24,19 +27,19 @@ import {
   TableRow,
 } from '@/ui/components/ui/table'
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-}
-
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends { subRows?: TData[] }>({
   columns,
   data,
-}: DataTableProps<TData, TValue>) {
+}: {
+  columns: ColumnDef<TData>[]
+  data: TData[]
+}) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getSubRows: (row) => row.subRows ?? [],
   })
 
   return (
@@ -48,7 +51,8 @@ export function DataTable<TData, TValue>({
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className="px-4 py-2 text-sm font-medium whitespace-nowrap"
+                  style={{ width: `${header.getSize()}px` }} // 👈 define a largura
+                  className="px-2 py-2 text-sm font-medium whitespace-nowrap"
                 >
                   {header.isPlaceholder
                     ? null
@@ -64,11 +68,16 @@ export function DataTable<TData, TValue>({
         <TableBody>
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                data-state={row.getIsExpanded() ? 'expanded' : 'collapsed'}
+                style={{ paddingLeft: `${row.depth * 20}px` }}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className="px-4 py-2 text-sm whitespace-nowrap"
+                    style={{ width: `${cell.column.getSize()}px` }} // 👈 define a largura
+                    className="px-2 py-2 text-sm whitespace-nowrap"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

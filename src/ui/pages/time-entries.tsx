@@ -6,6 +6,7 @@ import {
   CalendarDaysIcon,
   CheckCircle,
   ClipboardCheck,
+  ClockArrowUp,
   Code,
   FileText,
   FlaskConical,
@@ -23,7 +24,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-import { columns } from '@/ui/components/time-entries-table/columns'
+import { columns, Row } from '@/ui/components/time-entries-table/columns'
 import {
   DataTable,
   TimeEntry,
@@ -65,21 +66,106 @@ const items = [
   { value: '28', label: 'Gestão', icon: Briefcase },
 ]
 
-export const timeEntries: TimeEntry[] = Array.from({ length: 10 }, (_, i) => ({
-  project_id: 1,
-  user_id: 1,
-  issue_id: 567850 + i,
-  hours: Math.floor(Math.random() * 8) + 1,
-  comments: `Entrada de tempo ${i + 1}`,
-  spent_on: new Date(Date.now() - i * 86400000).toISOString().split('T')[0],
-}))
+const statuses = ['synced', 'failed', 'pending'] as const
+
+const activityItems = [
+  { value: '8', label: 'Design' },
+  { value: '9', label: 'Desenvolvimento' },
+  { value: '10', label: 'Análise' },
+  { value: '11', label: 'Planejamento' },
+  { value: '12', label: 'Encerramento' },
+  { value: '13', label: 'Teste' },
+  { value: '14', label: 'Revisão Código' },
+  { value: '15', label: 'Gerência de Configuração' },
+  { value: '16', label: 'Correção' },
+  { value: '17', label: 'Suporte' },
+  { value: '18', label: 'Apoio' },
+  { value: '19', label: 'Homologação' },
+  { value: '25', label: 'Documentação' },
+  { value: '26', label: 'Treinamento' },
+  { value: '27', label: 'Reunião' },
+  { value: '28', label: 'Gestão' },
+]
+
+function getRandomActivityId() {
+  const item = activityItems[Math.floor(Math.random() * activityItems.length)]
+  return parseInt(item.value, 10)
+}
+
+function generateTimeEntry(
+  index: number,
+  status: (typeof statuses)[number],
+  issueId: number,
+): TimeEntry {
+  return {
+    sincStatus: status,
+    project_id: 1 + (index % 2),
+    user_id: 1 + (index % 2),
+    issue_id: issueId,
+    hours: Math.floor(Math.random() * 8) + 1,
+    comments: `Entrada ${index + 1} - ${status}`,
+    spent_on: new Date(Date.now() - index * 86400000)
+      .toISOString()
+      .split('T')[0],
+    activity_id: getRandomActivityId(),
+  }
+}
+
+const syncedGroup = Array.from({ length: 4 }, (_, i) =>
+  generateTimeEntry(i, 'synced', 1000),
+)
+
+const otherEntries = Array.from({ length: 20 }, (_, i) => {
+  const status = statuses[i % 3]
+  const issueId = 567850 + (i % 4)
+  return generateTimeEntry(i + 4, status, issueId)
+})
+
+const isolatedEntries = [
+  generateTimeEntry(100, 'synced', 999001),
+  generateTimeEntry(101, 'failed', 999002),
+  generateTimeEntry(102, 'pending', 999003),
+]
+
+const timeEntries: TimeEntry[] = [
+  ...syncedGroup,
+  ...otherEntries,
+  ...isolatedEntries,
+].sort(() => Math.random() - 0.5)
+
+export function groupByIssue(data: TimeEntry[]): Row[] {
+  const groups: Record<string, Row> = {}
+
+  for (const item of data) {
+    const key = String(item.issue_id ?? 'sem-issue')
+
+    if (!groups[key]) {
+      groups[key] = {
+        ...item,
+        hours: 0,
+        spent_on: 'Invalid Date',
+        comments: '',
+        activity_id: 1,
+        sincStatus: 'pending',
+        subRows: [],
+      }
+    }
+
+    groups[key].hours += item.hours
+    groups[key].subRows?.push(item)
+  }
+
+  return Object.values(groups)
+}
+
+const groupedEntries = groupByIssue(timeEntries)
 
 export function TimeEntries() {
   const [date, setDate] = useState<Date | undefined>(new Date())
 
   return (
     <Card className="space-y-4 p-4">
-      <div className="flex items-stretch gap-2">
+      <div className="container mx-auto flex items-stretch justify-between gap-2">
         {/* Coluna esquerda com inputs */}
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -131,7 +217,7 @@ export function TimeEntries() {
         </div>
       </div>
 
-      <div className="py-4">
+      <div className="container mx-auto py-4">
         <div className="flex items-center gap-2">
           <Button variant="outline">Anterior</Button>
           <Button variant="outline">Hoje</Button>
@@ -158,11 +244,14 @@ export function TimeEntries() {
         </div>
 
         <div className="container mx-auto py-4">
-          <DataTable columns={columns} data={timeEntries} />
+          <DataTable columns={columns} data={groupedEntries} />
         </div>
-      </div>
 
-      <Button>Lancar Horas</Button>
+        <Button>
+          Sincronizar
+          <ClockArrowUp />
+        </Button>
+      </div>
     </Card>
   )
 }

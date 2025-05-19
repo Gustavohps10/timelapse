@@ -27,7 +27,8 @@ export const router = createBrowserRouter([
       },
       {
         path: '/time-entries',
-        element: <ProtectedRoute element={<TimeEntries />} />,
+        // element: <ProtectedRoute element={<TimeEntries />} />,
+        element: <TimeEntries />,
       },
     ],
   },

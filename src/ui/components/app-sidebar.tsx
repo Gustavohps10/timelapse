@@ -54,7 +54,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible="none">
+    <Sidebar collapsible="none" className="h-[100vh]">
       <SidebarHeader>
         <div className="flex items-center gap-2 rounded-md p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
           <img
