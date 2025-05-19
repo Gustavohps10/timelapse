@@ -113,7 +113,7 @@ export const columns: ColumnDef<Row>[] = [
             )}
             {!allSynced && hasFailed && (
               <AlertTriangle
-                className="text-red-500"
+                className="text-red-500 dark:text-red-400"
                 size={16}
                 strokeWidth={1.5}
               />
@@ -143,7 +143,7 @@ export const columns: ColumnDef<Row>[] = [
         case 'failed':
           return (
             <AlertTriangle
-              className="text-red-500"
+              className="text-red-500 dark:text-red-400"
               size={16}
               strokeWidth={1.5}
             />
