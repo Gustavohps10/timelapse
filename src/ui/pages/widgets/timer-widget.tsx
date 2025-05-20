@@ -1,13 +1,13 @@
+import { ClockArrowUp, Pin, Play } from 'lucide-react'
 import { useEffect } from 'react'
 
 import { Timer } from '@/ui/components/timer'
+import { Button } from '@/ui/components/ui/button'
 
 export function TimerWidget() {
   useEffect(() => {
-    // Aplica o fundo transparente apenas nesta janela
     document.body.style.background = 'transparent'
 
-    // Limpa quando sair do componente
     return () => {
       document.body.style.background = ''
     }
@@ -16,11 +16,10 @@ export function TimerWidget() {
   return (
     <div className="h-screen w-screen text-white">
       <div
-        className="drag-bar"
+        className="drag-bar my-2 flex justify-center rounded-md p-2"
         style={
           {
-            height: '32px',
-            backgroundColor: 'rgba(0,0,0,0.3)',
+            backgroundColor: 'rgba(0,0,0,0.4)',
             paddingLeft: '16px',
             display: 'flex',
             alignItems: 'center',
@@ -29,9 +28,19 @@ export function TimerWidget() {
           } as React.CSSProperties & { WebkitAppRegion: string }
         }
       >
-        <Timer />
+        <Timer size="medium" />
       </div>
-      {/* Resto da UI */}
+      <div className="flex items-center gap-1">
+        <Button size="sm">
+          <Play />
+        </Button>
+        <Button size="sm" className="bg-[#0000007c] hover:bg-[#000000a8]">
+          <Pin />
+        </Button>
+        <Button size="sm" className="bg-[#0000007c] hover:bg-[#000000a8]">
+          <ClockArrowUp />
+        </Button>
+      </div>
     </div>
   )
 }

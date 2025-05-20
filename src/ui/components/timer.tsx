@@ -3,7 +3,11 @@ import { useContext, useEffect } from 'react'
 
 import { TimeEntriesContext } from '@/ui/contexts/TimeEntriesContext'
 
-export function Timer() {
+export type TimerProps = {
+  size?: 'big' | 'medium' | 'small'
+}
+
+export function Timer({ size }: TimerProps) {
   const {
     activeTimeEntry,
     activeTimeEntryId,
@@ -27,9 +31,10 @@ export function Timer() {
         markCurrentTimeEntryAsFinished()
         setSecondsPassed(totalSeconds)
         clearInterval(interval)
-      } else {
-        setSecondsPassed(secondsDifference)
+        return
       }
+
+      setSecondsPassed(secondsDifference)
     }, 1000)
 
     return () => {
@@ -58,9 +63,17 @@ export function Timer() {
     }
   }, [minutes, seconds, activeTimeEntry])
 
+  const sizeClass = {
+    big: 'text-4xl',
+    medium: 'text-2xl',
+    small: 'text-sm',
+  }[size ?? 'medium']
+
   return (
     <div>
-      <span className="mt-1 scroll-m-20 font-mono text-4xl leading-tight font-bold tracking-tighter text-zinc-800 dark:text-zinc-300">
+      <span
+        className={`mt-1 scroll-m-20 font-mono leading-tight font-bold tracking-tighter text-zinc-800 dark:text-zinc-300 ${sizeClass}`}
+      >
         {minutes[0]}
         {minutes[1]}:{seconds[0]}
         {seconds[1]}

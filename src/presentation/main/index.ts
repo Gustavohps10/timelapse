@@ -36,8 +36,8 @@ const createWindow = () => {
 
 const createSecondaryWindow = () => {
   secondaryWindow = new BrowserWindow({
-    width: 280,
-    height: 400,
+    width: 160,
+    height: 80,
     show: false,
     frame: false,
     transparent: true,
@@ -56,7 +56,7 @@ const createSecondaryWindow = () => {
     const { width } = screen.getPrimaryDisplay().workAreaSize
     const x = width - 280
     const y = 160
-    secondaryWindow!.setBounds({ x, y, width: 280, height: 400 })
+    secondaryWindow!.setBounds({ x, y, width: 180, height: 100 })
     secondaryWindow!.show()
   })
 
