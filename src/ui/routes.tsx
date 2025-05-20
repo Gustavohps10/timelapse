@@ -5,6 +5,7 @@ import { Error } from '@/ui/pages/error'
 import { AppLayout } from '@/ui/pages/layouts/app-layout'
 import { NotFound } from '@/ui/pages/not-found'
 import { TimeEntries } from '@/ui/pages/time-entries'
+import { TimerWidget } from '@/ui/pages/widgets/timer-widget'
 
 import { Docs } from './pages/docs'
 import { AuthLayout } from './pages/layouts/auth-layout'
@@ -40,6 +41,15 @@ export const router = createBrowserRouter([
       {
         path: '/login',
         element: <Login />,
+      },
+    ],
+  },
+  {
+    path: '/widgets',
+    children: [
+      {
+        path: 'timer',
+        element: <TimerWidget />,
       },
     ],
   },

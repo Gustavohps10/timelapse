@@ -1,0 +1,18 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.drag-bar {
+  height: 32px; 
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.3);  
+  -webkit-app-region: drag;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+  user-select: none;  
+} 
