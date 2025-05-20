@@ -4,7 +4,7 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronRight,
-  ClockAlertIcon,
+  Pin,
 } from 'lucide-react'
 
 import { TimeEntry } from '@/ui/components/time-entries-table/data-table'
@@ -105,11 +105,7 @@ export const columns: ColumnDef<Row>[] = [
               />
             )}
             {!allSynced && hasPending && (
-              <ClockAlertIcon
-                className="text-neutral-500"
-                size={16}
-                strokeWidth={1.5}
-              />
+              <Pin className="text-neutral-500" size={16} strokeWidth={1.5} />
             )}
             {!allSynced && hasFailed && (
               <AlertTriangle
@@ -134,11 +130,7 @@ export const columns: ColumnDef<Row>[] = [
           )
         case 'pending':
           return (
-            <ClockAlertIcon
-              className="text-neutral-500"
-              size={16}
-              strokeWidth={1.5}
-            />
+            <Pin className="text-neutral-500" size={16} strokeWidth={1.5} />
           )
         case 'failed':
           return (
