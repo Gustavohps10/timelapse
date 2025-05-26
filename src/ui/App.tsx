@@ -13,18 +13,20 @@ import { router } from '@/ui/routes'
 
 export function App() {
   return (
-    <TooltipProvider>
-      <TimeEntriesContextProvider>
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <SidebarProvider>
-            <AuthProvider>
-              <QueryClientProvider client={queryClient}>
-                <RouterProvider router={router} />
-              </QueryClientProvider>
-            </AuthProvider>
-          </SidebarProvider>
-        </ThemeProvider>
-      </TimeEntriesContextProvider>
-    </TooltipProvider>
+    <>
+      <TooltipProvider>
+        <TimeEntriesContextProvider>
+          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+            <SidebarProvider>
+              <AuthProvider>
+                <QueryClientProvider client={queryClient}>
+                  <RouterProvider router={router} />
+                </QueryClientProvider>
+              </AuthProvider>
+            </SidebarProvider>
+          </ThemeProvider>
+        </TimeEntriesContextProvider>
+      </TooltipProvider>
+    </>
   )
 }

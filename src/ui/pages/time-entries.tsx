@@ -32,7 +32,6 @@ import {
 import { Timer } from '@/ui/components/timer'
 import { Button } from '@/ui/components/ui/button'
 import { Calendar } from '@/ui/components/ui/calendar'
-import { Card } from '@/ui/components/ui/card'
 import { Input } from '@/ui/components/ui/input'
 import {
   Popover,
@@ -168,7 +167,7 @@ export function TimeEntries() {
     useContext(TimeEntriesContext)
 
   return (
-    <Card className="space-y-4 p-4">
+    <>
       <div className="container mx-auto flex items-stretch justify-between gap-2">
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -201,33 +200,33 @@ export function TimeEntries() {
           <Input placeholder="Descrição" className="w-full" />
         </div>
 
-        <div className="flex gap-2">
-          <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
+          <div className="flex h-full items-center justify-center rounded-md border p-2">
+            <Timer />
+          </div>
+
+          <div className="flex gap-2">
             <Button
+              size="sm"
               onClick={() =>
                 createNewTimeEntry({ minutesAmount: 60, task: 'TESTE' })
               }
             >
-              Iniciar <Play />
+              <Play />
             </Button>
 
-            <Button variant="secondary">
-              Marcar <Pin />
+            <Button variant="secondary" size="sm">
+              <Pin />
             </Button>
-          </div>
-
-          <div className="flex h-full w-40 items-center justify-center rounded-md border p-2">
-            <Timer />
+            <Button size="sm" variant="secondary">
+              <ClockArrowUp />
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto py-4">
         <div className="flex items-center gap-2">
-          {/* <Button variant="outline">Anterior</Button>
-          <Button variant="outline">Hoje</Button>
-          <Button variant="outline">Próximo</Button> */}
-
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="min-w-56">
@@ -251,12 +250,7 @@ export function TimeEntries() {
         <div className="container mx-auto py-4">
           <DataTable columns={columns} data={groupedEntries} />
         </div>
-
-        <Button>
-          Sincronizar
-          <ClockArrowUp />
-        </Button>
       </div>
-    </Card>
+    </>
   )
 }
