@@ -15,6 +15,7 @@ import {
   Hash,
   LifeBuoy,
   Palette,
+  Pause,
   Pin,
   Play,
   SearchCode,
@@ -30,8 +31,17 @@ import {
   TimeEntry,
 } from '@/ui/components/time-entries-table/data-table'
 import { Timer } from '@/ui/components/timer'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/ui/components/ui/breadcrumb'
 import { Button } from '@/ui/components/ui/button'
 import { Calendar } from '@/ui/components/ui/calendar'
+import { Card, CardContent } from '@/ui/components/ui/card'
 import { Input } from '@/ui/components/ui/input'
 import {
   Popover,
@@ -45,6 +55,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/ui/components/ui/select'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/ui/components/ui/tooltip'
 import { TimeEntriesContext } from '@/ui/contexts/TimeEntriesContext'
 
 const items = [
@@ -168,89 +183,139 @@ export function TimeEntries() {
 
   return (
     <>
-      <div className="container mx-auto flex items-stretch justify-between gap-2">
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-stretch">
-              <div className="border-input flex w-10 items-center justify-center rounded-l-md border">
-                <Hash size={16} />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/components">Components</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Breadcrumb</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <h1 className="my-2 mb-4 scroll-m-20 text-2xl font-bold tracking-tight lg:text-3xl">
+        Apontamento
+      </h1>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="container mx-auto flex items-stretch justify-between gap-2">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative my-1">
+                  <Hash
+                    className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2"
+                    style={{ width: 14 }}
+                  />
+                  <Input
+                    placeholder="Ticket"
+                    className="bg-background w-28 pl-7 font-mono tracking-tighter"
+                  />
+                </div>
+
+                <Select>
+                  <SelectTrigger className="w-3xs cursor-pointer">
+                    <SelectValue placeholder="Atividade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {items.map(({ value, label, icon: IconComponent }) => (
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        className="cursor-pointer"
+                      >
+                        {!!IconComponent && <IconComponent size={16} />}
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Input placeholder="Ticket" className="w-24 rounded-l-none" />
+
+              <Input placeholder="Descrição" className="w-full" />
             </div>
 
-            <Select>
-              <SelectTrigger className="w-3xs cursor-pointer">
-                <SelectValue placeholder="Atividade" />
-              </SelectTrigger>
-              <SelectContent>
-                {items.map(({ value, label, icon: IconComponent }) => (
-                  <SelectItem
-                    key={value}
-                    value={value}
-                    className="cursor-pointer"
-                  >
-                    {!!IconComponent && <IconComponent size={16} />}
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-2">
+              <div className="flex h-full items-center justify-center rounded-md border p-2">
+                <Timer />
+              </div>
+
+              <div className="flex gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      className="h-8 w-8 p-0"
+                      onClick={() =>
+                        createNewTimeEntry({ minutesAmount: 60, task: 'TESTE' })
+                      }
+                    >
+                      {!!activeTimeEntry ? <Pause /> : <Play />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-background text-foreground">
+                    <p className="font-semibold">Iniciar</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                      <Pin />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-background text-foreground">
+                    <p className="font-semibold">Marcar</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="icon" className="h-8 w-8 p-0" variant="ghost">
+                      <ClockArrowUp />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-background text-foreground">
+                    <p className="font-semibold">Sincronizar</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
           </div>
 
-          <Input placeholder="Descrição" className="w-full" />
-        </div>
+          <div className="container mx-auto py-4">
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="min-w-56">
+                    <CalendarDaysIcon />
+                    {date
+                      ? format(date, 'EEEE - dd/MM/yyyy')
+                      : 'Selecione uma data'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-1">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    className="m-none"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-        <div className="flex flex-col gap-2">
-          <div className="flex h-full items-center justify-center rounded-md border p-2">
-            <Timer />
+            <div className="container mx-auto py-4">
+              <DataTable columns={columns} data={groupedEntries} />
+            </div>
           </div>
-
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              onClick={() =>
-                createNewTimeEntry({ minutesAmount: 60, task: 'TESTE' })
-              }
-            >
-              <Play />
-            </Button>
-
-            <Button variant="secondary" size="sm">
-              <Pin />
-            </Button>
-            <Button size="sm" variant="secondary">
-              <ClockArrowUp />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto py-4">
-        <div className="flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="min-w-56">
-                <CalendarDaysIcon />
-                {date
-                  ? format(date, 'EEEE - dd/MM/yyyy')
-                  : 'Selecione uma data'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-1">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                className="m-none"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="container mx-auto py-4">
-          <DataTable columns={columns} data={groupedEntries} />
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </>
   )
 }
