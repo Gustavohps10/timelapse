@@ -55,7 +55,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible="none" className="h-[100vh]">
+    <Sidebar collapsible="none" className="h-[100vh] border-r">
       <SidebarHeader>
         <div className="flex items-center gap-2 rounded-md p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
           <img
@@ -85,7 +85,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
-                        className="flex items-center rounded-md transition-colors [&.active]:bg-zinc-100 dark:[&.active]:bg-zinc-800"
+                        className="flex h-9! items-center rounded-md transition-colors [&.active]:bg-zinc-100 dark:[&.active]:bg-zinc-800"
                       >
                         {({ isActive }) => (
                           <>

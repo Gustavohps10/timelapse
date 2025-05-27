@@ -10,8 +10,10 @@ export function AppLayout() {
       <AppSidebar />
       <main className="h-[100vh] flex-1 overflow-hidden">
         <Header />
-        <ScrollArea className="h-[100vh] p-4">
-          <Outlet />
+        <ScrollArea className="h-full">
+          <section className="p-4">
+            <Outlet />
+          </section>
         </ScrollArea>
       </main>
     </>
