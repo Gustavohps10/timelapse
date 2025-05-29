@@ -4,6 +4,14 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 
 import { client } from '@/ui/client/client'
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/ui/components/ui/breadcrumb'
+import {
   Card,
   CardContent,
   CardDescription,
@@ -121,6 +129,25 @@ export function Dashboard() {
 
   return (
     <>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/components">Menu</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Dashboard</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <h1 className="my-2 mb-4 scroll-m-20 text-2xl font-bold tracking-tight lg:text-3xl">
+        Dashboard
+      </h1>
+
       <Card>
         <CardHeader>
           <CardTitle>Card Title</CardTitle>
