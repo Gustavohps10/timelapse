@@ -29,7 +29,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Auto login se token estiver salvo
   useEffect(() => {
     const autoLogin = async () => {
-      console.log('TOKEN JA EXISTENTE')
       const res = await client.modules.tokenStorage.getToken({
         body: { service: 'atask', account: 'jwt' },
       })

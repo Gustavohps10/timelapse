@@ -77,8 +77,12 @@ export class RedmineTimeEntryQuery
         id: entry.id,
         projectId: entry.project.id,
         projectName: entry.project.name,
-        issueId: entry.issue.id,
-        userId: entry.user.id,
+        issue: {
+          id: entry.issue.id,
+        },
+        user: {
+          id: entry.user.id,
+        },
         userName: entry.user.name,
         activityId: entry.activity.id,
         activityName: entry.activity.name,

@@ -39,6 +39,7 @@ export class TimeEntriesHandler {
 
     const timeEntries: TimeEntryViewModel[] = result.success
 
+    console.log('TIME ENTRIES', timeEntries)
     return {
       isSuccess: true,
       data: timeEntries,
