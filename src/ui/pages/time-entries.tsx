@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import {
   BarChart2,
@@ -25,6 +26,7 @@ import {
 } from 'lucide-react'
 import { useContext, useState } from 'react'
 
+import { client } from '@/ui/client/client'
 import { columns, Row } from '@/ui/components/time-entries-table/columns'
 import {
   DataTable,
@@ -174,12 +176,40 @@ export function groupByIssue(data: TimeEntry[]): Row[] {
   return Object.values(groups)
 }
 
-const groupedEntries = groupByIssue(timeEntries)
-
 export function TimeEntries() {
   const [date, setDate] = useState<Date | undefined>(new Date())
   const { activeTimeEntry, createNewTimeEntry, interruptCurrentTimeEntry } =
     useContext(TimeEntriesContext)
+
+  const { data: timeEntriesResponse, isPending } = useQuery({
+    queryKey: ['time-entries', date],
+    queryFn: () =>
+      client.services.timeEntries.findByMemberId({
+        body: {
+          memberId: '230',
+          startDate: date ?? new Date(),
+          endDate: date ?? new Date(),
+        },
+      }),
+  })
+
+  console.log('response', timeEntriesResponse)
+
+  const mappedEntries: TimeEntry[] = (timeEntriesResponse?.data ?? []).map(
+    (entry): TimeEntry => ({
+      id: entry.id,
+      project_id: entry.project?.id,
+      user_id: entry.user?.id,
+      issue_id: entry.issue?.id,
+      hours: entry.hours ?? 0,
+      comments: entry.comments ?? '',
+      spent_on: entry.spentOn?.toString().split('T')[0] ?? '',
+      activity_id: entry.activity?.id,
+      sincStatus: 'synced',
+    }),
+  )
+
+  const groupedEntries = groupByIssue(mappedEntries)
 
   return (
     <>
