@@ -1,5 +1,5 @@
 import { differenceInSeconds } from 'date-fns'
-import { useContext, useEffect } from 'react'
+import { useContext, useEffect, useState } from 'react'
 
 import { TimeEntriesContext } from '@/ui/contexts/TimeEntriesContext'
 
@@ -8,6 +8,8 @@ export type TimerProps = {
 }
 
 export function Timer({ size }: TimerProps) {
+  const [manualTime, setManualTime] = useState<string>('00:00')
+
   const {
     activeTimeEntry,
     activeTimeEntryId,
@@ -69,15 +71,16 @@ export function Timer({ size }: TimerProps) {
     small: 'text-sm',
   }[size ?? 'medium']
 
+  const formatedDate = `${minutes[0]}${minutes[1]}:${seconds[0]}${seconds[1]}`
   return (
-    <div>
-      <span
-        className={`mt-1 scroll-m-20 font-mono leading-tight font-bold tracking-tighter text-zinc-800 dark:text-zinc-300 ${sizeClass}`}
-      >
-        {minutes[0]}
-        {minutes[1]}:{seconds[0]}
-        {seconds[1]}
-      </span>
-    </div>
+    <span
+      className={`relative mt-1 flex justify-center p-1 font-mono leading-tight font-bold tracking-tighter text-zinc-800 dark:text-zinc-300 ${sizeClass}`}
+    >
+      <input
+        className="relative top-0 left-0 m-0 flex w-full justify-center border-0 p-0 text-center outline-0"
+        onChange={(e) => setManualTime(e.target.value)}
+        value={!!activeTimeEntry ? formatedDate : manualTime}
+      />
+    </span>
   )
 }

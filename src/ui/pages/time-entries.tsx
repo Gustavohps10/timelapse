@@ -7,7 +7,7 @@ import {
   CalendarDaysIcon,
   CheckCircle,
   ClipboardCheck,
-  ClockArrowUp,
+  CloudUpload,
   Code,
   FileText,
   FlaskConical,
@@ -232,7 +232,7 @@ export function TimeEntries() {
         Apontamento
       </h1>
 
-      <Card>
+      <Card className="rounded-md">
         <CardContent className="p-6">
           <div className="container mx-auto flex items-stretch justify-between gap-2">
             <div className="flex flex-col gap-2">
@@ -307,7 +307,7 @@ export function TimeEntries() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button size="icon" className="h-8 w-8 p-0" variant="ghost">
-                      <ClockArrowUp />
+                      <CloudUpload />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent className="bg-background text-foreground">

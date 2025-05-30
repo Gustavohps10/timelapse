@@ -6,7 +6,7 @@ import {
   CheckCircle,
   ChevronsUpDown,
   ClipboardCheck,
-  ClockArrowUp,
+  CloudUpload,
   Code,
   EllipsisVertical,
   FileText,
@@ -83,7 +83,6 @@ export function TimerWidget() {
         style={
           {
             backgroundColor: 'rgba(0,0,0,0.4)',
-            paddingLeft: '16px',
             display: 'flex',
             alignItems: 'center',
             userSelect: 'none',
@@ -115,7 +114,7 @@ export function TimerWidget() {
             size="sm"
             className="h-7 w-7 bg-[#0000007c] hover:bg-[#000000a8]"
           >
-            <ClockArrowUp />
+            <CloudUpload />
           </Button>
         </div>
 
