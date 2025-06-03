@@ -5,9 +5,10 @@ import { TimeEntriesContext } from '@/ui/contexts/TimeEntriesContext'
 
 export type TimerProps = {
   size?: 'big' | 'medium' | 'small'
+  onTimeChange?: (minutes: number) => void
 }
 
-export function Timer({ size }: TimerProps) {
+export function Timer({ size, onTimeChange }: TimerProps) {
   const [digits, setDigits] = useState<string[]>(['0', '0', '0', '0', '0', '0'])
   const [activeIndex, setActiveIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -23,6 +24,15 @@ export function Timer({ size }: TimerProps) {
   const totalSeconds = activeTimeEntry ? activeTimeEntry.minutesAmount * 60 : 0
 
   useEffect(() => {
+    if (!activeTimeEntry && onTimeChange) {
+      const [h1, h2, m1, m2, s1, s2] = digits.map(Number)
+      const minutes =
+        h1 * 600 + h2 * 60 + m1 * 10 + m2 + Math.floor((s1 * 10 + s2) / 60)
+      onTimeChange(minutes)
+    }
+  }, [digits, activeTimeEntry])
+
+  useEffect(() => {
     if (!activeTimeEntry) return
 
     const interval = setInterval(() => {
@@ -31,23 +41,25 @@ export function Timer({ size }: TimerProps) {
         new Date(activeTimeEntry.startDate),
       )
 
-      if (secondsDifference >= totalSeconds) {
-        markCurrentTimeEntryAsFinished()
-        setSecondsPassed(totalSeconds)
-        clearInterval(interval)
-        return
+      if (activeTimeEntry.type === 'decreasing') {
+        if (secondsDifference >= totalSeconds) {
+          markCurrentTimeEntryAsFinished()
+          setSecondsPassed(totalSeconds)
+          clearInterval(interval)
+          return
+        }
+
+        setSecondsPassed(secondsDifference)
       }
 
-      setSecondsPassed(secondsDifference)
+      if (activeTimeEntry.type === 'increasing')
+        setSecondsPassed(-secondsDifference)
     }, 1000)
 
-    return () => clearInterval(interval)
-  }, [
-    activeTimeEntryId,
-    totalSeconds,
-    markCurrentTimeEntryAsFinished,
-    setSecondsPassed,
-  ])
+    return () => {
+      clearInterval(interval)
+    }
+  }, [activeTimeEntry, totalSeconds, markCurrentTimeEntryAsFinished])
 
   const currentSeconds = activeTimeEntry
     ? totalSeconds - amountSecondsPassed

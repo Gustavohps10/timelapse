@@ -20,6 +20,7 @@ import {
 interface CreateTimeEntryData {
   task: string
   minutesAmount: number
+  type: TimeEntry['type']
 }
 
 interface TimeEntriesContextData {
@@ -89,11 +90,16 @@ export function TimeEntriesContextProvider({
     dispatch(markCurrentTimeEntryAsFinishedAction())
   }
 
-  function createNewTimeEntry({ minutesAmount, task }: CreateTimeEntryData) {
+  function createNewTimeEntry({
+    minutesAmount,
+    task,
+    type,
+  }: CreateTimeEntryData) {
     const newTimeEntry: TimeEntry = {
       id: String(new Date().getTime()),
       minutesAmount,
       task,
+      type,
       startDate: new Date(),
     }
 

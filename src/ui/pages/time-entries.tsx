@@ -6,7 +6,11 @@ import {
   CalendarCheck,
   CalendarDaysIcon,
   CheckCircle,
+  ChevronsDownIcon,
+  ChevronsUpIcon,
   ClipboardCheck,
+  ClockArrowDownIcon,
+  ClockArrowUpIcon,
   CloudUpload,
   Code,
   FileText,
@@ -57,12 +61,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/ui/components/ui/select'
+import { ToggleGroup, ToggleGroupItem } from '@/ui/components/ui/toggle-group'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/ui/components/ui/tooltip'
 import { TimeEntriesContext } from '@/ui/contexts/TimeEntriesContext'
+import { TimeEntry as TimeEntryReducer } from '@/ui/reducers/time-entries/reducer'
 
 const items = [
   { value: '-', label: '--- Selecione ---', icon: null },
@@ -177,6 +183,9 @@ export function groupByIssue(data: TimeEntry[]): Row[] {
 }
 
 export function TimeEntries() {
+  const [manualMinutes, setManualMinutes] = useState(60)
+  const [timeEntryType, setTimeEntryType] =
+    useState<TimeEntryReducer['type']>('increasing')
   const [date, setDate] = useState<Date | undefined>(new Date())
   const { activeTimeEntry, createNewTimeEntry, interruptCurrentTimeEntry } =
     useContext(TimeEntriesContext)
@@ -270,50 +279,125 @@ export function TimeEntries() {
               <Input placeholder="Descrição" className="w-full" />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <div className="flex h-full items-center justify-center rounded-md border p-2">
-                <Timer />
-              </div>
+            <div className="flex items-start gap-2">
+              {/* Sidebar com Up/Down */}
+              {!activeTimeEntry && (
+                <div className="flex flex-col gap-2">
+                  <ToggleGroup
+                    type="single"
+                    onValueChange={(value) => {
+                      if (value === 'a') setTimeEntryType('increasing')
+                      if (value === 'c') setTimeEntryType('decreasing')
+                    }}
+                    value={
+                      timeEntryType === 'increasing'
+                        ? 'a'
+                        : timeEntryType === 'decreasing'
+                          ? 'c'
+                          : ''
+                    }
+                  >
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <ToggleGroupItem
+                          value="a"
+                          className="h-6 w-6 cursor-pointer border"
+                        >
+                          <ClockArrowUpIcon className="text-muted-foreground" />
+                        </ToggleGroupItem>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-background text-foreground">
+                        <p className="font-semibold">Tempo Crescente</p>
+                      </TooltipContent>
+                    </Tooltip>
 
-              <div className="flex gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="icon"
-                      className="h-8 w-8 p-0"
-                      onClick={() =>
-                        createNewTimeEntry({ minutesAmount: 60, task: 'TESTE' })
-                      }
-                    >
-                      {!!activeTimeEntry ? <Pause /> : <Play />}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-background text-foreground">
-                    <p className="font-semibold">Iniciar</p>
-                  </TooltipContent>
-                </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <ToggleGroupItem
+                          value="c"
+                          className="h-6 w-6 cursor-pointer border"
+                        >
+                          <ClockArrowDownIcon className="text-muted-foreground" />
+                        </ToggleGroupItem>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-background text-foreground">
+                        <p className="font-semibold">Tempo Decrescente</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </ToggleGroup>
+                </div>
+              )}
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-                      <Pin />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-background text-foreground">
-                    <p className="font-semibold">Marcar</p>
-                  </TooltipContent>
-                </Tooltip>
+              {/* Conteúdo principal: visor + botões */}
+              <div className="flex flex-col gap-2">
+                <div className="relative flex h-full items-center justify-center rounded-md border p-2">
+                  {activeTimeEntry?.type === 'increasing' && (
+                    <ChevronsUpIcon
+                      size={14}
+                      className="absolute top-1 left-1 text-zinc-600"
+                    />
+                  )}
+                  {activeTimeEntry?.type === 'decreasing' && (
+                    <ChevronsDownIcon
+                      size={14}
+                      className="absolute top-1 left-1 text-zinc-600"
+                    />
+                  )}
+                  <Timer onTimeChange={setManualMinutes} />
+                </div>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="icon" className="h-8 w-8 p-0" variant="ghost">
-                      <CloudUpload />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-background text-foreground">
-                    <p className="font-semibold">Sincronizar</p>
-                  </TooltipContent>
-                </Tooltip>
+                <div className="flex gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        className="h-8 w-8 p-0"
+                        onClick={() =>
+                          createNewTimeEntry({
+                            minutesAmount: manualMinutes,
+                            task: 'TESTE',
+                            type: timeEntryType,
+                          })
+                        }
+                      >
+                        {!!activeTimeEntry ? <Pause /> : <Play />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-background text-foreground">
+                      <p className="font-semibold">Iniciar</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 p-0"
+                      >
+                        <Pin />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-background text-foreground">
+                      <p className="font-semibold">Marcar</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        className="h-8 w-8 p-0"
+                        variant="ghost"
+                      >
+                        <CloudUpload />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-background text-foreground">
+                      <p className="font-semibold">Sincronizar</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
             </div>
           </div>

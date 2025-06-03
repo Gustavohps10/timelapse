@@ -9,6 +9,7 @@ export interface TimeEntry {
   startDate: Date
   interruptDate?: Date
   finishedDate?: Date
+  type: 'increasing' | 'decreasing'
 }
 
 interface TimeEntriesState {
@@ -48,7 +49,7 @@ export function TimeEntriesReducer(
       })
     case ActionTypes.INTERRUPT_NEW_TIMEENTRY: {
       const currentTimeEntrieIndex = state.TimeEntries.findIndex(
-        (TimeEntrie) => TimeEntrie.id === state.activeTimeEntryId,
+        (timeEntry) => timeEntry.id === state.activeTimeEntryId,
       )
 
       if (currentTimeEntrieIndex < 0) return state
@@ -60,7 +61,7 @@ export function TimeEntriesReducer(
     }
     case ActionTypes.MARK_CURRENT_TIMEENTRY_AS_FINISHED: {
       const currentTimeEntrieIndex = state.TimeEntries.findIndex(
-        (TimeEntrie) => TimeEntrie.id === state.activeTimeEntryId,
+        (timeEntry) => timeEntry.id === state.activeTimeEntryId,
       )
 
       if (currentTimeEntrieIndex < 0) return state
