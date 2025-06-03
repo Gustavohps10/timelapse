@@ -123,3 +123,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  @keyframes pulse-ring {
+    0%, 100% {
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
+    }
+  }
+
+  .ring-pulse {
+    animation: pulse-ring 1s infinite;
+  }
+}
