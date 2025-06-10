@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router'
 
 import { AppSidebar } from '@/ui/components/app-sidebar'
+import { Footer } from '@/ui/components/footer'
 import { Header } from '@/ui/components/header'
 import { ScrollArea } from '@/ui/components/ui/scroll-area'
 
@@ -14,6 +15,7 @@ export function AppLayout() {
           <section className="p-4">
             <Outlet />
           </section>
+          <Footer />
         </ScrollArea>
       </main>
     </>
