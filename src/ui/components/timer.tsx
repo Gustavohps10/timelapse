@@ -2,6 +2,7 @@ import { differenceInSeconds } from 'date-fns'
 import { JSX, useContext, useEffect, useRef, useState } from 'react'
 
 import { TimeEntriesContext } from '@/ui/contexts/TimeEntriesContext'
+import { markCurrentTimeEntryAction } from '@/ui/reducers/time-entries/actions'
 
 export type TimerProps = {
   size?: 'big' | 'medium' | 'small'
@@ -17,7 +18,6 @@ export function Timer({ size, onTimeChange }: TimerProps) {
     activeTimeEntry,
     activeTimeEntryId,
     amountSecondsPassed,
-    markCurrentTimeEntryAsFinished,
     setSecondsPassed,
   } = useContext(TimeEntriesContext)
 
@@ -33,7 +33,7 @@ export function Timer({ size, onTimeChange }: TimerProps) {
   }, [digits, activeTimeEntry])
 
   useEffect(() => {
-    if (!activeTimeEntry) return
+    if (!activeTimeEntry || activeTimeEntry.status === 'paused') return
 
     const interval = setInterval(() => {
       const secondsDifference = differenceInSeconds(
@@ -43,7 +43,7 @@ export function Timer({ size, onTimeChange }: TimerProps) {
 
       if (activeTimeEntry.type === 'decreasing') {
         if (secondsDifference >= totalSeconds) {
-          markCurrentTimeEntryAsFinished()
+          markCurrentTimeEntryAction()
           setSecondsPassed(totalSeconds)
           clearInterval(interval)
           return
@@ -52,14 +52,13 @@ export function Timer({ size, onTimeChange }: TimerProps) {
         setSecondsPassed(secondsDifference)
       }
 
-      if (activeTimeEntry.type === 'increasing')
+      if (activeTimeEntry.type === 'increasing') {
         setSecondsPassed(-secondsDifference)
+      }
     }, 1000)
 
-    return () => {
-      clearInterval(interval)
-    }
-  }, [activeTimeEntry, totalSeconds, markCurrentTimeEntryAsFinished])
+    return () => clearInterval(interval)
+  }, [activeTimeEntry, totalSeconds, markCurrentTimeEntryAction])
 
   const currentSeconds = activeTimeEntry
     ? totalSeconds - amountSecondsPassed

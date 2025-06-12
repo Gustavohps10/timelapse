@@ -9,8 +9,9 @@ import {
 
 import {
   addNewTimeEntryAction,
-  interruptCurrentTimeEntryAction,
-  markCurrentTimeEntryAsFinishedAction,
+  markCurrentTimeEntryAction,
+  pauseCurrentTimeEntryAction,
+  playCurrentTimeEntryAction,
 } from '@/ui/reducers/time-entries/actions'
 import {
   TimeEntriesReducer,
@@ -28,10 +29,11 @@ interface TimeEntriesContextData {
   activeTimeEntry?: TimeEntry
   activeTimeEntryId: string | null
   amountSecondsPassed: number
-  markCurrentTimeEntryAsFinished: () => void
   setSecondsPassed: (seconds: number) => void
   createNewTimeEntry: (data: CreateTimeEntryData) => void
-  interruptCurrentTimeEntry: () => void
+  markCurrentTimeEntry: () => void
+  pauseCurrentTimeEntry: () => void
+  playCurrentTimeEntry: () => void
 }
 
 export const TimeEntriesContext = createContext({} as TimeEntriesContextData)
@@ -86,8 +88,16 @@ export function TimeEntriesContextProvider({
     setAmountSecondsPassed(seconds)
   }
 
-  function markCurrentTimeEntryAsFinished() {
-    dispatch(markCurrentTimeEntryAsFinishedAction())
+  function markCurrentTimeEntry() {
+    dispatch(markCurrentTimeEntryAction())
+  }
+
+  function pauseCurrentTimeEntry() {
+    dispatch(pauseCurrentTimeEntryAction())
+  }
+
+  function playCurrentTimeEntry() {
+    dispatch(playCurrentTimeEntryAction())
   }
 
   function createNewTimeEntry({
@@ -100,16 +110,13 @@ export function TimeEntriesContextProvider({
       minutesAmount,
       task,
       type,
+      status: 'running',
       startDate: new Date(),
     }
 
     dispatch(addNewTimeEntryAction(newTimeEntry))
 
     setSecondsPassed(0)
-  }
-
-  function interruptCurrentTimeEntry() {
-    dispatch(interruptCurrentTimeEntryAction())
   }
 
   return (
@@ -119,10 +126,11 @@ export function TimeEntriesContextProvider({
         activeTimeEntry,
         activeTimeEntryId,
         amountSecondsPassed,
-        markCurrentTimeEntryAsFinished,
+        markCurrentTimeEntry,
+        pauseCurrentTimeEntry,
+        playCurrentTimeEntry,
         setSecondsPassed,
         createNewTimeEntry,
-        interruptCurrentTimeEntry,
       }}
     >
       {children}

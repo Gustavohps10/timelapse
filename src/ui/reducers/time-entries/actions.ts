@@ -1,14 +1,16 @@
 import {
   AddNewTimeEntryAction,
-  InterruptNewTimeEntryAction,
-  MarkCurrentTimeEntryAsFinishedAction,
+  MarkCurrentTimeEntryAction,
+  PauseCurrentTimeEntryAction,
+  PlayCurrentTimeEntryAction,
   TimeEntry,
 } from '@/ui/reducers/time-entries/reducer'
 
 export enum ActionTypes {
   ADD_NEW_TIMEENTRY = 'ADD_NEW_TIMEENTRY',
-  INTERRUPT_NEW_TIMEENTRY = 'INTERRUPT_NEW_TIMEENTRY',
-  MARK_CURRENT_TIMEENTRY_AS_FINISHED = 'MARK_CURRENT_TIMEENTRY_AS_FINISHED',
+  MARK_NEW_TIMEENTRY = 'MARK_NEW_TIMEENTRY',
+  PAUSE_CURRENT_TIMEENTRY = 'PAUSE_CURRENT_TIMEENTRY',
+  PLAY_CURRENT_TIMEENTRY = 'PLAY_CURRENT_TIMEENTRY',
 }
 
 export function addNewTimeEntryAction(
@@ -22,14 +24,20 @@ export function addNewTimeEntryAction(
   }
 }
 
-export function markCurrentTimeEntryAsFinishedAction(): MarkCurrentTimeEntryAsFinishedAction {
+export function pauseCurrentTimeEntryAction(): PauseCurrentTimeEntryAction {
   return {
-    type: ActionTypes.MARK_CURRENT_TIMEENTRY_AS_FINISHED,
+    type: ActionTypes.PAUSE_CURRENT_TIMEENTRY,
   }
 }
 
-export function interruptCurrentTimeEntryAction(): InterruptNewTimeEntryAction {
+export function playCurrentTimeEntryAction(): PlayCurrentTimeEntryAction {
   return {
-    type: ActionTypes.INTERRUPT_NEW_TIMEENTRY,
+    type: ActionTypes.PLAY_CURRENT_TIMEENTRY,
+  }
+}
+
+export function markCurrentTimeEntryAction(): MarkCurrentTimeEntryAction {
+  return {
+    type: ActionTypes.MARK_NEW_TIMEENTRY,
   }
 }

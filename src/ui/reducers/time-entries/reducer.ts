@@ -9,6 +9,7 @@ export interface TimeEntry {
   startDate: Date
   interruptDate?: Date
   finishedDate?: Date
+  status: 'running' | 'paused' | 'finished'
   type: 'increasing' | 'decreasing'
 }
 
@@ -24,18 +25,23 @@ export type AddNewTimeEntryAction = {
   }
 }
 
-export type InterruptNewTimeEntryAction = {
-  type: ActionTypes.INTERRUPT_NEW_TIMEENTRY
+export type MarkCurrentTimeEntryAction = {
+  type: ActionTypes.MARK_NEW_TIMEENTRY
 }
 
-export type MarkCurrentTimeEntryAsFinishedAction = {
-  type: ActionTypes.MARK_CURRENT_TIMEENTRY_AS_FINISHED
+export type PauseCurrentTimeEntryAction = {
+  type: ActionTypes.PAUSE_CURRENT_TIMEENTRY
+}
+
+export type PlayCurrentTimeEntryAction = {
+  type: ActionTypes.PLAY_CURRENT_TIMEENTRY
 }
 
 type TimeEntriesAction =
   | AddNewTimeEntryAction
-  | InterruptNewTimeEntryAction
-  | MarkCurrentTimeEntryAsFinishedAction
+  | PauseCurrentTimeEntryAction
+  | PlayCurrentTimeEntryAction
+  | MarkCurrentTimeEntryAction
 
 export function TimeEntriesReducer(
   state: TimeEntriesState,
@@ -47,28 +53,34 @@ export function TimeEntriesReducer(
         draft.TimeEntries.push(action.payload.newTimeEntry)
         draft.activeTimeEntryId = action.payload.newTimeEntry.id
       })
-    case ActionTypes.INTERRUPT_NEW_TIMEENTRY: {
+    case ActionTypes.MARK_NEW_TIMEENTRY: {
       const currentTimeEntrieIndex = state.TimeEntries.findIndex(
         (timeEntry) => timeEntry.id === state.activeTimeEntryId,
       )
 
-      if (currentTimeEntrieIndex < 0) return state
+      return state
+      // Ajustar
+    }
+    case ActionTypes.PAUSE_CURRENT_TIMEENTRY: {
+      const currentTimeEntryIndex = state.TimeEntries.findIndex(
+        (timeEntry) => timeEntry.id === state.activeTimeEntryId,
+      )
+
+      if (currentTimeEntryIndex < 0) return state
 
       return produce(state, (draft) => {
-        draft.activeTimeEntryId = null
-        draft.TimeEntries[currentTimeEntrieIndex].interruptDate = new Date()
+        draft.TimeEntries[currentTimeEntryIndex].status = 'paused'
       })
     }
-    case ActionTypes.MARK_CURRENT_TIMEENTRY_AS_FINISHED: {
-      const currentTimeEntrieIndex = state.TimeEntries.findIndex(
+    case ActionTypes.PLAY_CURRENT_TIMEENTRY: {
+      const currentTimeEntryIndex = state.TimeEntries.findIndex(
         (timeEntry) => timeEntry.id === state.activeTimeEntryId,
       )
 
-      if (currentTimeEntrieIndex < 0) return state
+      if (currentTimeEntryIndex < 0) return state
 
       return produce(state, (draft) => {
-        draft.activeTimeEntryId = null
-        draft.TimeEntries[currentTimeEntrieIndex].finishedDate = new Date()
+        draft.TimeEntries[currentTimeEntryIndex].status = 'running'
       })
     }
     default:

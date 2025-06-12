@@ -123,8 +123,12 @@ export function TimeEntries() {
   const todayDate = useMemo(() => new Date(new Date().toDateString()), [])
   const [date, setDate] = useState<Date | undefined>(todayDate)
 
-  const { activeTimeEntry, createNewTimeEntry, interruptCurrentTimeEntry } =
-    useContext(TimeEntriesContext)
+  const {
+    activeTimeEntry,
+    createNewTimeEntry,
+    pauseCurrentTimeEntry,
+    playCurrentTimeEntry,
+  } = useContext(TimeEntriesContext)
 
   const dateKey = useMemo(() => date?.toISOString().split('T')[0], [date])
   const todayKey = useMemo(
@@ -166,6 +170,23 @@ export function TimeEntries() {
 
   const groupedEntries = groupByIssue(mappedEntries)
 
+  function handlePlayPauseTimer() {
+    if (activeTimeEntry && activeTimeEntry.status == 'running') {
+      pauseCurrentTimeEntry()
+      return
+    }
+
+    if (activeTimeEntry && activeTimeEntry.status == 'paused') {
+      playCurrentTimeEntry()
+      return
+    }
+
+    createNewTimeEntry({
+      minutesAmount: manualMinutes,
+      task: 'TESTE',
+      type: timeEntryType,
+    })
+  }
   return (
     <>
       <Breadcrumb>
@@ -298,15 +319,14 @@ export function TimeEntries() {
                       <Button
                         size="icon"
                         className="h-8 w-8 p-0"
-                        onClick={() =>
-                          createNewTimeEntry({
-                            minutesAmount: manualMinutes,
-                            task: 'TESTE',
-                            type: timeEntryType,
-                          })
-                        }
+                        onClick={handlePlayPauseTimer}
                       >
-                        {!!activeTimeEntry ? <Pause /> : <Play />}
+                        {activeTimeEntry &&
+                        activeTimeEntry.status == 'running' ? (
+                          <Pause />
+                        ) : (
+                          <Play />
+                        )}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent className="bg-background text-foreground">
