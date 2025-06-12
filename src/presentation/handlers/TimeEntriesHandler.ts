@@ -23,6 +23,7 @@ export class TimeEntriesHandler {
       body: { memberId, startDate, endDate },
     }: IRequest<ListTimeEntriesRequest>,
   ): Promise<PaginatedViewModel<TimeEntryViewModel[]>> {
+    console.log('BACKEND')
     const result: Either<AppError, TimeEntryDTO[]> =
       await this.listTimeEntriesService.execute(memberId, startDate, endDate)
 
