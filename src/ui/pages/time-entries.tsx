@@ -28,7 +28,7 @@ import {
   Users,
   Wrench,
 } from 'lucide-react'
-import { useContext, useState } from 'react'
+import { useContext, useMemo, useState } from 'react'
 
 import { client } from '@/ui/client/client'
 import { columns, Row } from '@/ui/components/time-entries-table/columns'
@@ -90,74 +90,7 @@ const items = [
   { value: '28', label: 'Gestão', icon: Briefcase },
 ]
 
-const statuses = ['synced', 'failed', 'pending'] as const
-
-const activityItems = [
-  { value: '8', label: 'Design' },
-  { value: '9', label: 'Desenvolvimento' },
-  { value: '10', label: 'Análise' },
-  { value: '11', label: 'Planejamento' },
-  { value: '12', label: 'Encerramento' },
-  { value: '13', label: 'Teste' },
-  { value: '14', label: 'Revisão Código' },
-  { value: '15', label: 'Gerência de Configuração' },
-  { value: '16', label: 'Correção' },
-  { value: '17', label: 'Suporte' },
-  { value: '18', label: 'Apoio' },
-  { value: '19', label: 'Homologação' },
-  { value: '25', label: 'Documentação' },
-  { value: '26', label: 'Treinamento' },
-  { value: '27', label: 'Reunião' },
-  { value: '28', label: 'Gestão' },
-]
-
-function getRandomActivityId() {
-  const item = activityItems[Math.floor(Math.random() * activityItems.length)]
-  return parseInt(item.value, 10)
-}
-
-function generateTimeEntry(
-  index: number,
-  status: (typeof statuses)[number],
-  issueId: number,
-): TimeEntry {
-  return {
-    sincStatus: status,
-    project_id: 1 + (index % 2),
-    user_id: 1 + (index % 2),
-    issue_id: issueId,
-    hours: Math.floor(Math.random() * 8) + 1,
-    comments: `Entrada ${index + 1} - ${status}`,
-    spent_on: new Date(Date.now() - index * 86400000)
-      .toISOString()
-      .split('T')[0],
-    activity_id: getRandomActivityId(),
-  }
-}
-
-const syncedGroup = Array.from({ length: 4 }, (_, i) =>
-  generateTimeEntry(i, 'synced', 1000),
-)
-
-const otherEntries = Array.from({ length: 20 }, (_, i) => {
-  const status = statuses[i % 3]
-  const issueId = 567850 + (i % 4)
-  return generateTimeEntry(i + 4, status, issueId)
-})
-
-const isolatedEntries = [
-  generateTimeEntry(100, 'synced', 999001),
-  generateTimeEntry(101, 'failed', 999002),
-  generateTimeEntry(102, 'pending', 999003),
-]
-
-const timeEntries: TimeEntry[] = [
-  ...syncedGroup,
-  ...otherEntries,
-  ...isolatedEntries,
-].sort(() => Math.random() - 0.5)
-
-export function groupByIssue(data: TimeEntry[]): Row[] {
+function groupByIssue(data: TimeEntry[]): Row[] {
   const groups: Record<string, Row> = {}
 
   for (const item of data) {
@@ -186,12 +119,25 @@ export function TimeEntries() {
   const [manualMinutes, setManualMinutes] = useState(60)
   const [timeEntryType, setTimeEntryType] =
     useState<TimeEntryReducer['type']>('increasing')
-  const [date, setDate] = useState<Date | undefined>(new Date())
+
+  const todayDate = useMemo(() => new Date(new Date().toDateString()), [])
+  const [date, setDate] = useState<Date | undefined>(todayDate)
+
   const { activeTimeEntry, createNewTimeEntry, interruptCurrentTimeEntry } =
     useContext(TimeEntriesContext)
 
+  const dateKey = useMemo(() => date?.toISOString().split('T')[0], [date])
+  const todayKey = useMemo(
+    () => todayDate.toISOString().split('T')[0],
+    [todayDate],
+  )
+
+  const shortCacheTime = 1000 * 60 * 1
+  const longCacheTime = 1000 * 60 * 5
+  const staleTime = dateKey === todayKey ? shortCacheTime : longCacheTime
+
   const { data: timeEntriesResponse, isPending } = useQuery({
-    queryKey: ['time-entries', date],
+    queryKey: ['time-entries', dateKey],
     queryFn: () =>
       client.services.timeEntries.findByMemberId({
         body: {
@@ -200,10 +146,10 @@ export function TimeEntries() {
           endDate: date ?? new Date(),
         },
       }),
+    staleTime,
   })
 
-  console.log('response', timeEntriesResponse)
-
+  console.log('⏱️ Time entries response:', timeEntriesResponse)
   const mappedEntries: TimeEntry[] = (timeEntriesResponse?.data ?? []).map(
     (entry): TimeEntry => ({
       id: entry.id,
