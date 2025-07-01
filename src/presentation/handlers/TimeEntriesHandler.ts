@@ -29,6 +29,7 @@ export class TimeEntriesHandler {
 
     if (result.isFailure()) {
       return {
+        statusCode: 500,
         isSuccess: false,
         error: 'Erro ao listar tarefas',
         data: [],
@@ -42,6 +43,7 @@ export class TimeEntriesHandler {
 
     console.log('TIME ENTRIES', timeEntries)
     return {
+      statusCode: 200,
       isSuccess: true,
       data: timeEntries,
       totalItems: timeEntries.length,

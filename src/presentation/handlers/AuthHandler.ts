@@ -20,6 +20,7 @@ export class AuthHandler {
 
     if (result.isFailure()) {
       return {
+        statusCode: result.failure.statusCode,
         isSuccess: false,
         error: result.failure.messageKey,
         data: undefined,
@@ -29,6 +30,7 @@ export class AuthHandler {
     const { member, token }: AuthenticationDTO = result.success
 
     return {
+      statusCode: 200,
       isSuccess: true,
       data: { member, token },
     }
