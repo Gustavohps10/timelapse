@@ -1,5 +1,6 @@
 export * from './authInvoker'
 export * from './headersInvoker'
+export * from './sessionInvoker'
 export * from './tasksInvoker'
 export * from './timeEntriesInvoker'
 export * from './tokenStorageInvoker'

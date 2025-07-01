@@ -1,4 +1,5 @@
 export * from './AuthHandler'
+export * from './SessionHandler'
 export * from './TaskHandler'
 export * from './TimeEntriesHandler'
 export * from './TokenHandler'

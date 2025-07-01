@@ -10,6 +10,8 @@ export const IpcChannels = {
 
   SET_HEADERS: 'set-headers',
   GET_HEADERS: 'get-headers',
+
+  GET_CURRENT_USER: 'get-current-user',
 } as const
 
 export type IpcChannelType = keyof typeof IpcChannels

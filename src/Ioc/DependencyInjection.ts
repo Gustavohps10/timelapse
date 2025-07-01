@@ -1,6 +1,7 @@
 import { asClass, createContainer, InjectionMode } from 'awilix'
 
 import { AuthenticationService } from '@/application/services/AuthenticationService'
+import { GetCurrentUserService } from '@/application/services/GetCurrentUserService'
 import { ListTaskService } from '@/application/services/ListTasksService'
 import { ListTimeEntriesService } from '@/application/services/ListTimeEntriesService'
 import { RedmineAuthenticationStrategy } from '@/application/strategies/RedmineAuthenticationStrategy'
@@ -15,6 +16,7 @@ import { KeytarTokenStorage } from '@/infra/storage/KeytarTokenStorage'
 import { UnitOfWork } from '@/infra/workflow/UnitOfWork'
 import {
   AuthHandler,
+  SessionHandler,
   TaskHandler,
   TimeEntriesHandler,
   TokenHandler,
@@ -60,10 +62,12 @@ export class DependencyInjection {
       authenticationService: asClass(AuthenticationService).scoped(),
       listTasksService: asClass(ListTaskService).scoped(),
       listTimeEntriesService: asClass(ListTimeEntriesService).scoped(),
+      getCurrentUserService: asClass(GetCurrentUserService).scoped(),
     })
 
     // Handlers
     this.container.register({
+      sessionHandler: asClass(SessionHandler).scoped(),
       authHandler: asClass(AuthHandler).scoped(),
       taskHandler: asClass(TaskHandler).scoped(),
       timeEntriesHandler: asClass(TimeEntriesHandler).scoped(),

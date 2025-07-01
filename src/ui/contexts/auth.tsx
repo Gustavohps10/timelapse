@@ -66,8 +66,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         body: { service: 'atask', account: 'jwt' },
       })
 
-      console.log('TOKEN JA EXISTENTE', res)
-
       if (!res.isSuccess || !res.data) {
         setIsAuthenticated(false)
         setUser(null)
@@ -78,18 +76,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         authorization: `Bearer ${res.data}`,
       })
 
+      const response = await client.services.session.getCurrentUser()
+
+      if (!response.data) return
+
       setIsAuthenticated(true)
-      setUser({
-        id: 230,
-        admin: false,
-        firstname: 'USUARIO',
-        lastname: 'LOGADO',
-        last_login_on: '2025-04-05',
-        api_key: '123123',
-        created_on: '2025-04-05',
-        custom_fields: [],
-        login: 'usuario.que.ja.esta.logado',
-      }) // TODO: Pegar os dados reais do token futuramente
+      setUser(response.data)
     }
 
     autoLogin()

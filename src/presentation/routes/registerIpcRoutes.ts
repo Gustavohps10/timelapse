@@ -1,6 +1,7 @@
 import { DependencyInjection } from '@Ioc/DependencyInjection'
 
 import { IpcHandler } from '@/presentation/adapters/ipcHandler'
+import { SessionHandler } from '@/presentation/handlers'
 import { AuthHandler } from '@/presentation/handlers/AuthHandler'
 import { TaskHandler } from '@/presentation/handlers/TaskHandler'
 import { TimeEntriesHandler } from '@/presentation/handlers/TimeEntriesHandler'
@@ -28,6 +29,19 @@ export function registerIpcRoutes(): void {
     const handler = scoped.resolve<TokenHandler>('tokenHandler')
     return handler.deleteToken(...args)
   })
+
+  /*
+   * Session
+   */
+  IpcHandler.register(
+    'GET_CURRENT_USER',
+    [ensureAuthenticated],
+    async (...args) => {
+      const scoped = DependencyInjection.createOrGetScope()
+      const handler = scoped.resolve<SessionHandler>('sessionHandler')
+      return handler.listTimeEntries(...args)
+    },
+  )
 
   /*
    * AUTH

@@ -2,6 +2,7 @@ import { IWindowAPIInvoker } from '@/presentation/contracts/invokers'
 
 export const WindowClient: IWindowAPIInvoker = {
   services: {
+    session: window.api.services.session,
     auth: window.api.services.auth,
     tasks: window.api.services.tasks,
     timeEntries: window.api.services.timeEntries,

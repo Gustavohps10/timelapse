@@ -23,8 +23,22 @@ export class RedmineMemberQuery
     super(httpClient, sessionManager, tokenStorage)
   }
 
-  findMeById(id: string): Promise<Either<AppError, MemberDTO>> {
-    throw new Error('Method not implemented.')
+  public async findMeById(id: string): Promise<Either<AppError, MemberDTO>> {
+    const client = await this.getConfiguredHttpClient()
+    const response = await client.get<RedmineUserResponse>(`/users/${id}.json`)
+
+    if (response.isFailure()) {
+      return Either.failure(
+        new AppError(
+          'Não foi possível obter o usuário do Redmine',
+          undefined,
+          403,
+        ),
+      )
+    }
+
+    const member = response.success.user
+    return Either.success(member)
   }
 
   findAll(): Promise<Either<AppError, MemberDTO[]>> {

@@ -18,6 +18,7 @@ export class TokenHandler {
     try {
       if (!token) {
         return {
+          statusCode: 500,
           isSuccess: false,
           error: 'Token is required',
           data: undefined,
@@ -27,11 +28,13 @@ export class TokenHandler {
       await this.tokenStorage.saveToken(service, account, token)
 
       return {
+        statusCode: 200,
         isSuccess: true,
         data: undefined,
       }
     } catch {
       return {
+        statusCode: 500,
         isSuccess: false,
         error: 'Failed to save the token',
         data: undefined,
@@ -50,11 +53,13 @@ export class TokenHandler {
       console.log(token)
 
       return {
+        statusCode: 200,
         isSuccess: true,
         data: token,
       }
     } catch {
       return {
+        statusCode: 500,
         isSuccess: false,
         error: 'Failed to get the token',
         data: null,
@@ -70,11 +75,13 @@ export class TokenHandler {
       await this.tokenStorage.deleteToken(service, account)
 
       return {
+        statusCode: 200,
         isSuccess: true,
         data: undefined,
       }
     } catch {
       return {
+        statusCode: 500,
         isSuccess: false,
         error: 'Failed to delete the token',
         data: undefined,

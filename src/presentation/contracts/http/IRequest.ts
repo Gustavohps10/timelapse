@@ -1,4 +1,4 @@
-export interface IRequest<TBody> {
+export interface IRequest<TBody = void> {
   headers?: Headers
   body: TBody
 }

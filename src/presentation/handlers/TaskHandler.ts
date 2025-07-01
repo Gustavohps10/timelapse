@@ -17,6 +17,7 @@ export class TaskHandler {
 
     if (result.isFailure()) {
       return {
+        statusCode: 500,
         isSuccess: false,
         error: 'Erro ao listar tarefas',
         data: [],
@@ -41,6 +42,7 @@ export class TaskHandler {
     const totalPages = Math.ceil(totalItems / pageSize)
 
     return {
+      statusCode: 200,
       isSuccess: true,
       data: taskViewModels,
       totalItems,

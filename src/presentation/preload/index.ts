@@ -2,6 +2,7 @@ import { IWindowAPIInvoker } from '@/presentation/contracts/invokers'
 import {
   authInvoker,
   headersInvoker,
+  sessionInvoker,
   tasksInvoker,
   timeEntriesInvoker,
   tokenStorageInvoker,
@@ -11,6 +12,7 @@ const { contextBridge } = require('electron')
 
 const api: IWindowAPIInvoker = {
   services: {
+    session: sessionInvoker,
     tasks: tasksInvoker,
     auth: authInvoker,
     timeEntries: timeEntriesInvoker,
