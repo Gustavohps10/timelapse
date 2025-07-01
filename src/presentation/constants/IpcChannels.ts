@@ -12,6 +12,8 @@ export const IpcChannels = {
   GET_HEADERS: 'get-headers',
 
   GET_CURRENT_USER: 'get-current-user',
+
+  DISCORD_LOGIN: 'login:discord',
 } as const
 
 export type IpcChannelType = keyof typeof IpcChannels

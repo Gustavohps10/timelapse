@@ -1,6 +1,7 @@
 import { IWindowAPIInvoker } from '@/presentation/contracts/invokers'
 import {
   authInvoker,
+  discordInvoker,
   headersInvoker,
   sessionInvoker,
   tasksInvoker,
@@ -20,6 +21,9 @@ const api: IWindowAPIInvoker = {
   modules: {
     headers: headersInvoker,
     tokenStorage: tokenStorageInvoker,
+  },
+  integrations: {
+    discord: discordInvoker,
   },
 }
 

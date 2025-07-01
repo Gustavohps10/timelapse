@@ -1,6 +1,7 @@
 import { DependencyInjection } from '@Ioc/DependencyInjection'
 
 import { IpcHandler } from '@/presentation/adapters/ipcHandler'
+import { handleDiscordLogin } from '@/presentation/auth/discord-handler'
 import { SessionHandler } from '@/presentation/handlers'
 import { AuthHandler } from '@/presentation/handlers/AuthHandler'
 import { TaskHandler } from '@/presentation/handlers/TaskHandler'
@@ -9,6 +10,12 @@ import { TokenHandler } from '@/presentation/handlers/TokenHandler'
 import { ensureAuthenticated } from '@/presentation/middlewares/ensureAuthenticated'
 
 export function registerIpcRoutes(): void {
+  /*
+   * DISCORD
+   */
+
+  IpcHandler.register('DISCORD_LOGIN', handleDiscordLogin)
+
   /*
    * TOKEN
    */

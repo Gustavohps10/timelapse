@@ -1,6 +1,7 @@
 import {
   ChartLine,
   ChevronRight,
+  DiscAlbumIcon,
   FileText,
   LogOut,
   Search,
@@ -11,6 +12,7 @@ import {
 import { NavLink } from 'react-router-dom'
 
 import logoAtak from '@/ui/assets/logo-atak.png'
+import { client } from '@/ui/client/client'
 import { ScrollArea } from '@/ui/components/ui/scroll-area'
 import {
   Sidebar,
@@ -150,6 +152,9 @@ export function AppSidebar() {
               {user?.login || ''}
             </h2>
           </div>
+          <Button onClick={client.integrations.discord.login}>
+            <DiscAlbumIcon />
+          </Button>
           <Button
             size="icon"
             variant="outline"
