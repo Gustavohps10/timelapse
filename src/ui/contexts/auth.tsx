@@ -26,42 +26,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [user, setUser] = useState<MemberViewModel | null>(null)
 
-  // Auto login se token estiver salvo
-  useEffect(() => {
-    const autoLogin = async () => {
-      const res = await client.modules.tokenStorage.getToken({
-        body: { service: 'atask', account: 'jwt' },
-      })
-
-      console.log('TOKEN JA EXISTENTE', res)
-
-      if (!res.isSuccess || !res.data) {
-        setIsAuthenticated(false)
-        setUser(null)
-        return
-      }
-
-      client.modules.headers.setDefaultHeaders({
-        authorization: `Bearer ${res.data}`,
-      })
-
-      setIsAuthenticated(true)
-      setUser({
-        id: 230,
-        admin: false,
-        firstname: 'JOAOZINHO',
-        lastname: 'LOGADO',
-        last_login_on: '2025-04-05',
-        api_key: '123123',
-        created_on: '2025-04-05',
-        custom_fields: [],
-        login: 'usuario.que.ja.esta.logado',
-      }) // TODO: Pegar os dados reais do token futuramente
-    }
-
-    autoLogin()
-  }, [])
-
   // Login com user e token
   const login = useCallback(async (user: MemberViewModel, token: string) => {
     const response = await client.modules.tokenStorage.saveToken({
@@ -94,6 +58,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsAuthenticated(false)
     setUser(null)
   }, [])
+
+  // Auto login se token estiver salvo
+  useEffect(() => {
+    const autoLogin = async () => {
+      const res = await client.modules.tokenStorage.getToken({
+        body: { service: 'atask', account: 'jwt' },
+      })
+
+      console.log('TOKEN JA EXISTENTE', res)
+
+      if (!res.isSuccess || !res.data) {
+        setIsAuthenticated(false)
+        setUser(null)
+        return
+      }
+
+      client.modules.headers.setDefaultHeaders({
+        authorization: `Bearer ${res.data}`,
+      })
+
+      setIsAuthenticated(true)
+      setUser({
+        id: 230,
+        admin: false,
+        firstname: 'USUARIO',
+        lastname: 'LOGADO',
+        last_login_on: '2025-04-05',
+        api_key: '123123',
+        created_on: '2025-04-05',
+        custom_fields: [],
+        login: 'usuario.que.ja.esta.logado',
+      }) // TODO: Pegar os dados reais do token futuramente
+    }
+
+    autoLogin()
+  }, [])
+
+  useEffect(() => {
+    const handleForceLogout = () => {
+      logout()
+    }
+
+    window.addEventListener('force-logout', handleForceLogout)
+
+    return () => {
+      window.removeEventListener('force-logout', handleForceLogout)
+    }
+  }, [logout])
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
