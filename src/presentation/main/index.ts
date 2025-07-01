@@ -6,11 +6,31 @@ import { join } from 'path'
 import { registerIpcRoutes } from '@/presentation/routes/registerIpcRoutes'
 import icon from '@/ui/assets/timer-icon.png'
 
+import { handleUrlCallback } from '../auth/discord-handler'
+
+let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let secondaryWindow: BrowserWindow | null = null
 
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+} else {
+  app.on('second-instance', (_, commandLine) => {
+    const urlCallback = commandLine.pop()
+
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+
+    if (urlCallback) {
+      handleUrlCallback(urlCallback)
+    }
+  })
+}
+
 const createWindow = () => {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -22,11 +42,15 @@ const createWindow = () => {
     },
   })
 
-  mainWindow.on('ready-to-show', () => mainWindow.show())
+  mainWindow.on('ready-to-show', () => mainWindow!.show())
 
   mainWindow.webContents.setWindowOpenHandler((d) => {
     shell.openExternal(d.url)
     return { action: 'deny' }
+  })
+
+  mainWindow.on('closed', () => {
+    mainWindow = null
   })
 
   is.dev && process.env['ELECTRON_RENDERER_URL']
@@ -60,6 +84,10 @@ const createSecondaryWindow = () => {
     secondaryWindow!.show()
   })
 
+  secondaryWindow.on('closed', () => {
+    secondaryWindow = null
+  })
+
   is.dev && process.env['ELECTRON_RENDERER_URL']
     ? secondaryWindow.loadURL(
         `${process.env['ELECTRON_RENDERER_URL']}/widgets/timer`,
@@ -77,7 +105,7 @@ const createTray = () => {
           ? 'Ocultar Janela Flutuante'
           : 'Habilitar Janela Flutuante',
         click: () => {
-          if (!secondaryWindow) {
+          if (!secondaryWindow || secondaryWindow.isDestroyed()) {
             createSecondaryWindow()
           } else {
             secondaryWindow.isVisible()
@@ -90,7 +118,7 @@ const createTray = () => {
       { label: 'Sair', role: 'quit' },
     ])
 
-  tray.setToolTip('Chronno')
+  tray.setToolTip('Atask')
 
   tray.on('click', () => {
     const menu = buildContextMenu()

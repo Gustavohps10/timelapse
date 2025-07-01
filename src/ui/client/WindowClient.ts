@@ -11,4 +11,9 @@ export const WindowClient: IWindowAPIInvoker = {
     headers: window.api.modules.headers,
     tokenStorage: window.api.modules.tokenStorage,
   },
+  integrations: {
+    discord: {
+      login: window.api.integrations.discord.login,
+    },
+  },
 }
