@@ -1,41 +1,24 @@
 import axios from 'axios'
-import { shell } from 'electron'
+import { BrowserWindow } from 'electron'
+import http from 'http'
+import url from 'url'
 
-import { AppError } from '@/cross-cutting/AppError'
-import { Either } from '@/cross-cutting/Either'
+import { ViewModel } from '@/presentation/view-models/ViewModel'
 
-let authPromise: {
-  resolve: (code: string) => void
-  reject: (error: Error) => void
-} | null = null
-
-export function handleUrlCallback(url: string): void {
-  if (authPromise && url.startsWith('atask://auth/discord/callback')) {
-    try {
-      const code = new URL(url).searchParams.get('code')
-      const errorDescription = new URL(url).searchParams.get(
-        'error_description',
-      )
-
-      if (code) {
-        authPromise.resolve(code)
-      } else {
-        authPromise.reject(
-          new Error(errorDescription || 'Autorização negada pelo usuário.'),
-        )
-      }
-    } catch {
-      authPromise.reject(new Error('URL de callback inválida ou malformada.'))
-    } finally {
-      authPromise = null
-    }
-  }
+export interface DiscordUserResponse {
+  id: string
+  username: string
+  avatar: string
+  global_name: string | null
+  avatarUrl: string
 }
 
+let authWindow: BrowserWindow | null = null
+
 async function exchangeCodeAndGetUser(code: string) {
-  const CLIENT_ID = '1389613844694962249'
-  const CLIENT_SECRET = 'DVgJzAHtsmi4pqbWbjGTCTFVggGXy77L'
-  const REDIRECT_URI = 'atask://auth/discord/callback'
+  const CLIENT_ID = '1372352088457220126'
+  const CLIENT_SECRET = '8t0EQSv04PG-odB3IZkuk2JOjcon0qsu'
+  const REDIRECT_URI = 'http://localhost:5353/callback'
 
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
@@ -54,35 +37,83 @@ async function exchangeCodeAndGetUser(code: string) {
   const userResponse = await axios.get('https://discord.com/api/users/@me', {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
-
   return userResponse.data
 }
 
-export async function handleDiscordLogin(): Promise<Either<AppError, any>> {
-  const authUrl = `https://discord.com/api/oauth2/authorize?client_id=1389613844694962249&redirect_uri=atask%3A%2F%2Fauth%2Fdiscord%2Fcallback&response_type=code&scope=identify`
+export async function handleDiscordLogin(): Promise<
+  ViewModel<DiscordUserResponse>
+> {
+  const authUrl = `https://discord.com/api/oauth2/authorize?client_id=1372352088457220126&redirect_uri=http%3A%2F%2Flocalhost%3A5353%2Fcallback&response_type=code&scope=identify`
 
-  try {
-    shell.openExternal(authUrl)
+  authWindow = new BrowserWindow({
+    width: 500,
+    height: 650,
+    webPreferences: { nodeIntegration: false, contextIsolation: true },
+  })
 
-    const code = await new Promise<string>((resolve, reject) => {
-      authPromise = { resolve, reject }
+  authWindow.loadURL(authUrl)
+
+  return new Promise((resolve) => {
+    let isResolving = false
+
+    const server = http
+      .createServer(async (req, res) => {
+        if (req.url && req.url.includes('/callback')) {
+          isResolving = true
+
+          const { code } = url.parse(req.url, true).query
+
+          res.end(
+            '<h1>Autenticação concluída! Você pode fechar esta janela.</h1>',
+          )
+          server.close()
+          authWindow?.close()
+
+          if (code) {
+            try {
+              const discordUser = await exchangeCodeAndGetUser(String(code))
+              const { id, avatar } = discordUser
+
+              if (!id || !avatar) {
+                resolve({
+                  isSuccess: false,
+                  statusCode: 404,
+                  error: 'Usuário não possui um avatar.',
+                })
+                return
+              }
+
+              const avatarUrl = `https://cdn.discordapp.com/avatars/${id}/${avatar}.png?size=128`
+
+              resolve({ ...discordUser, avatarUrl })
+            } catch (error) {
+              resolve({
+                isSuccess: false,
+                statusCode: 500,
+                error: (error as Error).message,
+              })
+            }
+          } else {
+            resolve({
+              isSuccess: false,
+              statusCode: 400,
+              error: 'Código de autorização não recebido.',
+            })
+          }
+        }
+      })
+      .listen(5353)
+
+    authWindow?.on('closed', () => {
+      server.close()
+      authWindow = null
+      if (!isResolving) {
+        resolve({
+          isSuccess: false,
+          statusCode: 400,
+          error: 'Janela de autenticação fechada pelo usuário.',
+        })
+      }
     })
-
-    const discordUser = await exchangeCodeAndGetUser(code)
-    const { id, avatar, username } = discordUser
-
-    if (!id || !avatar) {
-      return Either.failure(
-        new AppError('AVATAR_NOT_FOUND', 'Usuário não possui um avatar.', 404),
-      )
-    }
-
-    const avatarUrl = `https://cdn.discordapp.com/avatars/${id}/${avatar}.png?size=128`
-
-    return Either.success({ data: { avatarUrl, username } })
-  } catch (error) {
-    return Either.failure(
-      new AppError('DISCORD_AUTH_FAILED', (error as Error).message, 500),
-    )
-  }
+  })
 }

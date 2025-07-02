@@ -6,28 +6,9 @@ import { join } from 'path'
 import { registerIpcRoutes } from '@/presentation/routes/registerIpcRoutes'
 import icon from '@/ui/assets/timer-icon.png'
 
-import { handleUrlCallback } from '../auth/discord-handler'
-
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let secondaryWindow: BrowserWindow | null = null
-
-if (!app.requestSingleInstanceLock()) {
-  app.quit()
-} else {
-  app.on('second-instance', (_, commandLine) => {
-    const urlCallback = commandLine.pop()
-
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.focus()
-    }
-
-    if (urlCallback) {
-      handleUrlCallback(urlCallback)
-    }
-  })
-}
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
