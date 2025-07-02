@@ -13,6 +13,17 @@ import { NavLink } from 'react-router-dom'
 
 import logoAtak from '@/ui/assets/logo-atak.png'
 import { client } from '@/ui/client/client'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/ui/components/ui/alert-dialog'
 import { ScrollArea } from '@/ui/components/ui/scroll-area'
 import {
   Sidebar,
@@ -175,14 +186,28 @@ export function AppSidebar() {
           >
             <FaDiscord />
           </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            className="ml-auto h-7 w-7"
-            onClick={handleLogout}
-          >
-            <LogOut />
-          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="icon" variant="outline" className="ml-auto h-7 w-7">
+                <LogOut />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Voce tem certeza?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Voce será desconectado.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout}>
+                  Sair
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </SidebarFooter>
     </Sidebar>
