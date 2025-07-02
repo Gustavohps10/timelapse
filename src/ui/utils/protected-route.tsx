@@ -8,11 +8,15 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element }) => {
-  const { isAuthenticated } = useAuth()
+  const { isLoading, isAuthenticated } = useAuth()
   const location = useLocation()
 
+  if (isLoading) {
+    return null
+  }
+
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} />
+    return <Navigate to="/login" state={{ from: location }} replace />
   }
 
   return element
