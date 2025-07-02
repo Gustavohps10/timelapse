@@ -1,7 +1,6 @@
 import {
   ChartLine,
   ChevronRight,
-  DiscAlbumIcon,
   FileText,
   LogOut,
   Search,
@@ -9,6 +8,7 @@ import {
   Timer,
   User,
 } from 'lucide-react'
+import { FaDiscord } from 'react-icons/fa'
 import { NavLink } from 'react-router-dom'
 
 import logoAtak from '@/ui/assets/logo-atak.png'
@@ -50,10 +50,16 @@ const subItems = [
 ]
 
 export function AppSidebar() {
-  const { logout, user } = useAuth()
+  const { logout, user, changeAvatar } = useAuth()
 
   const handleLogout = () => {
     logout()
+  }
+
+  async function handleDiscordLogin() {
+    const discordData = await client.integrations.discord.login()
+
+    changeAvatar(discordData.avatarUrl)
   }
 
   return (
@@ -141,7 +147,16 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <div className="flex items-center gap-2 rounded-md p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-          <User className="h-8 w-8 rounded-lg bg-zinc-200 p-2 text-zinc-900" />
+          {user?.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              className="h-8 w-8 rounded-lg"
+              alt="avatar"
+            />
+          ) : (
+            <User className="h-8 w-8 rounded-lg bg-zinc-200 p-2 text-zinc-900" />
+          )}
+
           <div className="flex flex-col">
             <h1 className="scroll-m-20 text-sm font-bold tracking-tighter">
               {user?.firstname && user?.lastname
@@ -152,13 +167,18 @@ export function AppSidebar() {
               {user?.login || ''}
             </h2>
           </div>
-          <Button onClick={client.integrations.discord.login}>
-            <DiscAlbumIcon />
+          <Button
+            onClick={handleDiscordLogin}
+            size="icon"
+            variant="outline"
+            className="ml-auto h-7 w-7"
+          >
+            <FaDiscord />
           </Button>
           <Button
             size="icon"
             variant="outline"
-            className="ml-auto h-8 w-8"
+            className="ml-auto h-7 w-7"
             onClick={handleLogout}
           >
             <LogOut />
