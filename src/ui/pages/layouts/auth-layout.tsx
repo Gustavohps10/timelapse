@@ -7,7 +7,7 @@ export function AuthLayout() {
   return (
     <>
       <main className="h-[100vh] flex-1 overflow-hidden">
-        <ScrollArea className="h-[100vh] p-4">
+        <ScrollArea className="h-[100vh]">
           <Outlet />
           <Footer />
         </ScrollArea>
