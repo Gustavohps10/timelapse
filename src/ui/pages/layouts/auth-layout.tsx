@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { Toaster } from 'sonner'
 
 import { Footer } from '@/ui/components/footer'
 import { ScrollArea } from '@/ui/components/ui/scroll-area'
@@ -11,6 +12,7 @@ export function AuthLayout() {
           <Outlet />
           <Footer />
         </ScrollArea>
+        <Toaster />
       </main>
     </>
   )

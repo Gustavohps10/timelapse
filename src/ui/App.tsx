@@ -14,9 +14,9 @@ import { router } from '@/ui/routes'
 export function App() {
   return (
     <>
-      <TooltipProvider>
-        <TimeEntriesContextProvider>
-          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <TooltipProvider>
+          <TimeEntriesContextProvider>
             <SidebarProvider>
               <AuthProvider>
                 <QueryClientProvider client={queryClient}>
@@ -24,9 +24,9 @@ export function App() {
                 </QueryClientProvider>
               </AuthProvider>
             </SidebarProvider>
-          </ThemeProvider>
-        </TimeEntriesContextProvider>
-      </TooltipProvider>
+          </TimeEntriesContextProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </>
   )
 }
