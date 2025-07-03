@@ -29,6 +29,8 @@ import {
   Wrench,
 } from 'lucide-react'
 import { useContext, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { client } from '@/ui/client/client'
 import { columns, Row } from '@/ui/components/time-entries-table/columns'
@@ -68,6 +70,7 @@ import {
   TooltipTrigger,
 } from '@/ui/components/ui/tooltip'
 import { TimeEntriesContext } from '@/ui/contexts/TimeEntriesContext'
+import { useAuth } from '@/ui/hooks/use-auth'
 import { TimeEntry as TimeEntryReducer } from '@/ui/reducers/time-entries/reducer'
 
 const items = [
@@ -117,6 +120,8 @@ function groupByIssue(data: TimeEntry[]): Row[] {
 
 export function TimeEntries() {
   const [manualMinutes, setManualMinutes] = useState(60)
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
   const [timeEntryType, setTimeEntryType] =
     useState<TimeEntryReducer['type']>('increasing')
 
@@ -187,6 +192,20 @@ export function TimeEntries() {
       type: timeEntryType,
     })
   }
+
+  function handleWithSync() {
+    if (!isAuthenticated) {
+      toast('Você precisa se autenticar para sincronizar.', {
+        action: {
+          label: 'Login',
+          onClick: () => navigate('/login'),
+        },
+        description: 'Faça login para sincronizar seus apontamentos.',
+      })
+      return
+    }
+  }
+
   return (
     <>
       <Breadcrumb>
@@ -355,6 +374,7 @@ export function TimeEntries() {
                         size="icon"
                         className="h-8 w-8 p-0"
                         variant="ghost"
+                        onClick={handleWithSync}
                       >
                         <CloudUpload />
                       </Button>

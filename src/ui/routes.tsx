@@ -10,7 +10,6 @@ import { TimerWidget } from '@/ui/pages/widgets/timer-widget'
 import { Docs } from './pages/docs'
 import { AuthLayout } from './pages/layouts/auth-layout'
 import { Login } from './pages/login'
-import { ProtectedRoute } from './utils/protected-route'
 
 export const router = createBrowserRouter([
   {
@@ -20,16 +19,18 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <ProtectedRoute element={<Dashboard />} />,
+        element: <Dashboard />,
+        // element: <ProtectedRoute element={<Dashboard />} />,
       },
       {
         path: '/docs',
-        element: <ProtectedRoute element={<Docs />} />,
+        element: <Docs />,
+        // element: <ProtectedRoute element={<Docs />} />,
       },
       {
         path: '/time-entries',
-        element: <ProtectedRoute element={<TimeEntries />} />,
-        // element: <TimeEntries />,
+        element: <TimeEntries />,
+        // element: <ProtectedRoute element={<TimeEntries />} />,
       },
     ],
   },
