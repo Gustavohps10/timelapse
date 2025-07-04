@@ -4,12 +4,25 @@
 Trackpoint é uma plataforma de apontamento de horas projetada com base em três pilares: flexibilidade, robustez e uma experiência de usuário superior. Sua arquitetura foi concebida para operar em múltiplos ambientes (Web, Desktop e Mobile) e se conectar a diversas fontes de dados — desde APIs de terceiros até bancos de dados privados — sempre com foco na autonomia do usuário e na segurança da informação.
 
 ## 2. Conceitos Fundamentais
-Dois conceitos principais norteiam o design do produto:
+Dois conceitos principais norteiam o design do Trackpoint, garantindo uma plataforma poderosa, flexível e centrada no fluxo de trabalho do usuário.
 
-Local-First e Offline-First: As aplicações instaláveis (Desktop e Mobile) são construídas sobre este princípio. A interface do usuário (UI) interage primariamente com um banco de dados local, garantindo performance instantânea e funcionalidade contínua mesmo sem conexão com a internet. A sincronização de dados é uma tarefa secundária, que ocorre em segundo plano de forma assíncrona.
+Local-First: Performance em Primeiro Lugar
+O princípio Local-First é a base de todas as aplicações Trackpoint, incluindo a Web. A interface do usuário (UI) sempre lê e escreve primariamente em um banco de dados local no dispositivo. Isso resulta em uma experiência de uso extremamente rápida e responsiva, onde as ações são refletidas instantaneamente, sem a latência de uma chamada de rede.
 
-O Paradigma de Workspaces: O "Workspace" é a unidade central de trabalho no Trackpoint. Em vez de uma única fonte de dados, o usuário pode criar e alternar entre múltiplos workspaces. Cada workspace é vinculado a um único Datasource, como uma instância do Redmine, uma conexão com um banco de dados SQL ou uma conta na plataforma SaaS do próprio Trackpoint.
+Offline-First (para Desktop e Mobile): Nas aplicações instaláveis, levamos o conceito adiante. Elas não só são rápidas, como também são totalmente funcionais sem uma conexão com a internet. Você pode abrir o aplicativo, criar, editar e gerenciar todos os seus apontamentos, e a sincronização ocorrerá de forma inteligente em segundo plano quando uma conexão for restabelecida.
 
+Na Web: A abordagem Local-First garante a mesma performance instantânea após o carregamento inicial da página. Embora o acesso inicial ao site trackpoint.com.br necessite de internet, uma vez carregado, o apontamento de horas e a interação com os dados são igualmente rápidos, com a sincronização aguardando a autenticação e a conectividade.
+
+O Paradigma de Workspaces: Seus Dados, Suas Regras
+O "Workspace" é a unidade central de trabalho no Trackpoint. Entendemos que cada equipe tem sua própria história e sistema. Em vez de forçar uma migração de dados dolorosa, o Trackpoint se adapta à sua realidade.
+
+A nossa filosofia é simples: encontre seus dados onde eles já vivem. O Trackpoint atua como uma camada de inteligência e produtividade sobre as suas fontes de dados existentes, ou oferece uma plataforma robusta para quem está começando agora.
+
+Para equipes com sistemas legados: Se sua empresa já utiliza uma ferramenta como Redmine ou tem seus próprios bancos de dados SQL, você pode simplesmente "conectar" o Trackpoint a essa fonte. Você ganha uma interface moderna, funcionalidades offline e relatórios poderosos sem precisar abandonar seu sistema atual.
+
+Para novas equipes e projetos: Se você não possui um sistema de apontamento, pode utilizar a plataforma nativa do Trackpoint. Nós fornecemos a API e o banco de dados como um serviço (SaaS), garantindo uma solução completa, segura e pronta para usar, sem nenhuma configuração de infraestrutura.
+
+A capacidade de alternar entre esses workspaces com um clique permite que um mesmo usuário gerencie projetos para múltiplos clientes com diferentes sistemas, tudo a partir de uma interface unificada.
 ## 3. Arquitetura Multiplataforma
 A plataforma é materializada em três aplicações cliente distintas, ou "sabores", cada uma otimizada para seu ambiente, mas compartilhando uma base de código e lógica de negócios comum.
 
