@@ -1,0 +1,25 @@
+{
+  "extends": "../../../tsconfig.base.json", 
+  "compilerOptions": {
+    "outDir": "dist",
+    // "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"] 
+    },
+    "types": ["electron-vite/node", "node"] 
+  },
+  "include": [
+    "electron.vite.config.*",
+    "src/main/**/*",
+    "src/preload/**/*",
+    "src/renderer/**/*"
+, "src/renderer/@types"  ],
+  "references": [
+    { "path": "../../packages/application" },
+    { "path": "../../packages/presentation" },
+    { "path": "../../packages/cross-cutting" },
+    { "path": "../../packages/container" },
+    { "path": "../../packages/ui" },
+  ],
+}

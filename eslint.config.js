@@ -11,8 +11,8 @@ import pluginUnusedImports from 'eslint-plugin-unused-imports'
 import globals from 'globals'
 
 export default defineConfig({
-  ignores: ['node_modules', 'dist', 'out/**', '.gitignore'],
-  files: ['**/*.{js,jsx,ts,tsx}'],
+  ignores: ['node_modules', '**/dist', 'out/**', '.gitignore', '**/*.d.ts'],
+  files: ['**/*.{ts,tsx}'],
   languageOptions: {
     parser: parser,
     parserOptions: {

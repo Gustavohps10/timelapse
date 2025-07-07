@@ -1,0 +1,41 @@
+{
+  "name": "@trackpoint/application",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Contém os serviços e casos de uso (use cases) da aplicação Trackpoint.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./contracts": {
+      "import": "./dist/contracts/index.js",
+      "types": "./dist/contracts/index.d.ts"
+    },
+    "./services": {
+      "import": "./dist/services/index.js",
+      "types": "./dist/services/index.d.ts"
+    },
+    "./dto": {
+      "import": "./dist/dto/index.js",
+      "types": "./dist/dto/index.d.ts"
+    },
+    "./workflow": {
+      "import": "./dist/workflow/index.js",
+      "types": "./dist/workflow/index.d.ts"
+    },
+    "./strategies": {
+      "import": "./dist/strategies/index.js",
+      "types": "./dist/strategies/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup --format esm,cjs --dts"
+  },
+  "dependencies": {
+    "@trackpoint/cross-cutting": "workspace:*",
+    "@trackpoint/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@trackpoint/cross-cutting",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./transport": {
+      "import": "./dist/transport/index.js",
+      "types": "./dist/transport/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup --format esm,cjs --dts"
+  }
+}

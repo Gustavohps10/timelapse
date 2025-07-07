@@ -1,0 +1,16 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@/*": ["./src/*"], 
+    }
+  },
+  "include": ["src", "../../apps/desktop/src/renderer/@types"],
+  "exclude": ["dist", "node_modules"],
+  "references": [
+    { "path": "../presentation"}
+  ]
+}
