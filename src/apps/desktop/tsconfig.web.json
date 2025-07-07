@@ -1,0 +1,20 @@
+{
+  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+  "include": [
+    "src/**/*"
+  ],
+  "compilerOptions": {
+    "typeRoots": ["./node_modules/@types", "src/packages/presentation/preload"],
+    "emitDecoratorMetadata": true, 
+    "experimentalDecorators": true,
+    "composite": true,
+    "target": "ES2022",
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@entities/*": ["src/packages/domain/entities/*"],
+      "@Ioc/*": ["src/packages/Ioc/*"],
+      "@/*": ["src/*"]
+    }
+  }
+}

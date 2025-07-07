@@ -1,0 +1,33 @@
+{
+  "name": "@trackpoint/domain",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Contém as entidades, interfaces e regras de negócio principais do ecossistema Trackpoint.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts"
+  },
+  "dependencies": {
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "tsup": "^8.2.3",
+    "typescript": "^5.8.3"
+  },
+  "tsup": {
+    "entry": [
+      "src/index.ts"
+    ],
+    "splitting": false,
+    "sourcemap": true,
+    "clean": true
+  }
+}
