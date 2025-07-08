@@ -1,8 +1,7 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: ['src/index.ts', 'src/transport/index.ts'],
-
+  entry: ['src/transport/index.ts', 'src/helpers/index.ts'],
   format: ['esm'],
   dts: {
     resolve: true,

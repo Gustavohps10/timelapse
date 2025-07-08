@@ -1,6 +1,6 @@
 import { IListTasksUseCase } from '@trackpoint/application/contracts'
 import { TaskDTO } from '@trackpoint/application/dto'
-import { AppError, Either } from '@trackpoint/cross-cutting'
+import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
 import {
   PaginatedViewModel,
   TaskViewModel,

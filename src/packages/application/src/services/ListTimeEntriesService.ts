@@ -1,4 +1,4 @@
-import { AppError, Either } from '@trackpoint/cross-cutting'
+import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
 
 import { ITimeEntryQuery } from '@/contracts/data/queries/ITimeEntryQuery'
 import { IListTimeEntriesUseCase } from '@/contracts/use-cases/IListTimeEntriesUseCase'

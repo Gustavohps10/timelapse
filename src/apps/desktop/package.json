@@ -2,7 +2,8 @@
   "name": "@trackpoint/desktop",
   "version": "1.0.0",
   "description": "Trackpoint Desktop App.",
-  "main": "./out/main/index.mjs",
+  "main": "./out/main/index.js",
+  "type": "module",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",

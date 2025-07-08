@@ -4,7 +4,7 @@ import {
   ITimeEntryQuery,
 } from '@trackpoint/application/contracts'
 import { TimeEntryDTO } from '@trackpoint/application/dto'
-import { AppError, Either } from '@trackpoint/cross-cutting'
+import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
 
 import { IHttpClient } from '@/contracts'
 import { RedmineQueryBase } from '@/data/queries/redmine/RedmineQueryBase'

@@ -1,6 +1,6 @@
 import { IListTimeEntriesUseCase } from '@trackpoint/application/contracts'
 import { TimeEntryDTO } from '@trackpoint/application/dto'
-import { AppError, Either } from '@trackpoint/cross-cutting'
+import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
 import { IRequest } from '@trackpoint/cross-cutting/transport'
 import {
   PaginatedViewModel,

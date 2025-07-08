@@ -1,4 +1,4 @@
-import { AppError, Either } from '@trackpoint/cross-cutting'
+import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
 
 export interface IQueryBase<T> {
   findAll(): Promise<Either<AppError, T[]>>
