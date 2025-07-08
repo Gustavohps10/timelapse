@@ -14,6 +14,7 @@
     "src/packages/*"
   ],
   "scripts": {
+    "dev:desktop": "yarn dev --filter=@trackpoint/desktop",
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",

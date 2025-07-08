@@ -1,4 +1,4 @@
-import './globals.css'
+import '@trackpoint/ui/globals.css'
 
 import { App } from '@trackpoint/ui'
 import React from 'react'
