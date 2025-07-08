@@ -2784,6 +2784,8 @@ __metadata:
 "@trackpoint/cross-cutting@workspace:*, @trackpoint/cross-cutting@workspace:src/packages/cross-cutting":
   version: 0.0.0-use.local
   resolution: "@trackpoint/cross-cutting@workspace:src/packages/cross-cutting"
+  dependencies:
+    typescript: "npm:^5.8.3"
   languageName: unknown
   linkType: soft
 

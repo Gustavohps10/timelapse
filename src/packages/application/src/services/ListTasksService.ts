@@ -1,4 +1,4 @@
-import { AppError, Either } from '@trackpoint/cross-cutting'
+import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
 
 import { ITaskQuery } from '@/contracts/data/queries/ITaskQuery'
 import { IListTasksUseCase } from '@/contracts/use-cases/IListTasksUseCase'

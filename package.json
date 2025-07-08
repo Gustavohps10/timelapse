@@ -20,7 +20,8 @@
     "lint:fix": "turbo lint -- --fix",
     "clean": "turbo clean",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "postinstall": "husky install"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",

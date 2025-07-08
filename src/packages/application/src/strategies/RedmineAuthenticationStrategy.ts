@@ -1,4 +1,4 @@
-import { AppError, Either } from '@trackpoint/cross-cutting'
+import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
 
 import { IMemberQuery } from '@/contracts/data/queries/IMemberQuery'
 import { ICredentialsStorage } from '@/contracts/storage/ICredentialsStorage'

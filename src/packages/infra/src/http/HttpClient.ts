@@ -1,4 +1,4 @@
-import { AppError, Either } from '@trackpoint/cross-cutting'
+import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
 
 import { IHttpClient } from '@/contracts/IHttpClient'
