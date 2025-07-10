@@ -2986,6 +2986,7 @@ __metadata:
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
     react-router-dom: "npm:^6.29.0"
+    tailwind-merge: "npm:^3.0.1"
     tailwindcss: "npm:^4.1.11"
     tailwindcss-animate: "npm:^1.0.7"
     vite: "npm:^6.3.5"
@@ -3043,8 +3044,6 @@ __metadata:
     "@radix-ui/react-toggle": "npm:^1.1.9"
     "@radix-ui/react-toggle-group": "npm:^1.1.10"
     "@radix-ui/react-tooltip": "npm:^1.2.6"
-    "@tailwindcss/typography": "npm:^0.5.16"
-    "@tailwindcss/vite": "npm:^4.0.6"
     "@tanstack/react-query": "npm:^5.77.2"
     "@tanstack/react-table": "npm:^8.21.3"
     "@tiptap/core": "npm:^2.11.5"
@@ -3079,7 +3078,6 @@ __metadata:
     recharts: "npm:^2.15.1"
     sonner: "npm:^2.0.6"
     tailwind-merge: "npm:^3.0.1"
-    tailwindcss: "npm:4.0.6"
     tailwindcss-animate: "npm:^1.0.7"
     typescript: "npm:^5.8.3"
     vite: "npm:^6.3.5"
@@ -11150,13 +11148,6 @@ __metadata:
   peerDependencies:
     tailwindcss: "*"
   checksum: 10c0/ec7dbd1631076b97d66a1fbaaa06e0725fccfa63119221e8d87a997b02dcede98ad88bb1ef6665b968f5d260fcefb10592e0299ca70208d365b37761edf5e19a
-  languageName: node
-  linkType: hard
-
-"tailwindcss@npm:4.0.6":
-  version: 4.0.6
-  resolution: "tailwindcss@npm:4.0.6"
-  checksum: 10c0/e1d40616c2aa69844a065c74d022960efc820d974c86415faec6d485f841c0112776a52d9a150e8f3375c4e04d22b0b4c33c07086c35b9725487b314dc7a7f71
   languageName: node
   linkType: hard
 
