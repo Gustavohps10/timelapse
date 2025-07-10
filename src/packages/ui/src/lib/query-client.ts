@@ -1,5 +1,5 @@
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
-import { ViewModel } from '@trackpoint/presentation/view-models'
+import { ViewModel } from '@trackalize/presentation/view-models'
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({

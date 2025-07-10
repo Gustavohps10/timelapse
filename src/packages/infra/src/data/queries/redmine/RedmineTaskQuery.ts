@@ -2,9 +2,9 @@ import {
   ICredentialsStorage,
   ISessionManager,
   ITaskQuery,
-} from '@trackpoint/application/contracts'
-import { TaskDTO } from '@trackpoint/application/dto'
-import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
+} from '@trackalize/application/contracts'
+import { TaskDTO } from '@trackalize/application/dto'
+import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 
 import { IHttpClient } from '@/contracts'
 import { RedmineQueryBase } from '@/data/queries/redmine/RedmineQueryBase'

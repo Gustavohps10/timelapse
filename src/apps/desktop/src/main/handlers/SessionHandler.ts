@@ -1,11 +1,11 @@
-import { IGetCurrentUserUseCase } from '@trackpoint/application/contracts'
-import { MemberDTO } from '@trackpoint/application/dto'
-import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
-import { IRequest } from '@trackpoint/cross-cutting/transport'
+import { IGetCurrentUserUseCase } from '@trackalize/application/contracts'
+import { MemberDTO } from '@trackalize/application/dto'
+import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { IRequest } from '@trackalize/cross-cutting/transport'
 import {
   MemberViewModel,
   ViewModel,
-} from '@trackpoint/presentation/view-models'
+} from '@trackalize/presentation/view-models'
 
 export class SessionHandler {
   constructor(private readonly getCurrentUserService: IGetCurrentUserUseCase) {}

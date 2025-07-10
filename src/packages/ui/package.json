@@ -1,8 +1,8 @@
 {
-  "name": "@trackpoint/ui",
+  "name": "@trackalize/ui",
   "version": "1.0.0",
   "private": true,
-  "description": "Biblioteca de componentes de UI compartilhados para o ecossistema Trackpoint.",
+  "description": "Biblioteca de componentes de UI compartilhados para o ecossistema Trackalize.",
   "type": "module",
   "exports": {
     ".": {
@@ -37,8 +37,8 @@
     "@tiptap/pm": "^2.11.5",
     "@tiptap/react": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
-    "@trackpoint/cross-cutting": "workspace:*",
-    "@trackpoint/presentation": "workspace:*",
+    "@trackalize/cross-cutting": "workspace:*",
+    "@trackalize/presentation": "workspace:*",
     "awilix": "^12.0.5",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",

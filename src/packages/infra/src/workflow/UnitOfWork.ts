@@ -3,7 +3,7 @@ import {
   ITaskQuery,
   ITimeEntryQuery,
   IUnitOfWork,
-} from '@trackpoint/application/contracts'
+} from '@trackalize/application/contracts'
 
 export class UnitOfWork implements IUnitOfWork {
   public inTransaction: boolean = false

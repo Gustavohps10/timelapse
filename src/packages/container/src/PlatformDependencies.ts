@@ -5,17 +5,17 @@ import {
   ITaskMutation,
   ITaskQuery,
   ITimeEntryQuery,
-} from '@trackpoint/application/contracts'
+} from '@trackalize/application/contracts'
 import {
   AuthenticationService,
   GetCurrentUserService,
   ListTaskService,
   ListTimeEntriesService,
-} from '@trackpoint/application/services'
-import { SessionManager } from '@trackpoint/application/workflow'
-import { JwtService } from '@trackpoint/infra/auth'
-import { HttpClient } from '@trackpoint/infra/http'
-import { UnitOfWork } from '@trackpoint/infra/workflow'
+} from '@trackalize/application/services'
+import { SessionManager } from '@trackalize/application/workflow'
+import { JwtService } from '@trackalize/infra/auth'
+import { HttpClient } from '@trackalize/infra/http'
+import { UnitOfWork } from '@trackalize/infra/workflow'
 import {
   asClass,
   AwilixContainer,
@@ -33,7 +33,7 @@ export interface PlatformDependencies {
   credentialsStorage: Resolver<ICredentialsStorage>
 }
 
-export function createTrackpointContainer(
+export function createTrackalizeContainer(
   platformDependencies: PlatformDependencies,
 ): AwilixContainer {
   const container = createContainer({

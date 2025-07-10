@@ -1,8 +1,8 @@
 {
-  "name": "@trackpoint/presentation",
+  "name": "@trackalize/presentation",
   "version": "1.0.0",
   "private": true,
-  "description": "Contém os serviços e casos de uso (use cases) da aplicação Trackpoint.",
+  "description": "Contém os serviços e casos de uso (use cases) da aplicação Trackalize.",
   "type": "module",
   "exports": {
     "./view-models": {

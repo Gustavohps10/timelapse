@@ -1,4 +1,4 @@
-import { ICredentialsStorage } from '@trackpoint/application/contracts'
+import { ICredentialsStorage } from '@trackalize/application/contracts'
 import keytar from 'keytar'
 
 export class KeytarTokenStorage implements ICredentialsStorage {

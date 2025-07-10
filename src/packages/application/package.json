@@ -1,8 +1,8 @@
 {
-  "name": "@trackpoint/application",
+  "name": "@trackalize/application",
   "version": "1.0.0",
   "private": true,
-  "description": "Contém os serviços e casos de uso (use cases) da aplicação Trackpoint.",
+  "description": "Contém os serviços e casos de uso (use cases) da aplicação Trackalize.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -32,8 +32,8 @@
     "build": "tsup --format esm,cjs --dts"
   },
   "dependencies": {
-    "@trackpoint/cross-cutting": "workspace:*",
-    "@trackpoint/domain": "workspace:*"
+    "@trackalize/cross-cutting": "workspace:*",
+    "@trackalize/domain": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

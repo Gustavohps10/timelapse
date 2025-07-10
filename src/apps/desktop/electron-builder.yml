@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: atask
+productName: trackalize
 directories:
   buildResources: build
 files:
@@ -12,11 +12,11 @@ files:
 asarUnpack:
   - resources/**
 protocols:
-  name: Atask Auth Protocol
+  name: Trackalize Auth Protocol
   schemes:
-    - atask
+    - trackalize
 win:
-  executableName: atask
+  executableName: trackalize
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

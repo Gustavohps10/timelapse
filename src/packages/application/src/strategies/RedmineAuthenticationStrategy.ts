@@ -1,4 +1,4 @@
-import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
+import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 
 import { IMemberQuery } from '@/contracts/data/queries/IMemberQuery'
 import { ICredentialsStorage } from '@/contracts/storage/ICredentialsStorage'
@@ -33,7 +33,7 @@ export class RedmineAuthenticationStrategy implements IAuthenticationStrategy {
     const member = result.success
 
     const key = `redmine-key-${member.id}`
-    await this.credentialsStorage.saveToken('atask', key, member.api_key)
+    await this.credentialsStorage.saveToken('trackalize', key, member.api_key)
 
     return Either.success(member)
   }

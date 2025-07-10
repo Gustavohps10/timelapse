@@ -1,16 +1,16 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { RedmineAuthenticationStrategy } from '@trackpoint/application/strategies'
+import { RedmineAuthenticationStrategy } from '@trackalize/application/strategies'
 import {
-  createTrackpointContainer,
+  createTrackalizeContainer,
   PlatformDependencies,
-} from '@trackpoint/container'
+} from '@trackalize/container'
 import {
   RedmineMemberQuery,
   RedmineTaskMutation,
   RedmineTaskQuery,
   RedmineTimeEntryQuery,
-} from '@trackpoint/infra/data'
-import { KeytarTokenStorage } from '@trackpoint/infra/storage'
+} from '@trackalize/infra/data'
+import { KeytarTokenStorage } from '@trackalize/infra/storage'
 import { asClass } from 'awilix'
 import { app, BrowserWindow, Menu, screen, shell, Tray } from 'electron'
 import { join } from 'path'
@@ -110,7 +110,7 @@ const createTray = () => {
       { label: 'Sair', role: 'quit' },
     ])
 
-  tray.setToolTip('Atask')
+  tray.setToolTip('Trackalize')
 
   tray.on('click', () => {
     const menu = buildContextMenu()
@@ -133,7 +133,7 @@ app.whenReady().then(() => {
     timeEntryQuery: asClass(RedmineTimeEntryQuery),
   }
 
-  const container = createTrackpointContainer(platformDeps)
+  const container = createTrackalizeContainer(platformDeps)
   openIpcRoutes(container)
 
   electronApp.setAppUserModelId('com.electron')

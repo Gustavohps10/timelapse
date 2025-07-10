@@ -1,4 +1,4 @@
-import { IClient } from '@trackpoint/ui/client'
+import { IClient } from '@trackalize/ui/client'
 
 export const desktopClient: IClient = {
   services: window.api.services,

@@ -1,4 +1,4 @@
-import { Task } from '@trackpoint/domain'
+import { Task } from '@trackalize/domain'
 
 import { IMutationBase } from '@/contracts/data/mutations/IMutationBase'
 

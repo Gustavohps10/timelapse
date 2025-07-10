@@ -1,5 +1,5 @@
-import { ITaskMutation } from '@trackpoint/application/contracts'
-import { Task } from '@trackpoint/domain'
+import { ITaskMutation } from '@trackalize/application/contracts'
+import { Task } from '@trackalize/domain'
 
 import { IHttpClient } from '@/contracts'
 

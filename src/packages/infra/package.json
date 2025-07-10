@@ -1,8 +1,8 @@
 {
-  "name": "@trackpoint/infra",
+  "name": "@trackalize/infra",
   "version": "1.0.0",
   "private": true,
-  "description": "Pacote de infraestrutura consolidado para o Trackpoint, contendo implementações concretas de recursos externos",
+  "description": "Pacote de infraestrutura consolidado para o Trackalize, contendo implementações concretas de recursos externos",
   "type": "module",
   "scripts": {
     "build": "tsup --format esm,cjs --dts"
@@ -34,9 +34,9 @@
     }
   },
   "dependencies": {
-    "@trackpoint/application": "workspace:*",
-    "@trackpoint/cross-cutting": "workspace:*",
-    "@trackpoint/domain": "workspace:*",
+    "@trackalize/application": "workspace:*",
+    "@trackalize/cross-cutting": "workspace:*",
+    "@trackalize/domain": "workspace:*",
     "axios": "^1.7.9",
     "jsonwebtoken": "^9.0.2",
     "keytar": "^7.9.0"

@@ -1,4 +1,4 @@
-import { IJWTService, Payload } from '@trackpoint/application/contracts'
+import { IJWTService, Payload } from '@trackalize/application/contracts'
 import jwt from 'jsonwebtoken'
 
 export class JwtService implements IJWTService {
