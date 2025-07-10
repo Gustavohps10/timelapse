@@ -1,18 +1,19 @@
-import '@trackpoint/ui/globals.css'
+import '@/renderer/index.css'
 
 import { QueryClientProvider } from '@tanstack/react-query'
 import {
   AuthProvider,
   ClientProvider,
-  Dashboard,
   queryClient,
   SidebarProvider,
   ThemeProvider,
   TimeEntriesContextProvider,
   TooltipProvider,
 } from '@trackpoint/ui'
+import { RouterProvider } from 'react-router-dom'
 
 import { desktopClient } from '@/renderer/client'
+import { router } from '@/renderer/routes'
 
 export function AppDesktop() {
   return (
@@ -23,8 +24,7 @@ export function AppDesktop() {
             <SidebarProvider>
               <AuthProvider>
                 <QueryClientProvider client={queryClient}>
-                  {/* <RouterProvider router={router} /> */}
-                  <Dashboard />
+                  <RouterProvider router={router} />
                 </QueryClientProvider>
               </AuthProvider>
             </SidebarProvider>
