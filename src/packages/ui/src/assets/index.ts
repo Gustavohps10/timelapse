@@ -1,4 +1,2 @@
-import logoTrackpoint from './logo-atak.png'
-import timerIcon from './timer-icon.png'
-
-export { logoTrackpoint, timerIcon }
+export const logoTrackpoint = '/assets/logo-atak.png'
+export const timerIcon = '/assets/timer-icon.png'
