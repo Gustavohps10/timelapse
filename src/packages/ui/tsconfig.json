@@ -1,16 +1,25 @@
 {
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": [
+      "dom",
+      "ES2020"
+    ],
+    "module": "ESNext",
+    "target": "es6",
     "composite": true,
     "outDir": "dist",
     "rootDir": "src",
     "paths": {
-      "@/*": ["./src/*"], 
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "../../apps/desktop/src/renderer/@types"],
+  "include": [
+    "src"
+  ],
   "exclude": ["dist", "node_modules"],
   "references": [
-    { "path": "../presentation"}
+    { "path": "../presentation" }
   ]
 }

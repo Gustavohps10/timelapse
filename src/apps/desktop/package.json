@@ -7,13 +7,15 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "build:win": "npm run build && electron-builder --win",
-    "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux"
+    "build:win": "yarn build && electron-builder --win",
+    "build:mac": "yarn build && electron-builder --mac",
+    "build:linux": "yarn build && electron-builder --linux"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
+    "@tailwindcss/typography": "^0.5.16",
+    "@tailwindcss/vite": "^4.0.6",
     "@trackpoint/application": "workspace:*",
     "@trackpoint/cross-cutting": "workspace:*",
     "@trackpoint/infra": "workspace:*",
@@ -21,16 +23,24 @@
     "@trackpoint/ui": "workspace:*",
     "awilix": "^12.0.5",
     "electron-updater": "^6.1.7",
-    "keytar": "^7.9.0"
+    "keytar": "^7.9.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^6.29.0",
+    "tailwindcss": "^4.1.11",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^20.17.18",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.3.1",
     "electron": "^31.0.2",
     "electron-builder": "^24.13.3",
     "electron-vite": "^3.1.0",
-    "postcss": "^8.5.2",
+    "postcss": "^8.5.6",
     "vite": "^6.3.5"
   }
 }

@@ -47,9 +47,7 @@ const createWindow = () => {
     mainWindow = null
   })
 
-  is.dev && process.env['ELECTRON_RENDERER_URL']
-    ? mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-    : mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
 }
 
 const createSecondaryWindow = () => {
