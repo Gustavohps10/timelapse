@@ -1,10 +1,10 @@
-import { IListTasksUseCase } from '@trackpoint/application/contracts'
-import { TaskDTO } from '@trackpoint/application/dto'
-import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
+import { IListTasksUseCase } from '@trackalize/application/contracts'
+import { TaskDTO } from '@trackalize/application/dto'
+import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 import {
   PaginatedViewModel,
   TaskViewModel,
-} from '@trackpoint/presentation/view-models'
+} from '@trackalize/presentation/view-models'
 
 export class TaskHandler {
   constructor(private readonly listTasksService: IListTasksUseCase) {}

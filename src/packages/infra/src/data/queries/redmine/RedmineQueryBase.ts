@@ -1,7 +1,7 @@
 import {
   ICredentialsStorage,
   ISessionManager,
-} from '@trackpoint/application/contracts'
+} from '@trackalize/application/contracts'
 
 import { IHttpClient } from '@/contracts'
 
@@ -35,7 +35,7 @@ export abstract class RedmineQueryBase {
     }
 
     const storageKey = `redmine-key-${user.id}`
-    const key = await this.credentialsStorage.getToken('atask', storageKey)
+    const key = await this.credentialsStorage.getToken('trackalize', storageKey)
 
     const params: Record<string, string> = {}
 

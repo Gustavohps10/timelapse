@@ -1,8 +1,8 @@
 {
-  "name": "@trackpoint/container",
+  "name": "@trackalize/container",
   "version": "1.0.0",
   "private": true,
-  "description": "Construtor de container de Injeção de Dependência para o ecossistema Trackpoint.",
+  "description": "Construtor de container de Injeção de Dependência para o ecossistema Trackalize.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -16,8 +16,8 @@
     "build": "tsup --format esm,cjs --dts"
   },
   "dependencies": {
-    "@trackpoint/application": "workspace:*",
-    "@trackpoint/infra": "workspace:*",
+    "@trackalize/application": "workspace:*",
+    "@trackalize/infra": "workspace:*",
     "awilix": "^12.0.5"
   }
 }

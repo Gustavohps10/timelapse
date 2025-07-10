@@ -1,5 +1,5 @@
 {
-  "name": "@trackpoint/cross-cutting",
+  "name": "@trackalize/cross-cutting",
   "version": "1.0.0",
   "private": true,
   "description": "Conjunto de helpers que servem para todas as camadas.",

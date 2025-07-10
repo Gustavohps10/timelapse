@@ -1,11 +1,11 @@
-import { IListTimeEntriesUseCase } from '@trackpoint/application/contracts'
-import { TimeEntryDTO } from '@trackpoint/application/dto'
-import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
-import { IRequest } from '@trackpoint/cross-cutting/transport'
+import { IListTimeEntriesUseCase } from '@trackalize/application/contracts'
+import { TimeEntryDTO } from '@trackalize/application/dto'
+import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { IRequest } from '@trackalize/cross-cutting/transport'
 import {
   PaginatedViewModel,
   TimeEntryViewModel,
-} from '@trackpoint/presentation/view-models'
+} from '@trackalize/presentation/view-models'
 
 export interface ListTimeEntriesRequest {
   memberId: string

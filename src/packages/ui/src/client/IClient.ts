@@ -1,4 +1,4 @@
-import { IHeaders, IRequest } from '@trackpoint/cross-cutting/transport'
+import { IHeaders, IRequest } from '@trackalize/cross-cutting/transport'
 import {
   AuthenticationViewModel,
   MemberViewModel,
@@ -6,7 +6,7 @@ import {
   TaskViewModel,
   TimeEntryViewModel,
   ViewModel,
-} from '@trackpoint/presentation/view-models'
+} from '@trackalize/presentation/view-models'
 
 export interface ISessionClient {
   getCurrentUser(): Promise<ViewModel<MemberViewModel>>

@@ -1,4 +1,4 @@
-import { AppError, Either } from '@trackpoint/cross-cutting/helpers'
+import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 
 import { IQueryBase } from '@/contracts/data/queries/IQueryBase'
 import { TimeEntryDTO } from '@/dto/TimeEntryDTO'

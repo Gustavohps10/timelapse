@@ -1,10 +1,10 @@
-import { IAuthenticationUseCase } from '@trackpoint/application/contracts'
-import { AuthenticationDTO } from '@trackpoint/application/dto'
-import { IRequest } from '@trackpoint/cross-cutting/transport'
+import { IAuthenticationUseCase } from '@trackalize/application/contracts'
+import { AuthenticationDTO } from '@trackalize/application/dto'
+import { IRequest } from '@trackalize/cross-cutting/transport'
 import {
   AuthenticationViewModel,
   ViewModel,
-} from '@trackpoint/presentation/view-models'
+} from '@trackalize/presentation/view-models'
 
 export interface LoginRequest {
   login: string

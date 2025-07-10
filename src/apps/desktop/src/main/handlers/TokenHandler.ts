@@ -1,6 +1,6 @@
-import { ICredentialsStorage } from '@trackpoint/application/contracts'
-import { IRequest } from '@trackpoint/cross-cutting/transport'
-import { ViewModel } from '@trackpoint/presentation/view-models'
+import { ICredentialsStorage } from '@trackalize/application/contracts'
+import { IRequest } from '@trackalize/cross-cutting/transport'
+import { ViewModel } from '@trackalize/presentation/view-models'
 
 export interface TokenRequest {
   service: string

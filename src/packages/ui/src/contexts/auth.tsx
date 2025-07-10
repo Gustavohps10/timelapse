@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = useCallback(async (user: User, token: string) => {
     await client.modules.tokenStorage.saveToken({
-      body: { service: 'atask', account: 'jwt', token },
+      body: { service: 'trackalize', account: 'jwt', token },
     })
     client.modules.headers.setDefaultHeaders({
       authorization: `Bearer ${token}`,
@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = useCallback(async () => {
     await client.modules.tokenStorage.deleteToken({
-      body: { service: 'atask', account: 'jwt' },
+      body: { service: 'trackalize', account: 'jwt' },
     })
     setIsAuthenticated(false)
     setUser(null)
@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const autoLogin = async () => {
       try {
         const res = await client.modules.tokenStorage.getToken({
-          body: { service: 'atask', account: 'jwt' },
+          body: { service: 'trackalize', account: 'jwt' },
         })
 
         if (!res.isSuccess || !res.data) return

@@ -1,5 +1,5 @@
 {
-  "name": "trackpoint-monorepo",
+  "name": "trackalize-monorepo",
   "private": true,
   "version": "1.0.0",
   "author": "Gustavo Henrique",
@@ -14,7 +14,7 @@
     "src/packages/*"
   ],
   "scripts": {
-    "dev:desktop": "yarn dev --filter=@trackpoint/desktop",
+    "dev:desktop": "yarn dev --filter=@trackalize/desktop",
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",

@@ -1,8 +1,8 @@
-import { IRequest } from '@trackpoint/cross-cutting/transport'
+import { IRequest } from '@trackalize/cross-cutting/transport'
 import {
   PaginatedViewModel,
   TaskViewModel,
-} from '@trackpoint/presentation/view-models'
+} from '@trackalize/presentation/view-models'
 
 import { IpcInvoker } from '@/main/adapters/IpcInvoker'
 

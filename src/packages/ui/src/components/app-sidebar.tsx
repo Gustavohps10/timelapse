@@ -84,7 +84,7 @@ export function AppSidebar() {
           />
           <div className="flex flex-col">
             <h1 className="scroll-m-20 text-sm font-bold tracking-tighter">
-              Atask
+              Trackalize
             </h1>
             <h2 className="text-muted-foreground font scroll-m-20 text-sm leading-none tracking-tight">
               Manager

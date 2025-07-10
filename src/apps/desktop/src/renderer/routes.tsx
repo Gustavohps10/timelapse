@@ -6,8 +6,8 @@ import {
   NotFound,
   TimeEntries,
   TimerWidget,
-} from '@trackpoint/ui'
-import { AppLayout, AuthLayout } from '@trackpoint/ui'
+} from '@trackalize/ui'
+import { AppLayout, AuthLayout } from '@trackalize/ui'
 import { createHashRouter } from 'react-router-dom'
 
 export const router = createHashRouter([

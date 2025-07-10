@@ -9,7 +9,7 @@ import {
   ThemeProvider,
   TimeEntriesContextProvider,
   TooltipProvider,
-} from '@trackpoint/ui'
+} from '@trackalize/ui'
 import { RouterProvider } from 'react-router-dom'
 
 import { desktopClient } from '@/renderer/client'

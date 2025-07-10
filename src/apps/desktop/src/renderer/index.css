@@ -3,4 +3,4 @@
 @plugin "tailwindcss-animate";
 @plugin "@tailwindcss/typography";
 
-@import "@trackpoint/ui/globals.css";
+@import "@trackalize/ui/globals.css";

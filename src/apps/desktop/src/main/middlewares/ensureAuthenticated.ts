@@ -1,7 +1,7 @@
-import { IJWTService, ISessionManager } from '@trackpoint/application/contracts'
-import { Either } from '@trackpoint/cross-cutting'
-import { IRequest } from '@trackpoint/cross-cutting/transport'
-import { ViewModel } from '@trackpoint/presentation/view-models'
+import { IJWTService, ISessionManager } from '@trackalize/application/contracts'
+import { Either } from '@trackalize/cross-cutting'
+import { IRequest } from '@trackalize/cross-cutting/transport'
+import { ViewModel } from '@trackalize/presentation/view-models'
 import { AwilixContainer } from 'awilix'
 
 type NextFunction<TRes> = () => Promise<Either<any, TRes>>

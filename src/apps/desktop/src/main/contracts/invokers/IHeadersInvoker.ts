@@ -1,4 +1,4 @@
-import { IHeaders } from '@trackpoint/cross-cutting/transport'
+import { IHeaders } from '@trackalize/cross-cutting/transport'
 
 export interface IHeadersInvoker {
   setDefaultHeaders(headers: IHeaders): void
