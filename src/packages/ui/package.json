@@ -12,7 +12,8 @@
     "./globals.css": "./dist/styles/globals.css"
   },
   "scripts": {
-    "build": "tsup --format esm,cjs --dts --external react"
+    "build": "tsup --format esm,cjs --dts --external react",
+    "dev": "tsup src/index.tsx --format esm,cjs --dts --external react --watch"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",

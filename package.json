@@ -16,7 +16,7 @@
   "scripts": {
     "dev:desktop": "yarn dev --filter=@trackalize/desktop",
     "build": "turbo build",
-    "dev": "turbo dev",
+    "dev": "turbo run dev --parallel",
     "lint": "turbo lint",
     "lint:fix": "turbo lint -- --fix",
     "clean": "turbo clean",
