@@ -15,6 +15,13 @@ import { asClass } from 'awilix'
 import { app, BrowserWindow, Menu, screen, shell, Tray } from 'electron'
 import { join } from 'path'
 
+import {
+  AuthHandler,
+  SessionHandler,
+  TaskHandler,
+  TimeEntriesHandler,
+  TokenHandler,
+} from '@/main/handlers'
 import { openIpcRoutes } from '@/main/routes/openIpcRoutes'
 
 import timerIcon from './assets/timer-icon.png'
@@ -138,6 +145,15 @@ app.whenReady().then(() => {
   }
 
   const container = createTrackalizeContainer(platformDeps)
+
+  container.register({
+    authHandler: asClass(AuthHandler),
+    sessionHandler: asClass(SessionHandler),
+    taskHandler: asClass(TaskHandler),
+    timeEntriesHandler: asClass(TimeEntriesHandler),
+    tokenHandler: asClass(TokenHandler),
+  })
+
   openIpcRoutes(container)
 
   electronApp.setAppUserModelId('com.electron')

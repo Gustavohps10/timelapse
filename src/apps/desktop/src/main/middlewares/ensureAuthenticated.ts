@@ -1,5 +1,5 @@
 import { IJWTService, ISessionManager } from '@trackalize/application/contracts'
-import { Either } from '@trackalize/cross-cutting'
+import { Either } from '@trackalize/cross-cutting/helpers'
 import { IRequest } from '@trackalize/cross-cutting/transport'
 import { ViewModel } from '@trackalize/presentation/view-models'
 import { AwilixContainer } from 'awilix'
