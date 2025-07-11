@@ -17,7 +17,7 @@ export const router = createHashRouter([
     errorElement: <Error />,
     children: [
       {
-        path: 'dashboard',
+        path: '/',
         element: <Dashboard />,
       },
       {
