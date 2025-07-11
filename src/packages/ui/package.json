@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsup --format esm,cjs --dts --external react",
-    "dev": "tsup src/index.tsx --format esm,cjs --dts --external react --watch"
+    "dev": "tsup --format esm,cjs --dts --external react --watch"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
