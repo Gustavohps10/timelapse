@@ -2933,8 +2933,21 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@trackalize/application@workspace:src/packages/application"
   dependencies:
+    "@trackalize/connector-sdk": "workspace:*"
     "@trackalize/cross-cutting": "workspace:*"
     "@trackalize/domain": "workspace:*"
+    typescript: "npm:^5.8.3"
+  languageName: unknown
+  linkType: soft
+
+"@trackalize/connector-sdk@workspace:*, @trackalize/connector-sdk@workspace:src/packages/connector-sdk":
+  version: 0.0.0-use.local
+  resolution: "@trackalize/connector-sdk@workspace:src/packages/connector-sdk"
+  dependencies:
+    "@trackalize/cross-cutting": "workspace:*"
+    "@trackalize/domain": "workspace:*"
+    "@trackalize/presentation": "workspace:*"
+    tsup: "npm:^8.5.0"
     typescript: "npm:^5.8.3"
   languageName: unknown
   linkType: soft

@@ -1,6 +1,5 @@
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-
-import { MemberDTO } from '@/dto/MemberDTO'
+import { MemberDTO } from '@trackalize/presentation/dtos'
 
 export interface IAuthenticationStrategy {
   authenticate(

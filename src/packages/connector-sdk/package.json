@@ -1,0 +1,27 @@
+{
+  "name": "@trackalize/connector-sdk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Define os contratos e interfaces (SDK) para a criação de conectores no ecossistema trackalize.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./contracts": {
+      "import": "./dist/contracts/index.js",
+      "types": "./dist/contracts/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup --format esm,cjs --dts"
+  },
+  "dependencies": {
+    "@trackalize/cross-cutting": "workspace:*",
+    "@trackalize/domain": "workspace:*",
+    "@trackalize/presentation": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  }
+}

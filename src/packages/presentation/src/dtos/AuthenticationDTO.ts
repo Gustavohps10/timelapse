@@ -1,4 +1,4 @@
-import { MemberDTO } from '@/dto/MemberDTO'
+import { MemberDTO } from '@/dtos/MemberDTO'
 
 export interface AuthenticationDTO {
   member: MemberDTO

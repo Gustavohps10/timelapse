@@ -1,10 +1,10 @@
+import { IAuthenticationStrategy } from '@trackalize/connector-sdk/contracts'
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { AuthenticationDTO } from '@trackalize/presentation/dtos'
+import { MemberDTO } from '@trackalize/presentation/dtos'
 
 import { IJWTService } from '@/contracts/infra/IJWTService'
-import { IAuthenticationStrategy } from '@/contracts/strategies/IAuthenticationStrategy'
 import { IAuthenticationUseCase } from '@/contracts/use-cases/IAuthenticationUseCase'
-import { AuthenticationDTO } from '@/dto/AuthenticationDTO'
-import { MemberDTO } from '@/dto/MemberDTO'
 
 export class AuthenticationService implements IAuthenticationUseCase {
   constructor(

@@ -1,7 +1,7 @@
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { TimeEntryDTO } from '@trackalize/presentation/dtos'
 
 import { IQueryBase } from '@/contracts/data/queries/IQueryBase'
-import { TimeEntryDTO } from '@/dto/TimeEntryDTO'
 
 export interface ITimeEntryQuery extends IQueryBase<TimeEntryDTO> {
   findByMemberId(
