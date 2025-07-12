@@ -11,8 +11,9 @@
     "composite": true,
     "outDir": "dist",
     "rootDir": "src",
-    "paths": {
-      "@/*": ["./src/*"]
+    "baseUrl": ".",
+    "paths": { 
+      "@/*": ["./src/*"] 
     }
   },
   "include": [
