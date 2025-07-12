@@ -1,4 +1,4 @@
-import { ITaskMutation } from '@trackalize/application/contracts'
+import { ITaskMutation } from '@trackalize/connector-sdk/contracts'
 import { Task } from '@trackalize/domain'
 
 import { IHttpClient } from '@/contracts'

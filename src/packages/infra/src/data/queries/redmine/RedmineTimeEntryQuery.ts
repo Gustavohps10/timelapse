@@ -1,10 +1,10 @@
 import {
   ICredentialsStorage,
   ISessionManager,
-  ITimeEntryQuery,
 } from '@trackalize/application/contracts'
-import { TimeEntryDTO } from '@trackalize/application/dto'
+import { ITimeEntryQuery } from '@trackalize/connector-sdk/contracts'
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { TimeEntryDTO } from '@trackalize/presentation/dtos'
 
 import { IHttpClient } from '@/contracts'
 import { RedmineQueryBase } from '@/data/queries/redmine/RedmineQueryBase'

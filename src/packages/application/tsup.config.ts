@@ -4,7 +4,6 @@ export default defineConfig({
   entry: [
     'src/contracts/index.ts',
     'src/services/index.ts',
-    'src/dto/index.ts',
     'src/workflow/index.ts',
     'src/strategies/index.ts',
   ],

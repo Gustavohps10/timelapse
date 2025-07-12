@@ -1,5 +1,4 @@
-import { IMutationBase } from '@/contracts/data/mutations/IMutationBase'
-import { IQueryBase } from '@/contracts/data/queries/IQueryBase'
+import { IMutationBase, IQueryBase } from '@trackalize/connector-sdk/contracts'
 
 export interface IDataContext {
   beginTransaction(): Promise<void>

@@ -15,10 +15,6 @@
       "import": "./dist/services/index.js",
       "types": "./dist/services/index.d.ts"
     },
-    "./dto": {
-      "import": "./dist/dto/index.js",
-      "types": "./dist/dto/index.d.ts"
-    },
     "./workflow": {
       "import": "./dist/workflow/index.js",
       "types": "./dist/workflow/index.d.ts"
@@ -32,6 +28,7 @@
     "build": "tsup --format esm,cjs --dts"
   },
   "dependencies": {
+    "@trackalize/connector-sdk": "workspace:*",
     "@trackalize/cross-cutting": "workspace:*",
     "@trackalize/domain": "workspace:*"
   },

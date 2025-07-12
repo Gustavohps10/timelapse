@@ -1,10 +1,14 @@
-import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+/// ESTA EM APLICATION MAS DEVE SER REMOVIDA FUTURAMENTE
 
-import { IMemberQuery } from '@/contracts/data/queries/IMemberQuery'
+import {
+  IAuthenticationStrategy,
+  IMemberQuery,
+} from '@trackalize/connector-sdk/contracts'
+import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { MemberDTO } from '@trackalize/presentation/dtos'
+
 import { ICredentialsStorage } from '@/contracts/storage/ICredentialsStorage'
-import { IAuthenticationStrategy } from '@/contracts/strategies/IAuthenticationStrategy'
 import { IUnitOfWork } from '@/contracts/workflow/IUnitOfWork'
-import { MemberDTO } from '@/dto/MemberDTO'
 
 export class RedmineAuthenticationStrategy implements IAuthenticationStrategy {
   private readonly memberQuery: IMemberQuery

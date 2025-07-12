@@ -1,10 +1,10 @@
 import {
   ICredentialsStorage,
   ISessionManager,
-  ITaskQuery,
 } from '@trackalize/application/contracts'
-import { TaskDTO } from '@trackalize/application/dto'
+import { ITaskQuery } from '@trackalize/connector-sdk/contracts'
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { TaskDTO } from '@trackalize/presentation/dtos'
 
 import { IHttpClient } from '@/contracts'
 import { RedmineQueryBase } from '@/data/queries/redmine/RedmineQueryBase'

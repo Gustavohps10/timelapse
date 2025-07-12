@@ -1,6 +1,8 @@
-import { IMemberQuery } from '@/contracts/data/queries/IMemberQuery'
-import { ITaskQuery } from '@/contracts/data/queries/ITaskQuery'
-import { ITimeEntryQuery } from '@/contracts/data/queries/ITimeEntryQuery'
+import {
+  IMemberQuery,
+  ITaskQuery,
+  ITimeEntryQuery,
+} from '@trackalize/connector-sdk/contracts'
 
 export interface IUnitOfWork {
   beginTransaction(): Promise<void>

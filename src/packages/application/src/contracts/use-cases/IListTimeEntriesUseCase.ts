@@ -1,6 +1,5 @@
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-
-import { TimeEntryDTO } from '@/dto/TimeEntryDTO'
+import { TimeEntryDTO } from '@trackalize/presentation/dtos'
 
 export interface IListTimeEntriesUseCase {
   execute(

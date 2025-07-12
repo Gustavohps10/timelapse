@@ -8,6 +8,10 @@
     "./view-models": {
       "import": "./dist/view-models/index.js",
       "types": "./dist/view-models/index.d.ts"
+    },
+    "./dtos": {
+      "import": "./dist/dtos/index.js",
+      "types": "./dist/dtos/index.d.ts"
     }
   },
   "scripts": {
