@@ -1,17 +1,15 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { RedmineAuthenticationStrategy } from '@trackalize/application/strategies'
+import {
+  ConnectorRuntimeContext,
+  Context as TrackalizeContext,
+} from '@trackalize/connector-sdk'
 import {
   createTrackalizeContainer,
   PlatformDependencies,
 } from '@trackalize/container'
-import {
-  RedmineMemberQuery,
-  RedmineTaskMutation,
-  RedmineTaskQuery,
-  RedmineTimeEntryQuery,
-} from '@trackalize/infra/data'
 import { KeytarTokenStorage } from '@trackalize/infra/storage'
-import { asClass } from 'awilix'
+import RedmineConnector from '@trackalize/redmine-plugin'
+import { asClass, asValue } from 'awilix'
 import { app, BrowserWindow, Menu, screen, shell, Tray } from 'electron'
 import { join } from 'path'
 
@@ -134,14 +132,40 @@ const createTray = () => {
   })
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  TrackalizeContext.initialize({
+    credentialsStorage: new KeytarTokenStorage(),
+  })
+
+  const FAKE_WORKSPACE = {
+    id: 'ws-redmine-1234',
+    pluginId: '@trackalize/redmine-plugin',
+    config: {
+      apiUrl: 'http://redmine.atakone.com.br',
+    },
+  }
+
+  TrackalizeContext.setActiveWorkspaceId(FAKE_WORKSPACE.id)
+
+  const runtimeContext: ConnectorRuntimeContext = {
+    sessionData: TrackalizeContext.getSessionData(),
+    workspaceConfig: FAKE_WORKSPACE.config,
+  }
+
+  const authStrategy =
+    RedmineConnector.getAuthenticationStrategy(runtimeContext)
+  const taskQuery = RedmineConnector.getTaskQuery(runtimeContext)
+  const memberQuery = RedmineConnector.getMemberQuery(runtimeContext)
+  const timeEntryQuery = RedmineConnector.getTimeEntryQuery(runtimeContext)
+  const taskMutation = RedmineConnector.getTaskMutation(runtimeContext)
+
   const platformDeps: PlatformDependencies = {
-    authenticationStrategy: asClass(RedmineAuthenticationStrategy),
-    credentialsStorage: asClass(KeytarTokenStorage),
-    memberQuery: asClass(RedmineMemberQuery),
-    taskMutation: asClass(RedmineTaskMutation),
-    taskQuery: asClass(RedmineTaskQuery),
-    timeEntryQuery: asClass(RedmineTimeEntryQuery),
+    authenticationStrategy: asValue(authStrategy),
+    taskQuery: asValue(taskQuery),
+    memberQuery: asValue(memberQuery),
+    timeEntryQuery: asValue(timeEntryQuery),
+    taskMutation: asValue(taskMutation),
+    credentialsStorage: asClass(KeytarTokenStorage).singleton(),
   }
 
   const container = createTrackalizeContainer(platformDeps)

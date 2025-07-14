@@ -1,18 +1,16 @@
-import { ICredentialsStorage } from '@trackalize/application/contracts'
 import {
   AuthenticationService,
   GetCurrentUserService,
-  ListTaskService,
-  ListTimeEntriesService,
-} from '@trackalize/application/services'
-import { SessionManager } from '@trackalize/application/workflow'
-import {
   IAuthenticationStrategy,
+  ICredentialsStorage,
   IMemberQuery,
   ITaskMutation,
   ITaskQuery,
   ITimeEntryQuery,
-} from '@trackalize/connector-sdk/contracts'
+  ListTaskService,
+  ListTimeEntriesService,
+} from '@trackalize/application'
+import { SessionManager } from '@trackalize/application'
 import { JwtService } from '@trackalize/infra/auth'
 import { HttpClient } from '@trackalize/infra/http'
 import { UnitOfWork } from '@trackalize/infra/workflow'

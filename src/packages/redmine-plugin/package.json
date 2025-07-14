@@ -1,0 +1,26 @@
+{
+  "name": "@trackalize/redmine-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Conector oficial do Trackalize para integração com o Redmine.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup --format esm,cjs --dts"
+  },
+  "dependencies": {
+    "@trackalize/connector-sdk": "workspace:*",
+    "axios": "^1.7.9"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  }
+}

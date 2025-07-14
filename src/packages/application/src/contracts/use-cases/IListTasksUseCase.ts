@@ -1,5 +1,6 @@
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-import { TaskDTO } from '@trackalize/presentation/dtos'
+
+import { TaskDTO } from '@/dtos'
 
 export interface IListTasksUseCase {
   execute(): Promise<Either<AppError, TaskDTO[]>>

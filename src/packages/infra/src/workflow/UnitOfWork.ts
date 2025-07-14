@@ -1,9 +1,9 @@
-import { IUnitOfWork } from '@trackalize/application/contracts'
+import { IUnitOfWork } from '@trackalize/application'
 import {
   IMemberQuery,
   ITaskQuery,
   ITimeEntryQuery,
-} from '@trackalize/connector-sdk/contracts'
+} from '@trackalize/application'
 
 export class UnitOfWork implements IUnitOfWork {
   public inTransaction: boolean = false

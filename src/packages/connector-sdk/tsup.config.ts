@@ -2,7 +2,7 @@ import { defineConfig } from 'tsup'
 
 export default defineConfig({
   entry: {
-    'contracts/index': 'src/contracts/index.ts',
+    index: 'src/index.ts',
   },
   format: ['esm'],
   dts: {

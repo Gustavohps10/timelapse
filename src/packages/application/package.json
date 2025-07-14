@@ -7,28 +7,15 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "./contracts": {
-      "import": "./dist/contracts/index.js",
-      "types": "./dist/contracts/index.d.ts"
-    },
-    "./services": {
-      "import": "./dist/services/index.js",
-      "types": "./dist/services/index.d.ts"
-    },
-    "./workflow": {
-      "import": "./dist/workflow/index.js",
-      "types": "./dist/workflow/index.d.ts"
-    },
-    "./strategies": {
-      "import": "./dist/strategies/index.js",
-      "types": "./dist/strategies/index.d.ts"
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "scripts": {
     "build": "tsup --format esm,cjs --dts"
   },
   "dependencies": {
-    "@trackalize/connector-sdk": "workspace:*",
     "@trackalize/cross-cutting": "workspace:*",
     "@trackalize/domain": "workspace:*"
   },

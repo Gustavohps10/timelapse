@@ -1,6 +1,7 @@
 export interface Payload {
   id: string
   name: string
+  workspaceId: string
 }
 
 export interface IJWTService {
