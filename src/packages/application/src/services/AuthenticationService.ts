@@ -1,33 +1,48 @@
-import { IAuthenticationStrategy } from '@trackalize/connector-sdk/contracts'
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-import { AuthenticationDTO } from '@trackalize/presentation/dtos'
-import { MemberDTO } from '@trackalize/presentation/dtos'
 
-import { IJWTService } from '@/contracts/infra/IJWTService'
-import { IAuthenticationUseCase } from '@/contracts/use-cases/IAuthenticationUseCase'
+import {
+  IAuthenticationStrategy,
+  IAuthenticationUseCase,
+  ICredentialsStorage,
+  IJWTService,
+} from '@/contracts'
+import { AuthenticationDTO } from '@/dtos'
+
+interface ExecuteParams<AuthCredentials> {
+  workspaceId: string
+  credentials: AuthCredentials
+}
 
 export class AuthenticationService implements IAuthenticationUseCase {
   constructor(
-    private readonly authenticationStrategy: IAuthenticationStrategy,
+    private readonly authenticationStrategy: IAuthenticationStrategy<any>,
     private readonly jwtService: IJWTService,
+    private readonly credentialsStorage: ICredentialsStorage,
   ) {}
 
-  public async execute(
-    login: string,
-    password: string,
+  public async execute<AuthCredentials>(
+    params: ExecuteParams<AuthCredentials>,
   ): Promise<Either<AppError, AuthenticationDTO>> {
-    const memberResult = await this.authenticationStrategy.authenticate(
-      login,
-      password,
+    const authenticationResult = await this.authenticationStrategy.authenticate(
+      params.credentials,
     )
 
-    if (memberResult.isFailure()) return Either.failure(memberResult.failure)
+    if (authenticationResult.isFailure()) {
+      return Either.failure(authenticationResult.failure)
+    }
 
-    const member: MemberDTO = memberResult.success
+    const { member, sessionDataToStore } = authenticationResult.success
+
+    await this.credentialsStorage.saveToken(
+      'trackalize',
+      `workspace-session-${params.workspaceId}`,
+      sessionDataToStore,
+    )
 
     const token = await this.jwtService.generateToken({
       id: member.id.toString(),
-      name: member.firstname + ' ' + member.lastname,
+      name: `${member.firstname} ${member.lastname}`,
+      workspaceId: params.workspaceId,
     })
 
     const authenticationDTO: AuthenticationDTO = {

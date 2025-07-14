@@ -3,7 +3,6 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   entry: {
     'view-models/index': 'src/view-models/index.ts',
-    'dtos/index': 'src/dtos/index.ts',
   },
 
   format: ['esm'],

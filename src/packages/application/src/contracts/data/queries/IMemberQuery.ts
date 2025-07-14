@@ -1,0 +1,12 @@
+import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+
+import { IQueryBase } from '@/contracts/data/queries/IQueryBase'
+import { MemberDTO } from '@/dtos'
+
+export interface IMemberQuery extends IQueryBase<MemberDTO> {
+  findMeById(id: string): Promise<Either<AppError, MemberDTO>>
+  findMeByCredentials(
+    login: string,
+    password: string,
+  ): Promise<Either<AppError, MemberDTO>>
+}

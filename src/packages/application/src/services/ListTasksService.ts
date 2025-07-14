@@ -1,9 +1,9 @@
-import { ITaskQuery } from '@trackalize/connector-sdk/contracts'
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-import { TaskDTO } from '@trackalize/presentation/dtos'
 
+import { ITaskQuery } from '@/contracts'
 import { IListTasksUseCase } from '@/contracts/use-cases/IListTasksUseCase'
 import { IUnitOfWork } from '@/contracts/workflow/IUnitOfWork'
+import { TaskDTO } from '@/dtos'
 
 export class ListTaskService implements IListTasksUseCase {
   private readonly taskQuery: ITaskQuery

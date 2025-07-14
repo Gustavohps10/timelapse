@@ -7,15 +7,16 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "./contracts": {
-      "import": "./dist/contracts/index.js",
-      "types": "./dist/contracts/index.d.ts"
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "scripts": {
     "build": "tsup --format esm,cjs --dts"
   },
   "dependencies": {
+    "@trackalize/application": "workspace:*",
     "@trackalize/cross-cutting": "workspace:*",
     "@trackalize/domain": "workspace:*",
     "@trackalize/presentation": "workspace:*"

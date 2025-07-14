@@ -1,8 +1,8 @@
-import { IMemberQuery } from '@trackalize/connector-sdk/contracts'
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-import { MemberDTO } from '@trackalize/presentation/dtos'
 
+import { IMemberQuery } from '@/contracts'
 import { IGetCurrentUserUseCase } from '@/contracts/use-cases/IGetCurrentUserUseCase'
+import { MemberDTO } from '@/dtos'
 import { SessionManager } from '@/workflow/SessionManager'
 
 export class GetCurrentUserService implements IGetCurrentUserUseCase {

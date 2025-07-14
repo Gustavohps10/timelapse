@@ -1,9 +1,14 @@
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-import { AuthenticationDTO } from '@trackalize/presentation/dtos'
+
+import { AuthenticationDTO } from '@/dtos'
+
+interface ExecuteParams<AuthCredentials> {
+  workspaceId: string
+  credentials: AuthCredentials
+}
 
 export interface IAuthenticationUseCase {
-  execute(
-    login: string,
-    password: string,
+  execute<AuthCredentials>(
+    params: ExecuteParams<AuthCredentials>,
   ): Promise<Either<AppError, AuthenticationDTO>>
 }

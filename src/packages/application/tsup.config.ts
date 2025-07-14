@@ -1,18 +1,14 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: [
-    'src/contracts/index.ts',
-    'src/services/index.ts',
-    'src/workflow/index.ts',
-    'src/strategies/index.ts',
-  ],
+  entry: ['src/index.ts'],
   format: ['esm'],
   dts: {
     resolve: true,
   },
   clean: true,
   sourcemap: true,
-  splitting: true,
+  splitting: false,
+  treeshake: false,
   tsconfig: './tsconfig.build.json',
 })
