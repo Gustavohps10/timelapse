@@ -6,7 +6,14 @@ import {
   TaskViewModel,
   TimeEntryViewModel,
   ViewModel,
+  WorkspaceViewModel,
 } from '@trackalize/presentation/view-models'
+
+export interface IWorkspacesClient {
+  create(
+    input: IRequest<{ name: string }>,
+  ): Promise<ViewModel<WorkspaceViewModel>>
+}
 
 export interface ISessionClient {
   getCurrentUser(): Promise<ViewModel<MemberViewModel>>
@@ -75,6 +82,7 @@ export interface IDiscordClient {
 }
 
 export interface IClient {
+  workspaces: IWorkspacesClient
   services: {
     session: ISessionClient
     auth: IAuthClient

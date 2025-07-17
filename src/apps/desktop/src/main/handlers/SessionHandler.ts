@@ -1,5 +1,5 @@
-import { IGetCurrentUserUseCase } from '@trackalize/application/contracts'
-import { MemberDTO } from '@trackalize/application/dto'
+import { IGetCurrentUserUseCase } from '@trackalize/application'
+import { MemberDTO } from '@trackalize/application'
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 import { IRequest } from '@trackalize/cross-cutting/transport'
 import {

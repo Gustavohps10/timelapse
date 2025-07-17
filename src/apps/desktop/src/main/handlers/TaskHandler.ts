@@ -1,5 +1,5 @@
-import { IListTasksUseCase } from '@trackalize/application/contracts'
-import { TaskDTO } from '@trackalize/application/dto'
+import { IListTasksUseCase } from '@trackalize/application'
+import { TaskDTO } from '@trackalize/application'
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 import {
   PaginatedViewModel,

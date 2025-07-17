@@ -1,5 +1,5 @@
-import { IListTimeEntriesUseCase } from '@trackalize/application/contracts'
-import { TimeEntryDTO } from '@trackalize/application/dto'
+import { IListTimeEntriesUseCase } from '@trackalize/application'
+import { TimeEntryDTO } from '@trackalize/application'
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 import { IRequest } from '@trackalize/cross-cutting/transport'
 import {

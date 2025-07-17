@@ -27,6 +27,10 @@
     "./workflow": {
       "import": "./dist/workflow/index.js",
       "types": "./dist/workflow/index.d.ts"
+    },
+    "./data": {
+      "import": "./dist/data/index.js",
+      "types": "./dist/data/index.d.ts"
     }
   },
   "dependencies": {

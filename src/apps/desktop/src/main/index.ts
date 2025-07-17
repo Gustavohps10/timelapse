@@ -7,6 +7,7 @@ import {
   createTrackalizeContainer,
   PlatformDependencies,
 } from '@trackalize/container'
+import { JSONWorkspacesRepository } from '@trackalize/infra/data'
 import { KeytarTokenStorage } from '@trackalize/infra/storage'
 import RedmineConnector from '@trackalize/redmine-plugin'
 import { asClass, asValue } from 'awilix'
@@ -20,6 +21,7 @@ import {
   TimeEntriesHandler,
   TokenHandler,
 } from '@/main/handlers'
+import { WorkspacesHandler } from '@/main/handlers/WorkspacesHandler'
 import { openIpcRoutes } from '@/main/routes/openIpcRoutes'
 
 import timerIcon from './assets/timer-icon.png'
@@ -148,7 +150,7 @@ app.whenReady().then(async () => {
   TrackalizeContext.setActiveWorkspaceId(FAKE_WORKSPACE.id)
 
   const runtimeContext: ConnectorRuntimeContext = {
-    sessionData: TrackalizeContext.getSessionData(),
+    sessionData: await TrackalizeContext.getSessionData(),
     workspaceConfig: FAKE_WORKSPACE.config,
   }
 
@@ -164,8 +166,10 @@ app.whenReady().then(async () => {
     taskQuery: asValue(taskQuery),
     memberQuery: asValue(memberQuery),
     timeEntryQuery: asValue(timeEntryQuery),
+    storagePath: asValue(app.getPath('userData')),
     taskMutation: asValue(taskMutation),
     credentialsStorage: asClass(KeytarTokenStorage).singleton(),
+    workspacesRepository: asClass(JSONWorkspacesRepository).scoped(),
   }
 
   const container = createTrackalizeContainer(platformDeps)
@@ -176,6 +180,7 @@ app.whenReady().then(async () => {
     taskHandler: asClass(TaskHandler),
     timeEntriesHandler: asClass(TimeEntriesHandler),
     tokenHandler: asClass(TokenHandler),
+    workspacesHandler: asClass(WorkspacesHandler),
   })
 
   openIpcRoutes(container)

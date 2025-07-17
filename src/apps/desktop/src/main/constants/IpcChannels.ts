@@ -14,6 +14,9 @@ export const IpcChannels = {
   GET_CURRENT_USER: 'get-current-user',
 
   DISCORD_LOGIN: 'login:discord',
+
+  WORKSPACES_CREATE: 'workspaces:select',
+  WORKSPACES_GET_CONFIG_FIELDS: 'workspaces:fields',
 } as const
 
 export type IpcChannelType = keyof typeof IpcChannels

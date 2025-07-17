@@ -10,8 +10,10 @@ import {
   timeEntriesInvoker,
   tokenStorageInvoker,
 } from '@/main/invokers'
+import { workspacesInvoker } from '@/main/invokers/workspacesInvoker'
 
 const api: IWindowAPIInvoker = {
+  workspaces: workspacesInvoker,
   services: {
     session: sessionInvoker,
     tasks: tasksInvoker,

@@ -1,4 +1,5 @@
 export * from './IAuthenticationUseCase'
+export * from './ICreateWorkspaceUseCase'
 export * from './IGetCurrentUserUseCase'
 export * from './IListTasksUseCase'
 export * from './IListTimeEntriesUseCase'
