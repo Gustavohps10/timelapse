@@ -1,5 +1,6 @@
 import {
   AuthenticationService,
+  CreateWorkspaceService,
   GetCurrentUserService,
   IAuthenticationStrategy,
   ICredentialsStorage,
@@ -7,6 +8,7 @@ import {
   ITaskMutation,
   ITaskQuery,
   ITimeEntryQuery,
+  IWorkspacesRepository,
   ListTaskService,
   ListTimeEntriesService,
 } from '@trackalize/application'
@@ -29,6 +31,8 @@ export interface PlatformDependencies {
   timeEntryQuery: Resolver<ITimeEntryQuery>
   taskMutation: Resolver<ITaskMutation>
   credentialsStorage: Resolver<ICredentialsStorage>
+  workspacesRepository: Resolver<IWorkspacesRepository>
+  storagePath: Resolver<string>
 }
 
 export function createTrackalizeContainer(
@@ -46,6 +50,7 @@ export function createTrackalizeContainer(
     listTasksService: asClass(ListTaskService).scoped(),
     listTimeEntriesService: asClass(ListTimeEntriesService).scoped(),
     getCurrentUserService: asClass(GetCurrentUserService).scoped(),
+    createWorkspaceService: asClass(CreateWorkspaceService).scoped(),
   })
 
   container.register({

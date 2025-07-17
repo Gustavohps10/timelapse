@@ -1,5 +1,5 @@
-import { IAuthenticationUseCase } from '@trackalize/application/contracts'
-import { AuthenticationDTO } from '@trackalize/application/dto'
+import { IAuthenticationUseCase } from '@trackalize/application'
+import { AuthenticationDTO } from '@trackalize/application'
 import { IRequest } from '@trackalize/cross-cutting/transport'
 import {
   AuthenticationViewModel,
@@ -16,9 +16,9 @@ export class AuthHandler {
 
   public async login(
     _event: Electron.IpcMainInvokeEvent,
-    { body: { login, password } }: IRequest<LoginRequest>,
+    { body: body }: IRequest<LoginRequest>,
   ): Promise<ViewModel<AuthenticationViewModel>> {
-    const result = await this.authenticationService.execute(login, password)
+    const result = await this.authenticationService.execute(body)
 
     if (result.isFailure()) {
       return {

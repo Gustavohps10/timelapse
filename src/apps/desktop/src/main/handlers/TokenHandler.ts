@@ -1,4 +1,4 @@
-import { ICredentialsStorage } from '@trackalize/application/contracts'
+import { ICredentialsStorage } from '@trackalize/application'
 import { IRequest } from '@trackalize/cross-cutting/transport'
 import { ViewModel } from '@trackalize/presentation/view-models'
 

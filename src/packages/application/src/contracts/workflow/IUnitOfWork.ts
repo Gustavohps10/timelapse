@@ -1,4 +1,9 @@
-import { IMemberQuery, ITaskQuery, ITimeEntryQuery } from '@/contracts'
+import {
+  IMemberQuery,
+  ITaskQuery,
+  ITimeEntryQuery,
+  IWorkspacesRepository,
+} from '@/contracts'
 
 export interface IUnitOfWork {
   beginTransaction(): Promise<void>
@@ -10,4 +15,5 @@ export interface IUnitOfWork {
   memberQuery: IMemberQuery
   taskQuery: ITaskQuery
   timeEntryQuery: ITimeEntryQuery
+  workspacesRepository: IWorkspacesRepository
 }

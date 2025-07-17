@@ -9,10 +9,20 @@ import {
   TimeEntriesHandler,
   TokenHandler,
 } from '@/main/handlers'
+import { WorkspacesHandler } from '@/main/handlers/WorkspacesHandler'
 import { createAuthMiddleware } from '@/main/middlewares/ensureAuthenticated'
 
 export function openIpcRoutes(container: AwilixContainer): void {
   const ensureAuthenticated = createAuthMiddleware(container)
+
+  /*
+   * WORKSPACE
+   */
+
+  IpcHandler.register('WORKSPACES_CREATE', async (...args) => {
+    const handler = container.resolve<WorkspacesHandler>('workspacesHandler')
+    return handler.create(...args)
+  })
 
   /*
    * DISCORD
@@ -21,7 +31,7 @@ export function openIpcRoutes(container: AwilixContainer): void {
   IpcHandler.register('DISCORD_LOGIN', handleDiscordLogin)
 
   /*
-   * TOKEN
+   * TOKENs and SECRET KEYS
    */
   IpcHandler.register('SAVE_TOKEN', async (...args) => {
     const handler = container.resolve<TokenHandler>('tokenHandler')

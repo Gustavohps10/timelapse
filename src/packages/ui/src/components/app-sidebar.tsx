@@ -3,8 +3,6 @@ import {
   ChevronRight,
   FileText,
   LogOut,
-  Search,
-  Settings,
   Timer,
   User,
 } from 'lucide-react'
@@ -54,11 +52,6 @@ const mainItems = [
   { title: 'Documentação', url: '/docs', icon: FileText },
 ]
 
-const subItems = [
-  { title: 'Buscar', url: '/search', icon: Search },
-  { title: 'Configurações', url: '/settings', icon: Settings },
-]
-
 export function AppSidebar() {
   const client = useClient()
   const { logout, user, changeAvatar } = useAuth()
@@ -71,6 +64,10 @@ export function AppSidebar() {
     const discordData = await client.integrations.discord.login()
 
     changeAvatar(discordData.avatarUrl)
+  }
+
+  async function handleNewWorkspace() {
+    await client.workspaces.create({ body: { name: 'qualquer' } })
   }
 
   return (
@@ -131,22 +128,17 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton>
-                        <span>Opções Avançadas</span>
+                        <span>Workspaces</span>
                         <ChevronRight className="ml-auto rotate-0 transition-transform group-data-[state=open]:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {subItems.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuButton asChild>
-                              <NavLink to={subItem.url}>
-                                <subItem.icon />
-                                <span>{subItem.title}</span>
-                              </NavLink>
-                            </SidebarMenuButton>
-                          </SidebarMenuSubItem>
-                        ))}
+                        <SidebarMenuSubItem>
+                          <SidebarMenuButton onClick={handleNewWorkspace}>
+                            <span>ESPACO ATAK</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuSubItem>
                       </SidebarMenuSub>
                     </CollapsibleContent>
                   </SidebarMenuItem>

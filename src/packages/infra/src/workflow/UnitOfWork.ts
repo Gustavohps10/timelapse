@@ -1,4 +1,4 @@
-import { IUnitOfWork } from '@trackalize/application'
+import { IUnitOfWork, IWorkspacesRepository } from '@trackalize/application'
 import {
   IMemberQuery,
   ITaskQuery,
@@ -12,6 +12,7 @@ export class UnitOfWork implements IUnitOfWork {
     public readonly memberQuery: IMemberQuery,
     public readonly taskQuery: ITaskQuery,
     public readonly timeEntryQuery: ITimeEntryQuery,
+    public readonly workspacesRepository: IWorkspacesRepository,
   ) {}
 
   public async beginTransaction(): Promise<void> {

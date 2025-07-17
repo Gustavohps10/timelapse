@@ -1,4 +1,5 @@
 export * from './AuthenticationService'
+export * from './CreateWorkspaceService'
 export * from './GetCurrentUserService'
 export * from './ListTasksService'
 export * from './ListTimeEntriesService'
