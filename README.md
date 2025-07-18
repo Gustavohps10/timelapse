@@ -23,7 +23,7 @@ Utilize o padrão de commits do Angular (ex: `feat: add new feature`) conforme v
 - [X] Configurar Turbo Repo
 - [X] Iniciar SDK para astrai e possibilitar criação de difetentes fontes de dados / plugins
 - [X] Separar plugin do Redmine e campos que serão utilizados para autenticação 
-- [ ] Iniciar fluxo inicial de criação de Workspaces (Selecionar um plugin (por enquanto fixo hard-coded o plugin do Redmine), configurar URLs, entre outras configs daquele espaço de trabalho)
+- [ ] Em Progresso ⏳; Iniciar fluxo inicial de criação de Workspaces (Selecionar um plugin (por enquanto fixo hard-coded o plugin do Redmine), configurar URLs, entre outras configs daquele espaço de trabalho)
 - [ ] Versionamento com Changesets
 - [ ] Separar plugin do Redmine em outro Repositório e publicar no NPM
 - [ ] Fazer Download e Injetar plugins dinamicamente em tempo de execução com Container De Ioc
