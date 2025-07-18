@@ -15,6 +15,12 @@ Execute `yarn dev` para iniciar o ambiente de desenvolvimento e hot-swapping em 
 ###### Committing
 Utilize o padrão de commits do Angular (ex: `feat: add new feature`) conforme validado pelo commitlint. Certifique-se de que os arquivos em stage estejam corretamente formatados — o projeto utiliza lint-staged para aplicar o lint automaticamente antes dos commits.
 
+###### Recomendações
+Utilize o Visual Studio Code ou outra IDE com compatibilidade com os plugins:
+  - Tailwind CSS Intellisense (para facilitar a visualização das classes disponiveis enquanto coda), 
+  - PostCSS para editar arquivos .css especiais com `at-rules`
+  - Eslint e Prettier para identação de código automática ao salvar arquivo
+
 # Todo
 - [X] Realizar testes na API do Redmine avaliando possibilidades (encontrar rotas para Autenticação e Consulta/Inserção de Entradas de Tempo)
 - [X] Iniciar camadas base (Dominio e Regra de negocio)
