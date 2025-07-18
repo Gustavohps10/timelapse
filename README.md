@@ -1,3 +1,20 @@
+## Ambiente
+
+###### Package Manager
+Use `Yarn v4` como gerenciador de pacotes. Deve ser a versão 4 para lidar com Monorepos
+
+###### Adding Components
+Execute `yarn shadcn add button, switch, card` para adicionar novos componentes ao pacote de UI.
+
+###### Build
+Execute `yarn build` para compilar os pacotes.
+
+###### Development Mode
+Execute `yarn dev` para iniciar o ambiente de desenvolvimento e hot-swapping em paralelo.
+
+###### Committing
+Utilize o padrão de commits do Angular (ex: `feat: add new feature`) conforme validado pelo commitlint. Certifique-se de que os arquivos em stage estejam corretamente formatados — o projeto utiliza lint-staged para aplicar o lint automaticamente antes dos commits.
+
 # Arquitetura Trackalize
 
 ## 1. Visão Geral
