@@ -1,4 +1,42 @@
-# Arquitetura Trackalize
+## Ambiente
+
+###### Package Manager
+Use `Yarn v4` como gerenciador de pacotes. Deve ser a versão 4 para lidar com Monorepos
+
+###### Adding Components
+Execute `yarn shadcn add button switch card popover tooltip` para adicionar novos componentes ao pacote de UI.
+
+###### Build
+Execute `yarn build` para compilar os pacotes.
+
+###### Development Mode
+Execute `yarn dev` para iniciar o ambiente de desenvolvimento e hot-swapping em paralelo.
+
+###### Committing
+Utilize o padrão de commits do Angular (ex: `feat: add new feature`) conforme validado pelo commitlint. Certifique-se de que os arquivos em stage estejam corretamente formatados — o projeto utiliza lint-staged para aplicar o lint automaticamente antes dos commits.
+
+###### Recomendações
+Utilize o Visual Studio Code ou outra IDE com compatibilidade com os plugins:
+  - Tailwind CSS Intellisense (para facilitar a visualização das classes disponiveis enquanto coda), 
+  - PostCSS para editar arquivos .css especiais com `at-rules`
+  - Eslint e Prettier para identação de código automática ao salvar arquivo
+
+# Todo
+- [X] Realizar testes na API do Redmine avaliando possibilidades (encontrar rotas para Autenticação e Consulta/Inserção de Entradas de Tempo)
+- [X] Iniciar camadas base (Dominio e Regra de negocio)
+- [X] Iniciar construção da base para camada de UI 
+- [X] Separar em Monorepo
+- [X] Configurar Turbo Repo
+- [X] Iniciar SDK para astrai e possibilitar criação de difetentes fontes de dados / plugins
+- [X] Separar plugin do Redmine e campos que serão utilizados para autenticação 
+- [ ] Em Progresso ⏳; Iniciar fluxo inicial de criação de Workspaces (Selecionar um plugin (por enquanto fixo hard-coded o plugin do Redmine), configurar URLs, entre outras configs daquele espaço de trabalho)
+- [ ] Versionamento com Changesets
+- [ ] Separar plugin do Redmine em outro Repositório e publicar no NPM
+- [ ] Fazer Download e Injetar plugins dinamicamente em tempo de execução com Container De Ioc
+- [ ] Integrar com RxDB para funcionar local first e offline first
+- [ ] Estudar possibilidades para fazer menu de busca de plugins semelhante a Extensões do VS Code
+
+# Arquitetura Trackalize (Ainda com varios pontos a serem revistos)
 
 ## 1. Visão Geral
 Trackalize é uma plataforma de apontamento de horas projetada com base em três pilares: flexibilidade, robustez e uma experiência de usuário superior. Sua arquitetura foi concebida para operar em múltiplos ambientes (Web, Desktop e Mobile) e se conectar a diversas fontes de dados — desde APIs de terceiros até bancos de dados privados — sempre com foco na autonomia do usuário e na segurança da informação.
