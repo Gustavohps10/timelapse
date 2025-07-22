@@ -11,7 +11,7 @@ import {
 
 export interface IWorkspacesClient {
   create(
-    input: IRequest<{ name: string }>,
+    input: IRequest<{ name: string; pluginId: string }>,
   ): Promise<ViewModel<WorkspaceViewModel>>
 }
 

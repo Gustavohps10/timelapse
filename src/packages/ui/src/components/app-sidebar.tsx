@@ -3,6 +3,7 @@ import {
   ChevronRight,
   FileText,
   LogOut,
+  Plus,
   Timer,
   User,
 } from 'lucide-react'
@@ -28,7 +29,25 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sidebar,
   SidebarContent,
@@ -43,6 +62,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/hooks/use-auth'
 import { useClient } from '@/hooks/use-client'
 
@@ -67,7 +87,9 @@ export function AppSidebar() {
   }
 
   async function handleNewWorkspace() {
-    await client.workspaces.create({ body: { name: 'qualquer' } })
+    await client.workspaces.create({
+      body: { name: 'qualquer', pluginId: 'trackalize/redmine-plugin' },
+    })
   }
 
   return (
@@ -121,7 +143,7 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
           <SidebarGroup>
-            <SidebarGroupLabel>Mais Opções</SidebarGroupLabel>
+            <SidebarGroupLabel>Recursos</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <Collapsible defaultOpen className="group">
@@ -129,13 +151,130 @@ export function AppSidebar() {
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton>
                         <span>Workspaces</span>
-                        <ChevronRight className="ml-auto rotate-0 transition-transform group-data-[state=open]:rotate-90" />
+
+                        <div className="ml-auto flex items-center gap-1">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Plus
+                                className="text-muted-foreground hover:text-foreground h-4 w-4 cursor-pointer"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </DialogTrigger>
+
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Novo Workspace</DialogTitle>
+                                <DialogDescription>
+                                  Configure os detalhes antes de criar.
+                                </DialogDescription>
+                              </DialogHeader>
+
+                              <Tabs defaultValue="geral" className="mt-4">
+                                <TabsList className="grid w-full grid-cols-3">
+                                  <TabsTrigger value="geral">Geral</TabsTrigger>
+                                  <TabsTrigger value="permissoes">
+                                    Permissões
+                                  </TabsTrigger>
+                                  <TabsTrigger value="avancado">
+                                    Avançado
+                                  </TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent
+                                  value="geral"
+                                  className="mt-4 space-y-4"
+                                >
+                                  <div className="space-y-2">
+                                    <Label htmlFor="nome">
+                                      Nome do Workspace
+                                    </Label>
+                                    <Input
+                                      id="nome"
+                                      placeholder="Ex: Equipe Financeiro"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label htmlFor="valorHora">
+                                      Valor Hora Trabalhada (R$)
+                                    </Label>
+                                    <Input
+                                      id="valorHora"
+                                      placeholder="Ex: 95.00"
+                                      type="number"
+                                    />
+                                  </div>
+                                </TabsContent>
+
+                                <TabsContent
+                                  value="permissoes"
+                                  className="mt-4 space-y-4"
+                                >
+                                  <div className="space-y-2">
+                                    <Label htmlFor="membros">
+                                      Membros Permitidos
+                                    </Label>
+                                    <Input
+                                      id="membros"
+                                      placeholder="Emails separados por vírgula"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Permissões</Label>
+                                    <Select>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Selecione uma permissão padrão" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="admin">
+                                          Administrador
+                                        </SelectItem>
+                                        <SelectItem value="editor">
+                                          Editor
+                                        </SelectItem>
+                                        <SelectItem value="leitor">
+                                          Somente Leitura
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </TabsContent>
+
+                                <TabsContent
+                                  value="avancado"
+                                  className="mt-4 space-y-4"
+                                >
+                                  <p className="text-muted-foreground text-sm">
+                                    Futuramente aqui entrarão opções
+                                    configuráveis via plugin.
+                                  </p>
+                                  <div className="space-y-2">
+                                    <Label htmlFor="codigo">
+                                      Código do plugin (exemplo estático)
+                                    </Label>
+                                    <Input
+                                      id="codigo"
+                                      placeholder="ex: WKS-001"
+                                    />
+                                  </div>
+                                </TabsContent>
+                              </Tabs>
+
+                              <DialogFooter className="mt-4">
+                                <Button variant="outline">Cancelar</Button>
+                                <Button>Criar</Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+
+                          <ChevronRight className="transition-transform group-data-[state=open]:rotate-90" />
+                        </div>
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
+
                     <CollapsibleContent>
                       <SidebarMenuSub>
                         <SidebarMenuSubItem>
-                          <SidebarMenuButton onClick={handleNewWorkspace}>
+                          <SidebarMenuButton>
                             <span>ESPACO ATAK</span>
                           </SidebarMenuButton>
                         </SidebarMenuSubItem>
@@ -167,7 +306,7 @@ export function AppSidebar() {
                 : ''}
             </h1>
             <h2 className="text-muted-foreground font scroll-m-20 text-sm leading-none tracking-tight">
-              {user?.login || ''}
+              {user?.login}
             </h2>
           </div>
           <Button

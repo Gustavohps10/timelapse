@@ -6,6 +6,7 @@ import {
 
 export interface CreateWorkspaceRequest {
   name: string
+  pluginId: string
 }
 
 export interface IWorkspacesInvoker {

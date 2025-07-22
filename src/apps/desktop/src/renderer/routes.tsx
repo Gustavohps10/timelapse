@@ -28,6 +28,15 @@ export const router = createHashRouter([
         path: 'time-entries',
         element: <TimeEntries />,
       },
+      {
+        path: 'widgets',
+        children: [
+          {
+            path: 'timer',
+            element: <TimerWidget />,
+          },
+        ],
+      },
     ],
   },
   {
@@ -37,15 +46,6 @@ export const router = createHashRouter([
       {
         index: true,
         element: <Login />,
-      },
-    ],
-  },
-  {
-    path: '/widgets',
-    children: [
-      {
-        path: 'timer',
-        element: <TimerWidget />,
       },
     ],
   },
