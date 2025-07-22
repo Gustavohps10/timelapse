@@ -8,6 +8,7 @@ import { IpcMainInvokeEvent } from 'electron'
 
 export interface CreateWorkspaceRequest {
   name: string
+  pluginId: string
 }
 
 export class WorkspacesHandler {
@@ -17,9 +18,9 @@ export class WorkspacesHandler {
 
   public async create(
     _event: IpcMainInvokeEvent,
-    { body: input }: IRequest<CreateWorkspaceRequest>,
+    { body: { name, pluginId } }: IRequest<CreateWorkspaceRequest>,
   ): Promise<ViewModel<WorkspaceViewModel>> {
-    const result = await this.createWorkspaceService.execute(input)
+    const result = await this.createWorkspaceService.execute({ name, pluginId })
 
     if (result.isFailure()) {
       return {
