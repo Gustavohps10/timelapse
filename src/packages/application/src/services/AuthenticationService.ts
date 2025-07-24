@@ -27,9 +27,8 @@ export class AuthenticationService implements IAuthenticationUseCase {
       params.credentials,
     )
 
-    if (authenticationResult.isFailure()) {
-      return Either.failure(authenticationResult.failure)
-    }
+    if (authenticationResult.isFailure())
+      return authenticationResult.forwardFailure()
 
     const { member, sessionDataToStore } = authenticationResult.success
 
