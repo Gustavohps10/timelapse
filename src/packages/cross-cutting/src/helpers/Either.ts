@@ -4,6 +4,10 @@ export class Either<Failure, Success> {
     private readonly _success: Success | undefined,
   ) {}
 
+  forwardFailure<Success>(): Either<Failure, Success> {
+    return Either.failure<Failure>(this.failure)
+  }
+
   // ========= Failure Factory Methods =========
   static success<Success>(value: Success): Either<never, Success> {
     return new Either<never, Success>(undefined, value)
