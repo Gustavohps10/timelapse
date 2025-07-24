@@ -63,6 +63,7 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks/use-auth'
 import { useClient } from '@/hooks/use-client'
 
@@ -169,13 +170,21 @@ export function AppSidebar() {
                                 </DialogDescription>
                               </DialogHeader>
 
-                              <Tabs defaultValue="geral" className="mt-4">
-                                <TabsList className="grid w-full grid-cols-3">
-                                  <TabsTrigger value="geral">Geral</TabsTrigger>
-                                  <TabsTrigger value="permissoes">
-                                    Permissões
+                              <Tabs
+                                defaultValue="geral"
+                                className="w-full max-w-2xl"
+                              >
+                                <TabsList className="bg-muted rounded-md p-1">
+                                  <TabsTrigger
+                                    value="geral"
+                                    className="rounded-md px-3 py-1 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:border dark:data-[state=active]:border-zinc-600"
+                                  >
+                                    Geral
                                   </TabsTrigger>
-                                  <TabsTrigger value="avancado">
+                                  <TabsTrigger
+                                    value="avancado"
+                                    className="rounded-md px-3 py-1 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:border dark:data-[state=active]:border-zinc-600"
+                                  >
                                     Avançado
                                   </TabsTrigger>
                                 </TabsList>
@@ -190,52 +199,56 @@ export function AppSidebar() {
                                     </Label>
                                     <Input
                                       id="nome"
-                                      placeholder="Ex: Equipe Financeiro"
+                                      placeholder="Ex: Projeto Phoenix"
                                     />
                                   </div>
                                   <div className="space-y-2">
-                                    <Label htmlFor="valorHora">
-                                      Valor Hora Trabalhada (R$)
+                                    <Label htmlFor="descricao">Descrição</Label>
+                                    <Textarea
+                                      id="descricao"
+                                      placeholder="Descreva o propósito deste workspace."
+                                    />
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                      <Label htmlFor="valorHora">
+                                        Valor Hora Padrão
+                                      </Label>
+                                      <Input
+                                        id="valorHora"
+                                        placeholder="Ex: 95.00"
+                                        type="number"
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label>Moeda</Label>
+                                      <Select defaultValue="BRL">
+                                        <SelectTrigger>
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="BRL">
+                                            Real (BRL)
+                                          </SelectItem>
+                                          <SelectItem value="USD">
+                                            Dólar (USD)
+                                          </SelectItem>
+                                          <SelectItem value="EUR">
+                                            Euro (EUR)
+                                          </SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label htmlFor="metaHoras">
+                                      Meta de Horas Semanal
                                     </Label>
                                     <Input
-                                      id="valorHora"
-                                      placeholder="Ex: 95.00"
+                                      id="metaHoras"
+                                      placeholder="Ex: 40"
                                       type="number"
                                     />
-                                  </div>
-                                </TabsContent>
-
-                                <TabsContent
-                                  value="permissoes"
-                                  className="mt-4 space-y-4"
-                                >
-                                  <div className="space-y-2">
-                                    <Label htmlFor="membros">
-                                      Membros Permitidos
-                                    </Label>
-                                    <Input
-                                      id="membros"
-                                      placeholder="Emails separados por vírgula"
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label>Permissões</Label>
-                                    <Select>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Selecione uma permissão padrão" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="admin">
-                                          Administrador
-                                        </SelectItem>
-                                        <SelectItem value="editor">
-                                          Editor
-                                        </SelectItem>
-                                        <SelectItem value="leitor">
-                                          Somente Leitura
-                                        </SelectItem>
-                                      </SelectContent>
-                                    </Select>
                                   </div>
                                 </TabsContent>
 
@@ -244,16 +257,17 @@ export function AppSidebar() {
                                   className="mt-4 space-y-4"
                                 >
                                   <p className="text-muted-foreground text-sm">
-                                    Futuramente aqui entrarão opções
-                                    configuráveis via plugin.
+                                    A configuração do conector para este
+                                    workspace aparecerá aqui.
                                   </p>
                                   <div className="space-y-2">
                                     <Label htmlFor="codigo">
-                                      Código do plugin (exemplo estático)
+                                      Código do Workspace
                                     </Label>
                                     <Input
                                       id="codigo"
-                                      placeholder="ex: WKS-001"
+                                      placeholder="Ex: WKS-001"
+                                      disabled
                                     />
                                   </div>
                                 </TabsContent>
@@ -266,7 +280,7 @@ export function AppSidebar() {
                             </DialogContent>
                           </Dialog>
 
-                          <ChevronRight className="transition-transform group-data-[state=open]:rotate-90" />
+                          <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]:rotate-90" />
                         </div>
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
