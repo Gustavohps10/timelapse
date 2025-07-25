@@ -24,6 +24,11 @@ export function openIpcRoutes(container: AwilixContainer): void {
     return handler.create(...args)
   })
 
+  IpcHandler.register('WORKSPACES_GET_ALL', async () => {
+    const handler = container.resolve<WorkspacesHandler>('workspacesHandler')
+    return handler.listAll()
+  })
+
   /*
    * DISCORD
    */

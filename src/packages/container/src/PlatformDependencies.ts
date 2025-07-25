@@ -11,6 +11,7 @@ import {
   IWorkspacesRepository,
   ListTaskService,
   ListTimeEntriesService,
+  ListWorkspacesService,
 } from '@trackalize/application'
 import { SessionManager } from '@trackalize/application'
 import { JwtService } from '@trackalize/infra/auth'
@@ -51,6 +52,7 @@ export function createTrackalizeContainer(
     listTimeEntriesService: asClass(ListTimeEntriesService).scoped(),
     getCurrentUserService: asClass(GetCurrentUserService).scoped(),
     createWorkspaceService: asClass(CreateWorkspaceService).scoped(),
+    listWorkspacesService: asClass(ListWorkspacesService).scoped(),
   })
 
   container.register({
