@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { WorkspaceViewModel } from '@trackalize/presentation/view-models'
 import {
   ChartLine,
@@ -9,8 +10,12 @@ import {
   Timer,
   User,
 } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { FaDiscord } from 'react-icons/fa'
 import { NavLink } from 'react-router-dom'
+import { toast } from 'sonner'
+import z from 'zod'
 
 import logoAtak from '@/assets/logo-atak.png'
 import { ModeToggle } from '@/components/mode-toggle'
@@ -37,8 +42,8 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogPortal,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -68,6 +73,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks/use-auth'
 import { useClient } from '@/hooks/use-client'
+import { queryClient } from '@/lib'
+
+const createWorkspaceSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+})
+
+type CreateWorkspaceSchema = z.infer<typeof createWorkspaceSchema>
 
 const mainItems = [
   { title: 'Dashboard', url: '/', icon: ChartLine },
@@ -78,6 +90,16 @@ const mainItems = [
 export function AppSidebar() {
   const client = useClient()
   const { logout, user, changeAvatar } = useAuth()
+  const [workspaceDialogIsOpen, setWorkspaceDialogIsOpen] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<CreateWorkspaceSchema>({
+    resolver: zodResolver(createWorkspaceSchema),
+  })
 
   const handleLogout = () => {
     logout()
@@ -85,21 +107,34 @@ export function AppSidebar() {
 
   async function handleDiscordLogin() {
     const discordData = await client.integrations.discord.login()
-
     changeAvatar(discordData.avatarUrl)
-  }
-
-  async function handleNewWorkspace() {
-    await client.workspaces.create({
-      body: { name: 'qualquer', pluginId: 'trackalize/redmine-plugin' },
-    })
   }
 
   const { data: workspacesResponse } = useQuery({
     queryKey: ['workspaces'],
     queryFn: () => client.workspaces.listAll(),
   })
-  console.log(workspacesResponse)
+
+  const createWorkspaceMutation = useMutation({
+    mutationFn: (data: { name: string }) =>
+      client.workspaces.create({
+        body: {
+          name: data.name,
+          pluginId: 'trackalize/redmine-plugin',
+        },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workspaces'] })
+      reset()
+    },
+  })
+
+  const onSubmit = ({ name }: CreateWorkspaceSchema) => {
+    createWorkspaceMutation.mutate({ name })
+
+    setWorkspaceDialogIsOpen(false)
+    toast('Workspace criado com sucesso.')
+  }
 
   return (
     <Sidebar collapsible="none" className="h-[100vh] border-r">
@@ -122,6 +157,111 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
+        <Dialog
+          open={workspaceDialogIsOpen}
+          onOpenChange={setWorkspaceDialogIsOpen}
+        >
+          <DialogPortal>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Novo Workspace</DialogTitle>
+                <DialogDescription>
+                  Configure os detalhes antes de criar.
+                </DialogDescription>
+              </DialogHeader>
+
+              <Tabs defaultValue="geral" className="w-full max-w-2xl">
+                <TabsList className="bg-muted rounded-md p-1">
+                  <TabsTrigger
+                    value="geral"
+                    className="rounded-md px-3 py-1 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:border dark:data-[state=active]:border-zinc-600"
+                  >
+                    Geral
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="avancado"
+                    className="rounded-md px-3 py-1 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:border dark:data-[state=active]:border-zinc-600"
+                  >
+                    Avançado
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="geral" className="mt-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nome">Nome do Workspace</Label>
+                    <Input
+                      id="nome"
+                      placeholder="Ex: Meu Trabalho"
+                      {...register('name')}
+                    />
+                    {errors.name && (
+                      <p className="text-sm text-red-500">
+                        {errors.name.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="descricao">Descrição</Label>
+                    <Textarea
+                      id="descricao"
+                      placeholder="Descreva o propósito deste workspace."
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="valorHora">Valor Hora Padrão</Label>
+                      <Input
+                        id="valorHora"
+                        placeholder="Ex: 95.00"
+                        type="number"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Moeda</Label>
+                      <Select defaultValue="BRL">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="BRL">Real (BRL)</SelectItem>
+                          <SelectItem value="USD">Dólar (USD)</SelectItem>
+                          <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="metaHoras">Meta de Horas Semanal</Label>
+                    <Input id="metaHoras" placeholder="Ex: 40" type="number" />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="avancado" className="mt-4 space-y-4">
+                  <p className="text-muted-foreground text-sm">
+                    A configuração do conector para este workspace aparecerá
+                    aqui.
+                  </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="codigo">Código do Workspace</Label>
+                    <Input id="codigo" placeholder="Ex: WKS-001" disabled />
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <DialogFooter className="mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setWorkspaceDialogIsOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button onClick={handleSubmit(onSubmit)}>Criar</Button>
+              </DialogFooter>
+            </DialogContent>
+          </DialogPortal>
+        </Dialog>
+
         <ScrollArea className="h-full">
           <SidebarGroup>
             <SidebarGroupLabel>Navegar</SidebarGroupLabel>
@@ -132,7 +272,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
-                        className="flex h-9! items-center rounded-md transition-colors [&.active]:bg-zinc-100 dark:[&.active]:bg-zinc-800"
+                        className="flex items-center rounded-md transition-colors [&.active]:bg-zinc-100 dark:[&.active]:bg-zinc-800"
                       >
                         {({ isActive }) => (
                           <>
@@ -157,143 +297,24 @@ export function AppSidebar() {
               <SidebarMenu>
                 <Collapsible defaultOpen className="group">
                   <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton>
-                        <span>Workspaces</span>
+                    <div className="flex items-center">
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton className="flex-1">
+                          <span>Workspaces</span>
+                          <div className="ml-auto flex items-center gap-1">
+                            <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]:rotate-90" />
+                          </div>
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
 
-                        <div className="ml-auto flex items-center gap-1">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Plus
-                                className="text-muted-foreground hover:text-foreground h-4 w-4 cursor-pointer"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </DialogTrigger>
-
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Novo Workspace</DialogTitle>
-                                <DialogDescription>
-                                  Configure os detalhes antes de criar.
-                                </DialogDescription>
-                              </DialogHeader>
-
-                              <Tabs
-                                defaultValue="geral"
-                                className="w-full max-w-2xl"
-                              >
-                                <TabsList className="bg-muted rounded-md p-1">
-                                  <TabsTrigger
-                                    value="geral"
-                                    className="rounded-md px-3 py-1 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:border dark:data-[state=active]:border-zinc-600"
-                                  >
-                                    Geral
-                                  </TabsTrigger>
-                                  <TabsTrigger
-                                    value="avancado"
-                                    className="rounded-md px-3 py-1 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:border dark:data-[state=active]:border-zinc-600"
-                                  >
-                                    Avançado
-                                  </TabsTrigger>
-                                </TabsList>
-
-                                <TabsContent
-                                  value="geral"
-                                  className="mt-4 space-y-4"
-                                >
-                                  <div className="space-y-2">
-                                    <Label htmlFor="nome">
-                                      Nome do Workspace
-                                    </Label>
-                                    <Input
-                                      id="nome"
-                                      placeholder="Ex: Projeto Phoenix"
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label htmlFor="descricao">Descrição</Label>
-                                    <Textarea
-                                      id="descricao"
-                                      placeholder="Descreva o propósito deste workspace."
-                                    />
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                      <Label htmlFor="valorHora">
-                                        Valor Hora Padrão
-                                      </Label>
-                                      <Input
-                                        id="valorHora"
-                                        placeholder="Ex: 95.00"
-                                        type="number"
-                                      />
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label>Moeda</Label>
-                                      <Select defaultValue="BRL">
-                                        <SelectTrigger>
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="BRL">
-                                            Real (BRL)
-                                          </SelectItem>
-                                          <SelectItem value="USD">
-                                            Dólar (USD)
-                                          </SelectItem>
-                                          <SelectItem value="EUR">
-                                            Euro (EUR)
-                                          </SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label htmlFor="metaHoras">
-                                      Meta de Horas Semanal
-                                    </Label>
-                                    <Input
-                                      id="metaHoras"
-                                      placeholder="Ex: 40"
-                                      type="number"
-                                    />
-                                  </div>
-                                </TabsContent>
-
-                                <TabsContent
-                                  value="avancado"
-                                  className="mt-4 space-y-4"
-                                >
-                                  <p className="text-muted-foreground text-sm">
-                                    A configuração do conector para este
-                                    workspace aparecerá aqui.
-                                  </p>
-                                  <div className="space-y-2">
-                                    <Label htmlFor="codigo">
-                                      Código do Workspace
-                                    </Label>
-                                    <Input
-                                      id="codigo"
-                                      placeholder="Ex: WKS-001"
-                                      disabled
-                                    />
-                                  </div>
-                                </TabsContent>
-                              </Tabs>
-
-                              <DialogFooter className="mt-4">
-                                <Button variant="outline">Cancelar</Button>
-                                <Button onClick={handleNewWorkspace}>
-                                  Criar
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-
-                          <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]:rotate-90" />
-                        </div>
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
+                      <Plus
+                        className="text-muted-foreground hover:text-foreground ml-2 h-4 w-4 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation() // só por segurança
+                          setWorkspaceDialogIsOpen(true)
+                        }}
+                      />
+                    </div>
 
                     {workspacesResponse?.data?.map(
                       (workspace: WorkspaceViewModel) => (

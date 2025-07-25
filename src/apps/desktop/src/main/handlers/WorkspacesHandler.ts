@@ -34,10 +34,19 @@ export class WorkspacesHandler {
       }
     }
 
+    const newWorkspace = result.success
     return {
       isSuccess: true,
       statusCode: 201,
-      data: result.success,
+      data: {
+        id: newWorkspace.id,
+        name: newWorkspace.name,
+        dataSourceType: newWorkspace.dataSourceType,
+        pluginId: newWorkspace.pluginId,
+        config: newWorkspace.config,
+        createdAt: newWorkspace.createdAt,
+        updatedAt: newWorkspace.updatedAt,
+      },
     }
   }
 
