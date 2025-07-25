@@ -1,3 +1,5 @@
+import { useQuery } from '@tanstack/react-query'
+import { WorkspaceViewModel } from '@trackalize/presentation/view-models'
 import {
   ChartLine,
   ChevronRight,
@@ -92,6 +94,12 @@ export function AppSidebar() {
       body: { name: 'qualquer', pluginId: 'trackalize/redmine-plugin' },
     })
   }
+
+  const { data: workspacesResponse } = useQuery({
+    queryKey: ['workspaces'],
+    queryFn: () => client.workspaces.listAll(),
+  })
+  console.log(workspacesResponse)
 
   return (
     <Sidebar collapsible="none" className="h-[100vh] border-r">
@@ -275,7 +283,9 @@ export function AppSidebar() {
 
                               <DialogFooter className="mt-4">
                                 <Button variant="outline">Cancelar</Button>
-                                <Button>Criar</Button>
+                                <Button onClick={handleNewWorkspace}>
+                                  Criar
+                                </Button>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
@@ -285,15 +295,19 @@ export function AppSidebar() {
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
 
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        <SidebarMenuSubItem>
-                          <SidebarMenuButton>
-                            <span>ESPACO ATAK</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuSubItem>
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
+                    {workspacesResponse?.data?.map(
+                      (workspace: WorkspaceViewModel) => (
+                        <CollapsibleContent key={workspace.id}>
+                          <SidebarMenuSub>
+                            <SidebarMenuSubItem>
+                              <SidebarMenuButton>
+                                <span>{workspace.name}</span>
+                              </SidebarMenuButton>
+                            </SidebarMenuSubItem>
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      ),
+                    )}
                   </SidebarMenuItem>
                 </Collapsible>
               </SidebarMenu>

@@ -13,6 +13,8 @@ export interface IWorkspacesClient {
   create(
     input: IRequest<{ name: string; pluginId: string }>,
   ): Promise<ViewModel<WorkspaceViewModel>>
+
+  listAll(): Promise<PaginatedViewModel<WorkspaceViewModel[]>>
 }
 
 export interface ISessionClient {

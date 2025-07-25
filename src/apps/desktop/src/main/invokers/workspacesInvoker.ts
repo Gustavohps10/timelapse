@@ -1,5 +1,6 @@
 import { IRequest } from '@trackalize/cross-cutting/transport'
 import {
+  PaginatedViewModel,
   ViewModel,
   WorkspaceViewModel,
 } from '@trackalize/presentation/view-models'
@@ -16,4 +17,9 @@ export const workspacesInvoker: IWorkspacesInvoker = {
       IRequest<CreateWorkspaceRequest>,
       ViewModel<WorkspaceViewModel>
     >('WORKSPACES_CREATE', request),
+
+  listAll: (): Promise<PaginatedViewModel<WorkspaceViewModel[]>> =>
+    IpcInvoker.invoke<never, PaginatedViewModel<WorkspaceViewModel[]>>(
+      'WORKSPACES_GET_ALL',
+    ),
 }
