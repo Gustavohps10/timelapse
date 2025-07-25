@@ -111,7 +111,7 @@ export function Timer({ size, onTimeChange }: TimerProps) {
           .map((digit, index) => (
             <span
               key={index}
-              className={`inline-block w-[1ch] cursor-text pr-[1px] text-center ${
+              className={`inline-block h-6 w-[1ch] cursor-text pr-[1px] text-center ${
                 index === activeIndex && activeIndex !== -1
                   ? 'ring-pulse text-foreground rounded ring-2 ring-red-500'
                   : ''
