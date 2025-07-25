@@ -273,24 +273,24 @@ export function TimeEntries() {
                   <ToggleGroup
                     type="single"
                     onValueChange={(value) => {
-                      if (value === 'a') setTimeEntryType('increasing')
-                      if (value === 'c') setTimeEntryType('decreasing')
+                      if (value === 'increasing') setTimeEntryType('increasing')
+                      if (value === 'decreasing') setTimeEntryType('decreasing')
                     }}
-                    value={
-                      timeEntryType === 'increasing'
-                        ? 'a'
-                        : timeEntryType === 'decreasing'
-                          ? 'c'
-                          : ''
-                    }
+                    value={timeEntryType}
                   >
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <ToggleGroupItem
-                          value="a"
-                          className="h-6 w-6 cursor-pointer border"
+                          value="increasing"
+                          className="h-6 w-6 cursor-pointer border bg-transparent p-0"
                         >
-                          <ClockArrowUpIcon className="text-muted-foreground" />
+                          <ClockArrowUpIcon
+                            className={
+                              timeEntryType === 'increasing'
+                                ? 'text-foreground'
+                                : 'text-zinc-500'
+                            }
+                          />
                         </ToggleGroupItem>
                       </TooltipTrigger>
                       <TooltipContent className="bg-background text-foreground">
@@ -301,10 +301,16 @@ export function TimeEntries() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <ToggleGroupItem
-                          value="c"
-                          className="h-6 w-6 cursor-pointer border"
+                          value="decreasing"
+                          className="h-6 w-6 cursor-pointer border bg-transparent p-0"
                         >
-                          <ClockArrowDownIcon className="text-muted-foreground" />
+                          <ClockArrowDownIcon
+                            className={
+                              timeEntryType === 'decreasing'
+                                ? 'text-foreground'
+                                : 'text-zinc-500'
+                            }
+                          />
                         </ToggleGroupItem>
                       </TooltipTrigger>
                       <TooltipContent className="bg-background text-foreground">
