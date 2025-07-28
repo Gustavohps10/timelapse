@@ -1,6 +1,6 @@
 import { IWorkspacesRepository } from '@trackalize/application'
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-import { DataSourceType, Workspace, WorkspaceConfig } from '@trackalize/domain'
+import { DataSourceType, Workspace } from '@trackalize/domain'
 import { promises as fs } from 'fs'
 import path from 'path'
 
@@ -8,8 +8,8 @@ type PlainWorkspace = {
   _Workspace__id: string
   _Workspace__name: string
   _Workspace__dataSourceType: DataSourceType
-  _Workspace__pluginId: string | null
-  _Workspace__config: WorkspaceConfig
+  _Workspace__pluginId?: string
+  _Workspace__config?: string
   _Workspace__createdAt: string
   _Workspace__updatedAt: string
 }
@@ -32,10 +32,10 @@ export class JSONWorkspacesRepository implements IWorkspacesRepository {
             p._Workspace__id,
             p._Workspace__name,
             p._Workspace__dataSourceType,
-            p._Workspace__pluginId,
-            p._Workspace__config,
             new Date(p._Workspace__createdAt),
             new Date(p._Workspace__updatedAt),
+            p._Workspace__pluginId,
+            p._Workspace__config,
           ),
       )
     } catch {

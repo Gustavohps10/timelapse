@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@rollup/plugin-image": "^3.0.3",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^20.17.18",
     "@types/react": "^19.1.0",

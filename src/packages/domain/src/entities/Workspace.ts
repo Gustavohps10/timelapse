@@ -1,13 +1,11 @@
 export type DataSourceType = string
 
-export type WorkspaceConfig = string
-
 export class Workspace {
   #id: string
   #name: string
   #dataSourceType: DataSourceType
-  #pluginId: string | null
-  #config: WorkspaceConfig
+  #pluginId?: string
+  #config?: string
   #createdAt: Date
   #updatedAt: Date
 
@@ -15,10 +13,10 @@ export class Workspace {
     id: string,
     name: string,
     dataSourceType: DataSourceType,
-    pluginId: string | null,
-    config: WorkspaceConfig,
-    createdAt: Date,
     updatedAt: Date,
+    createdAt: Date,
+    pluginId?: string,
+    config?: string,
   ) {
     this.#id = id
     this.#name = name
@@ -41,11 +39,11 @@ export class Workspace {
     return this.#dataSourceType
   }
 
-  get pluginId(): string | null {
+  get pluginId(): string | undefined {
     return this.#pluginId
   }
 
-  get config(): WorkspaceConfig {
+  get config(): string | undefined {
     return this.#config
   }
 
@@ -60,7 +58,7 @@ export class Workspace {
   public linkDataSource(
     dataSourceType: DataSourceType,
     pluginId: string,
-    config: WorkspaceConfig,
+    config: string,
   ): void {
     if (this.#dataSourceType !== 'local') {
       throw new Error(

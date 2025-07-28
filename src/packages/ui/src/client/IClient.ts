@@ -11,7 +11,7 @@ import {
 
 export interface IWorkspacesClient {
   create(
-    input: IRequest<{ name: string; pluginId: string }>,
+    input: IRequest<{ name: string; pluginId?: string; pluginConfig?: string }>,
   ): Promise<ViewModel<WorkspaceViewModel>>
 
   listAll(): Promise<PaginatedViewModel<WorkspaceViewModel[]>>
