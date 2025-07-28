@@ -14,15 +14,17 @@ export class CreateWorkspaceService implements ICreateWorkspaceUseCase {
 
   public async execute({
     name,
+    pluginConfig,
+    pluginId,
   }: CreateWorkspaceInput): Promise<Either<AppError, WorkspaceDTO>> {
     const workspace = new Workspace(
       `ws-${randomUUID()}`,
       name,
       'local',
-      null,
-      '{}',
       new Date(),
       new Date(),
+      pluginId,
+      pluginConfig,
     )
 
     const newWorkspace =

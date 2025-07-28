@@ -14,6 +14,11 @@ export default defineConfig({
   external: ['react', 'react-dom', 'react-router', 'react-router-dom'],
   loader: {
     '.css': 'copy',
+    '.png': 'dataurl',
+    '.svg': 'dataurl',
+    '.jpg': 'dataurl',
+    '.jpeg': 'dataurl',
+    '.gif': 'dataurl',
   },
   esbuildOptions(options) {
     options.jsx = 'automatic'

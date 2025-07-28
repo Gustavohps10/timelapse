@@ -1,3 +1,4 @@
+import image from '@rollup/plugin-image'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
@@ -48,7 +49,7 @@ export default defineConfig({
     optimizeDeps: {
       exclude: ['@trackalize/ui', ...uiSubpaths],
     },
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), image()],
     build: {
       rollupOptions: {
         input: resolve(__dirname, 'src/renderer/index.html'),

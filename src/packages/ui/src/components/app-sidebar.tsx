@@ -1,5 +1,4 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { WorkspaceViewModel } from '@trackalize/presentation/view-models'
 import {
   ChartLine,
@@ -11,14 +10,12 @@ import {
   User,
 } from 'lucide-react'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { FaDiscord } from 'react-icons/fa'
 import { NavLink } from 'react-router-dom'
-import { toast } from 'sonner'
-import z from 'zod'
 
 import logoAtak from '@/assets/logo-atak.png'
 import { ModeToggle } from '@/components/mode-toggle'
+import { NewWorkspaceDialog } from '@/components/new-workspace-dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,25 +33,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogPortal,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   Sidebar,
   SidebarContent,
@@ -69,17 +48,8 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks/use-auth'
 import { useClient } from '@/hooks/use-client'
-import { queryClient } from '@/lib'
-
-const createWorkspaceSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
-})
-
-type CreateWorkspaceSchema = z.infer<typeof createWorkspaceSchema>
 
 const mainItems = [
   { title: 'Dashboard', url: '/', icon: ChartLine },
@@ -91,15 +61,6 @@ export function AppSidebar() {
   const client = useClient()
   const { logout, user, changeAvatar } = useAuth()
   const [workspaceDialogIsOpen, setWorkspaceDialogIsOpen] = useState(false)
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<CreateWorkspaceSchema>({
-    resolver: zodResolver(createWorkspaceSchema),
-  })
 
   const handleLogout = () => {
     logout()
@@ -114,27 +75,6 @@ export function AppSidebar() {
     queryKey: ['workspaces'],
     queryFn: () => client.workspaces.listAll(),
   })
-
-  const createWorkspaceMutation = useMutation({
-    mutationFn: (data: { name: string }) =>
-      client.workspaces.create({
-        body: {
-          name: data.name,
-          pluginId: 'trackalize/redmine-plugin',
-        },
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspaces'] })
-      reset()
-    },
-  })
-
-  const onSubmit = ({ name }: CreateWorkspaceSchema) => {
-    createWorkspaceMutation.mutate({ name })
-
-    setWorkspaceDialogIsOpen(false)
-    toast('Workspace criado com sucesso.')
-  }
 
   return (
     <Sidebar collapsible="none" className="h-[100vh] border-r">
@@ -157,110 +97,10 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <Dialog
-          open={workspaceDialogIsOpen}
-          onOpenChange={setWorkspaceDialogIsOpen}
-        >
-          <DialogPortal>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Novo Workspace</DialogTitle>
-                <DialogDescription>
-                  Configure os detalhes antes de criar.
-                </DialogDescription>
-              </DialogHeader>
-
-              <Tabs defaultValue="geral" className="w-full max-w-2xl">
-                <TabsList className="bg-muted rounded-md p-1">
-                  <TabsTrigger
-                    value="geral"
-                    className="rounded-md px-3 py-1 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:border dark:data-[state=active]:border-zinc-600"
-                  >
-                    Geral
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="avancado"
-                    className="rounded-md px-3 py-1 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:border dark:data-[state=active]:border-zinc-600"
-                  >
-                    Avançado
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="geral" className="mt-4 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="nome">Nome do Workspace</Label>
-                    <Input
-                      id="nome"
-                      placeholder="Ex: Meu Trabalho"
-                      {...register('name')}
-                    />
-                    {errors.name && (
-                      <p className="text-sm text-red-500">
-                        {errors.name.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="descricao">Descrição</Label>
-                    <Textarea
-                      id="descricao"
-                      placeholder="Descreva o propósito deste workspace."
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="valorHora">Valor Hora Padrão</Label>
-                      <Input
-                        id="valorHora"
-                        placeholder="Ex: 95.00"
-                        type="number"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Moeda</Label>
-                      <Select defaultValue="BRL">
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="BRL">Real (BRL)</SelectItem>
-                          <SelectItem value="USD">Dólar (USD)</SelectItem>
-                          <SelectItem value="EUR">Euro (EUR)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="metaHoras">Meta de Horas Semanal</Label>
-                    <Input id="metaHoras" placeholder="Ex: 40" type="number" />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="avancado" className="mt-4 space-y-4">
-                  <p className="text-muted-foreground text-sm">
-                    A configuração do conector para este workspace aparecerá
-                    aqui.
-                  </p>
-                  <div className="space-y-2">
-                    <Label htmlFor="codigo">Código do Workspace</Label>
-                    <Input id="codigo" placeholder="Ex: WKS-001" disabled />
-                  </div>
-                </TabsContent>
-              </Tabs>
-
-              <DialogFooter className="mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setWorkspaceDialogIsOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button onClick={handleSubmit(onSubmit)}>Criar</Button>
-              </DialogFooter>
-            </DialogContent>
-          </DialogPortal>
-        </Dialog>
+        <NewWorkspaceDialog
+          isOpen={workspaceDialogIsOpen}
+          setIsOpen={setWorkspaceDialogIsOpen}
+        />
 
         <ScrollArea className="h-full">
           <SidebarGroup>
