@@ -6,6 +6,7 @@ import {
   NotFound,
   TimeEntries,
   TimerWidget,
+  WorkspaceSettings,
 } from '@trackalize/ui'
 import { AppLayout, AuthLayout } from '@trackalize/ui'
 import { createHashRouter } from 'react-router-dom'
@@ -27,6 +28,10 @@ export const router = createHashRouter([
       {
         path: 'time-entries',
         element: <TimeEntries />,
+      },
+      {
+        path: 'workspace-settings/:workspaceId',
+        element: <WorkspaceSettings />,
       },
       {
         path: 'widgets',

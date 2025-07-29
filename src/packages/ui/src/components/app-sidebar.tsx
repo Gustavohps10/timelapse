@@ -1,17 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
-import { WorkspaceViewModel } from '@trackalize/presentation/view-models'
 import {
+  AlertCircle,
+  Box,
   ChartLine,
   ChevronRight,
   FileText,
   LogOut,
   Plus,
+  Settings,
   Timer,
   User,
 } from 'lucide-react'
 import { useState } from 'react'
 import { FaDiscord } from 'react-icons/fa'
-import { NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 
 import logoAtak from '@/assets/logo-atak.png'
 import { ModeToggle } from '@/components/mode-toggle'
@@ -48,6 +50,11 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useAuth } from '@/hooks/use-auth'
 import { useClient } from '@/hooks/use-client'
 
@@ -156,19 +163,46 @@ export function AppSidebar() {
                       />
                     </div>
 
-                    {workspacesResponse?.data?.map(
-                      (workspace: WorkspaceViewModel) => (
-                        <CollapsibleContent key={workspace.id}>
-                          <SidebarMenuSub>
-                            <SidebarMenuSubItem>
-                              <SidebarMenuButton>
-                                <span>{workspace.name}</span>
-                              </SidebarMenuButton>
-                            </SidebarMenuSubItem>
-                          </SidebarMenuSub>
-                        </CollapsibleContent>
-                      ),
-                    )}
+                    {workspacesResponse?.data?.map((workspace) => (
+                      <CollapsibleContent key={workspace.id}>
+                        <SidebarMenuSub>
+                          <SidebarMenuSubItem>
+                            <SidebarMenuButton>
+                              <div className="group/item flex w-full items-center justify-between">
+                                <span className="flex items-center gap-2">
+                                  <Box size={16} />
+                                  {workspace.name}
+
+                                  {true && (
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <AlertCircle
+                                          size={14}
+                                          className="cursor-pointer text-yellow-400 dark:text-yellow-200"
+                                          onClick={() => {}}
+                                        />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Autenticação pendente.</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                </span>
+
+                                <Link
+                                  to={`/workspace-settings/${workspace.id}`}
+                                >
+                                  <Settings
+                                    size={14}
+                                    className="hover:text-foreground cursor-pointer text-zinc-500 opacity-0 transition-opacity group-hover/item:opacity-100"
+                                  />
+                                </Link>
+                              </div>
+                            </SidebarMenuButton>
+                          </SidebarMenuSubItem>
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    ))}
                   </SidebarMenuItem>
                 </Collapsible>
               </SidebarMenu>
