@@ -32,8 +32,8 @@ let secondaryWindow: BrowserWindow | null = null
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1280,
+    height: 720,
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
