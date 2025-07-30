@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { Search, Upload } from 'lucide-react'
+import React from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import z from 'zod'
+import { z } from 'zod'
 
-import { PluginList } from '@/components/plugins-list'
+import { Plugin, PluginList } from '@/components/plugins-list'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -37,7 +38,7 @@ const createWorkspaceSchema = z.object({
   defaultHourlyRate: z.coerce.number().optional(),
   currency: z.enum(['BRL', 'USD', 'EUR']).default('BRL'),
   weeklyHourGoal: z.coerce.number().optional(),
-  pluginId: z.string().optional(),
+  plugin: z.custom<Plugin>().nullable().optional(),
 })
 
 type CreateWorkspaceSchema = z.infer<typeof createWorkspaceSchema>
@@ -53,10 +54,10 @@ export function NewWorkspaceDialog({
 
   const {
     control,
-    watch,
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<CreateWorkspaceSchema>({
@@ -65,18 +66,23 @@ export function NewWorkspaceDialog({
       name: '',
       description: '',
       currency: 'BRL',
+      plugin: null,
     },
   })
 
-  const selectedPluginId = watch('pluginId')
+  const selectedPlugin = watch('plugin')
 
   const createWorkspaceMutation = useMutation({
     mutationFn: (data: CreateWorkspaceSchema) =>
       client.workspaces.create({
         body: {
           name: data.name,
-          pluginId: data?.pluginId,
-          pluginConfig: 'CONFIGURACAO GENERICA',
+          pluginId: data.plugin?.id,
+          // config: JSON.stringify({
+          //   defaultHourlyRate: data.defaultHourlyRate,
+          //   currency: data.currency,
+          //   weeklyHourGoal: data.weeklyHourGoal,
+          // }),
         },
       }),
     onSuccess: () => {
@@ -93,7 +99,6 @@ export function NewWorkspaceDialog({
   })
 
   const onSubmit = (data: CreateWorkspaceSchema) => {
-    console.log('Form data submitted:', data)
     createWorkspaceMutation.mutate(data)
   }
 
@@ -117,11 +122,14 @@ export function NewWorkspaceDialog({
                 Geral
               </TabsTrigger>
               <TabsTrigger value="advanced" className="px-3 py-1 text-sm">
-                Avançado
+                Conector
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="geral" className="mt-4 flex-1 space-y-4">
+            <TabsContent
+              value="geral"
+              className="mt-4 flex-1 space-y-4 overflow-y-auto pr-2"
+            >
               <div className="space-y-2">
                 <Label htmlFor="name">Nome do Workspace</Label>
                 <Input
@@ -193,28 +201,25 @@ export function NewWorkspaceDialog({
                 <p className="text-muted-foreground text-sm">
                   Selecione um conector para sincronizar os dados.
                 </p>
-              </div>
-              <div className="my-1 flex items-center gap-2">
-                <div className="relative">
-                  <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2" />
-                  <Input
-                    placeholder="Procurar"
-                    className="bg-background w-32 pl-7 text-sm"
-                  />
+                <div className="flex w-full max-w-sm items-center gap-2 pt-2">
+                  <div className="relative my-1">
+                    <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2" />
+                    <Input
+                      className="pl-7"
+                      placeholder="Buscar conectores..."
+                    />
+                  </div>
+                  <Button variant="secondary">
+                    <Upload className="h-4 w-4" />
+                    Importar
+                  </Button>
                 </div>
-                <Button className="h-9 text-sm" variant="secondary">
-                  <Upload className="h-4 w-4" />
-                  Importar
-                </Button>
               </div>
-
               <div className="min-h-0 flex-1 overflow-hidden">
                 <PluginList
-                  selectedPluginId={selectedPluginId}
-                  onPluginSelected={(pluginId) => {
-                    setValue('pluginId', pluginId || undefined, {
-                      shouldValidate: true,
-                    })
+                  selectedPluginId={selectedPlugin?.id}
+                  onSelectPlugin={(plugin) => {
+                    setValue('plugin', plugin, { shouldValidate: true })
                   }}
                 />
               </div>
