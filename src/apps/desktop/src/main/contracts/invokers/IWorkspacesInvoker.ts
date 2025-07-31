@@ -1,3 +1,4 @@
+import { FieldGroup } from '@trackalize/connector-sdk'
 import { IRequest } from '@trackalize/cross-cutting/transport'
 import {
   PaginatedViewModel,
@@ -16,4 +17,5 @@ export interface IWorkspacesInvoker {
     request: IRequest<CreateWorkspaceRequest>,
   ): Promise<ViewModel<WorkspaceViewModel>>
   listAll(): Promise<PaginatedViewModel<WorkspaceViewModel[]>>
+  getPluginFields(): Promise<FieldGroup[]>
 }

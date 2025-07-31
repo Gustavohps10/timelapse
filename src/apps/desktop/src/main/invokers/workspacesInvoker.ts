@@ -1,3 +1,4 @@
+import { FieldGroup } from '@trackalize/connector-sdk'
 import { IRequest } from '@trackalize/cross-cutting/transport'
 import {
   PaginatedViewModel,
@@ -22,4 +23,7 @@ export const workspacesInvoker: IWorkspacesInvoker = {
     IpcInvoker.invoke<never, PaginatedViewModel<WorkspaceViewModel[]>>(
       'WORKSPACES_GET_ALL',
     ),
+
+  getPluginFields: (): Promise<FieldGroup[]> =>
+    IpcInvoker.invoke<never, FieldGroup[]>('PLUGIN_GET_FIELDS'),
 }

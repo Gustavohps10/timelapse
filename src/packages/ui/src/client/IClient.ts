@@ -9,12 +9,29 @@ import {
   WorkspaceViewModel,
 } from '@trackalize/presentation/view-models'
 
+export interface ConfigField {
+  id: string
+  label: string
+  type: 'text' | 'password' | 'url'
+  required: boolean
+  placeholder?: string
+}
+
+export interface FieldGroup {
+  id: string
+  label: string
+  description?: string
+  fields: ConfigField[]
+}
+
 export interface IWorkspacesClient {
   create(
     input: IRequest<{ name: string; pluginId?: string; pluginConfig?: string }>,
   ): Promise<ViewModel<WorkspaceViewModel>>
 
   listAll(): Promise<PaginatedViewModel<WorkspaceViewModel[]>>
+
+  getPluginFields(): Promise<FieldGroup[]>
 }
 
 export interface ISessionClient {

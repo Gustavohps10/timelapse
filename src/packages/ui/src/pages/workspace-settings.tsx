@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CheckCircle2 } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { FieldGroup } from '@/client'
 import { Plugin, PluginList } from '@/components/plugins-list'
 import {
   AlertDialog,
@@ -37,6 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useClient } from '@/hooks/use-client'
 
 const workspaceSettingsSchema = z.object({
   name: z.string().min(1, 'O nome é obrigatório.'),
@@ -50,9 +52,41 @@ const workspaceSettingsSchema = z.object({
 
 type WorkspaceSettingsSchema = z.infer<typeof workspaceSettingsSchema>
 
+export function buildPluginConfigSchema(groups: FieldGroup[]) {
+  const shape: Record<string, z.ZodTypeAny> = {}
+
+  for (const group of groups) {
+    for (const field of group.fields) {
+      let baseSchema = z.string()
+
+      switch (field.type) {
+        case 'url':
+          baseSchema = baseSchema.url('URL inválida')
+          break
+        case 'password':
+        case 'text':
+        default:
+          break
+      }
+
+      if (field.required) {
+        baseSchema = baseSchema.min(1, 'Campo obrigatório')
+        shape[field.id] = baseSchema
+      } else {
+        shape[field.id] = baseSchema.optional()
+      }
+    }
+  }
+
+  return z.object({
+    pluginConfig: z.object(shape),
+  })
+}
+
 export function WorkspaceSettings() {
+  const client = useClient()
   const { workspaceId } = useParams<{ workspaceId: string }>()
-  const [dynamicFields, setDynamicFields] = useState<any[]>([])
+  const [dynamicFields, setDynamicFields] = useState<FieldGroup[]>([])
   const [pluginToLink, setPluginToLink] = useState<Plugin | null>(null)
 
   const {
@@ -74,21 +108,38 @@ export function WorkspaceSettings() {
 
   const selectedPlugin = watch('plugin')
 
+  const pluginSchema = useMemo(
+    () => buildPluginConfigSchema(dynamicFields),
+    [dynamicFields],
+  )
+
+  const {
+    register: registerPluginForm,
+    handleSubmit: handleSubmitPluginForm,
+    formState: {
+      errors: errorsPluginForm,
+      isSubmitting: isSubmittingPluginForm,
+    },
+  } = useForm<z.infer<typeof pluginSchema>>({
+    resolver: zodResolver(pluginSchema),
+  })
+
+  async function handleAuthenticate(data: z.infer<typeof pluginSchema>) {
+    alert('AUTENTICANDO....')
+  }
+
   useEffect(() => {
-    if (selectedPlugin) {
-      const fakeFields = [
-        { id: 'apiUrl', label: 'URL da API', type: 'url', required: true },
-        {
-          id: 'apiKey',
-          label: 'Chave de API',
-          type: 'password',
-          required: true,
-        },
-      ]
-      setDynamicFields(fakeFields)
-    } else {
+    if (!selectedPlugin) {
       setDynamicFields([])
+      return
     }
+
+    const loadPluginFields = async () => {
+      const pluginFields = await client.workspaces.getPluginFields() /// FUTURAMENTE USAR O ID PARA PEGAR PELO NOME DA PASTA E ACESSAR O MODULO CORRESPONDENTE
+      setDynamicFields(pluginFields)
+    }
+
+    loadPluginFields()
   }, [selectedPlugin])
 
   const onSubmit = async (data: WorkspaceSettingsSchema) => {
@@ -189,6 +240,13 @@ export function WorkspaceSettings() {
                 {...register('weeklyHourGoal')}
               />
             </div>
+            <Button
+              type="button"
+              onClick={handleSubmit(onSubmit)}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
           </CardContent>
         </Card>
 
@@ -301,33 +359,51 @@ export function WorkspaceSettings() {
                   <h3 className="font-medium">
                     Configuração do {selectedPlugin.name}
                   </h3>
-                  {dynamicFields.map((field) => (
-                    <div key={field.id} className="space-y-2">
-                      <Label htmlFor={field.id}>{field.label}</Label>
-                      <Input
-                        id={field.id}
-                        type={field.type}
-                        placeholder={field.placeholder}
-                        {...register(`pluginConfig.${field.id}` as const)}
-                        required={field.required}
-                      />
+
+                  {dynamicFields.map((group) => (
+                    <div key={group.id} className="space-y-4">
+                      <div>
+                        <h4 className="font-semibold">{group.label}</h4>
+                        {group.description && (
+                          <p className="text-muted-foreground text-sm">
+                            {group.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {group.fields.map((field) => (
+                        <div key={field.id} className="space-y-2">
+                          <Label htmlFor={field.id}>{field.label}</Label>
+                          <Input
+                            id={field.id}
+                            type={field.type}
+                            placeholder={field.placeholder}
+                            {...registerPluginForm(
+                              `pluginConfig.${field.id}` as const,
+                            )}
+                            required={field.required}
+                          />
+                          {errorsPluginForm?.pluginConfig?.[field.id] && (
+                            <p className="text-sm text-red-500">
+                              {
+                                errorsPluginForm.pluginConfig[field.id]
+                                  ?.message as string
+                              }
+                            </p>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   ))}
+
+                  <Button onClick={handleSubmitPluginForm(handleAuthenticate)}>
+                    Conectar
+                  </Button>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
-
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            onClick={handleSubmit(onSubmit)}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
-          </Button>
-        </div>
       </form>
     </div>
   )

@@ -18,6 +18,8 @@ export const IpcChannels = {
   WORKSPACES_CREATE: 'workspaces:select',
   WORKSPACES_GET_CONFIG_FIELDS: 'workspaces:fields',
   WORKSPACES_GET_ALL: 'workspaces:getall',
+
+  PLUGIN_GET_FIELDS: 'plugin:get-fields',
 } as const
 
 export type IpcChannelType = keyof typeof IpcChannels

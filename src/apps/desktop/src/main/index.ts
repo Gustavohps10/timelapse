@@ -2,6 +2,7 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import {
   ConnectorRuntimeContext,
   Context as TrackalizeContext,
+  FieldGroup,
 } from '@trackalize/connector-sdk'
 import {
   createTrackalizeContainer,
@@ -160,6 +161,8 @@ app.whenReady().then(async () => {
   const memberQuery = RedmineConnector.getMemberQuery(runtimeContext)
   const timeEntryQuery = RedmineConnector.getTimeEntryQuery(runtimeContext)
   const taskMutation = RedmineConnector.getTaskMutation(runtimeContext)
+
+  const fieldGroups: FieldGroup[] = RedmineConnector.configFields
 
   const platformDeps: PlatformDependencies = {
     authenticationStrategy: asValue(authStrategy),
