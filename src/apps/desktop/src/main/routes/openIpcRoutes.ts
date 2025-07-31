@@ -1,3 +1,4 @@
+import RedmineConnector from '@trackalize/redmine-plugin'
 import { AwilixContainer } from 'awilix'
 
 import { IpcHandler } from '@/main/adapters/IpcHandler'
@@ -27,6 +28,13 @@ export function openIpcRoutes(container: AwilixContainer): void {
   IpcHandler.register('WORKSPACES_GET_ALL', async () => {
     const handler = container.resolve<WorkspacesHandler>('workspacesHandler')
     return handler.listAll()
+  })
+
+  IpcHandler.register('PLUGIN_GET_FIELDS', async (...args) => {
+    // futuramente obter o modulo index.js com base no nome da PASTA,
+    // exemplo: C:/meuapp/plugins/<@trackalize/redmine-plugin>/index.js
+    const connector = RedmineConnector
+    return connector.configFields
   })
 
   /*
