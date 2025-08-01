@@ -29,7 +29,8 @@ Utilize o Visual Studio Code ou outra IDE com compatibilidade com os plugins:
 - [X] Configurar Turbo Repo
 - [X] Iniciar SDK para astrai e possibilitar criação de difetentes fontes de dados / plugins
 - [X] Separar plugin do Redmine e campos que serão utilizados para autenticação 
-- [ ] Em Progresso ⏳; Iniciar fluxo inicial de criação de Workspaces (Selecionar um plugin (por enquanto fixo hard-coded o plugin do Redmine), configurar URLs, entre outras configs daquele espaço de trabalho)
+- [X] Iniciar fluxo inicial de criação de Workspaces (Selecionar um plugin (por enquanto fixo hard-coded o plugin do Redmine), configurar URLs, entre outras configs daquele espaço de trabalho)
+- [ ] Em Progresso ⏳; Iniciar fluxo de envio de credenciais dinamicas para o redmine e armazenamento seguro de informacoes com Keytar
 - [ ] Versionamento com Changesets
 - [ ] Separar plugin do Redmine em outro Repositório e publicar no NPM
 - [ ] Fazer Download e Injetar plugins dinamicamente em tempo de execução com Container De Ioc
