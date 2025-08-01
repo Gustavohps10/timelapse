@@ -7,7 +7,7 @@ import {
 import { LoginRequest } from '@/main/handlers'
 
 export interface IAuthenticationInvoker {
-  login: (
-    payload: IRequest<LoginRequest>,
+  login: <T>(
+    payload: IRequest<LoginRequest<T>>,
   ) => Promise<ViewModel<AuthenticationViewModel>>
 }

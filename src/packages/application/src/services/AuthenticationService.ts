@@ -8,7 +8,7 @@ import {
 } from '@/contracts'
 import { AuthenticationDTO } from '@/dtos'
 
-interface ExecuteParams<AuthCredentials> {
+interface LoginRequest<AuthCredentials> {
   workspaceId: string
   credentials: AuthCredentials
 }
@@ -21,7 +21,7 @@ export class AuthenticationService implements IAuthenticationUseCase {
   ) {}
 
   public async execute<AuthCredentials>(
-    params: ExecuteParams<AuthCredentials>,
+    params: LoginRequest<AuthCredentials>,
   ): Promise<Either<AppError, AuthenticationDTO>> {
     const authenticationResult = await this.authenticationStrategy.authenticate(
       params.credentials,

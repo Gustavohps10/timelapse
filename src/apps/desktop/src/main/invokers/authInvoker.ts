@@ -10,5 +10,5 @@ import { LoginRequest } from '@/main/handlers'
 
 /* eslint-disable prettier/prettier */
 export const authInvoker: IAuthenticationInvoker = {
-  login: (payload: IRequest<LoginRequest>): Promise<ViewModel<AuthenticationViewModel>> =>  IpcInvoker.invoke<IRequest<LoginRequest>, ViewModel<AuthenticationViewModel>>('LOGIN', payload),
+  login: <T>(payload: IRequest<LoginRequest<T>>): Promise<ViewModel<AuthenticationViewModel>> =>  IpcInvoker.invoke<IRequest<LoginRequest<T>>, ViewModel<AuthenticationViewModel>>('LOGIN', payload),
 }

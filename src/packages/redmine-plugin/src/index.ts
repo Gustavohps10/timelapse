@@ -29,8 +29,7 @@ const RedmineConnector: TrackalizeConnector = {
           label: 'URL da sua instância Redmine',
           type: 'url',
           required: true,
-          placeholder:
-            '[https://redmine.suaempresa.com](https://redmine.suaempresa.com)',
+          placeholder: 'https://redmine.suaempresa.com',
         },
       ],
     },
