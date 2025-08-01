@@ -1,4 +1,4 @@
-export type DataSourceType = string
+export type DataSourceType = 'local' | 'remote'
 
 export class Workspace {
   #id: string
@@ -15,14 +15,10 @@ export class Workspace {
     dataSourceType: DataSourceType,
     updatedAt: Date,
     createdAt: Date,
-    pluginId?: string,
-    config?: string,
   ) {
     this.#id = id
     this.#name = name
     this.#dataSourceType = dataSourceType
-    this.#pluginId = pluginId
-    this.#config = config
     this.#createdAt = createdAt
     this.#updatedAt = updatedAt
   }

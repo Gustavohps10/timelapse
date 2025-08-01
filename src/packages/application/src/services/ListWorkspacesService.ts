@@ -1,5 +1,4 @@
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-import { Workspace } from '@trackalize/domain'
 
 import { IUnitOfWork, IWorkspacesRepository } from '@/contracts'
 import { IListWorkspacesUseCase } from '@/contracts/use-cases/IListWorkspacesUseCase'
@@ -16,7 +15,7 @@ export class ListWorkspacesService implements IListWorkspacesUseCase {
     const result = await this.workspacesRepository.findAll()
     if (result.isFailure()) return result.forwardFailure()
 
-    const workspaces: Workspace[] = result.success
+    const workspaces: WorkspaceDTO[] = result.success
     return Either.success(
       workspaces.map(
         (workspace): WorkspaceDTO => ({

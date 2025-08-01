@@ -23,9 +23,10 @@ export class CreateWorkspaceService implements ICreateWorkspaceUseCase {
       'local',
       new Date(),
       new Date(),
-      pluginId,
-      pluginConfig,
     )
+
+    if (pluginId && pluginConfig)
+      workspace.linkDataSource('local', pluginId, pluginConfig)
 
     const newWorkspace =
       await this.unitOfWork.workspacesRepository.create(workspace)

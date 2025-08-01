@@ -12,6 +12,7 @@ export interface ConfigField {
   type: 'text' | 'password' | 'url'
   required: boolean
   placeholder?: string
+  persistable: boolean
 }
 
 export interface FieldGroup {
