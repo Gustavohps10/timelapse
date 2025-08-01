@@ -39,7 +39,12 @@ export function Login() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: ({ username, password }: FormValues) =>
-      client.services.auth.login({ body: { login: username, password } }),
+      client.services.auth.login({
+        body: {
+          workspaceId: 'REMOVER',
+          credentials: {},
+        },
+      }),
     onSettled: (response) => {
       if (!response?.isSuccess || !response.data) {
         console.log('Falha na autenticação EXIBIR EM TELA', response?.error)
