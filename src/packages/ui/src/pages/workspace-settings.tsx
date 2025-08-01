@@ -125,7 +125,24 @@ export function WorkspaceSettings() {
   })
 
   async function handleAuthenticate(data: z.infer<typeof pluginSchema>) {
-    alert('AUTENTICANDO....')
+    const response = await client.services.auth.login({
+      body: {
+        workspaceId: workspaceId!,
+        credentials: data['pluginConfig'],
+      },
+    })
+
+    if (response.isSuccess) {
+      toast(
+        response.data?.member.firstname +
+          ' ' +
+          response.data?.member.lastname +
+          ' , sua sessão foi iniciada com sucesso',
+      )
+      return
+    }
+
+    toast(response.error)
   }
 
   useEffect(() => {

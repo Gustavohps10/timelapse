@@ -6,17 +6,17 @@ import {
   ViewModel,
 } from '@trackalize/presentation/view-models'
 
-export interface LoginRequest {
-  login: string
-  password: string
+export interface LoginRequest<AuthCredentials> {
+  workspaceId: string
+  credentials: AuthCredentials
 }
 
 export class AuthHandler {
   constructor(private readonly authenticationService: IAuthenticationUseCase) {}
 
-  public async login(
+  public async login<T>(
     _event: Electron.IpcMainInvokeEvent,
-    { body: body }: IRequest<LoginRequest>,
+    { body }: IRequest<LoginRequest<T>>,
   ): Promise<ViewModel<AuthenticationViewModel>> {
     const result = await this.authenticationService.execute(body)
 

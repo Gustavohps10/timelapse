@@ -38,12 +38,14 @@ export interface ISessionClient {
   getCurrentUser(): Promise<ViewModel<MemberViewModel>>
 }
 
+interface LoginRequest<AuthCredentials> {
+  workspaceId: string
+  credentials: AuthCredentials
+}
+
 export interface IAuthClient {
-  login: (
-    payload: IRequest<{
-      login: string
-      password: string
-    }>,
+  login: <T>(
+    payload: IRequest<LoginRequest<T>>,
   ) => Promise<ViewModel<AuthenticationViewModel>>
 }
 
