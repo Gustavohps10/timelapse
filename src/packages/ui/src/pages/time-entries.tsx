@@ -31,7 +31,7 @@ import {
   Wrench,
 } from 'lucide-react'
 import { useContext, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { columns, Row } from '@/components/time-entries-table/columns'
@@ -122,6 +122,7 @@ function groupByIssue(data: TimeEntry[]): Row[] {
 
 export function TimeEntries() {
   const client = useClient()
+  const { workspaceId } = useParams<{ workspaceId: string }>()
   const [manualMinutes, setManualMinutes] = useState(60)
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
@@ -153,6 +154,7 @@ export function TimeEntries() {
     queryFn: () =>
       client.services.timeEntries.findByMemberId({
         body: {
+          workspaceId: workspaceId!,
           memberId: '230',
           startDate: date ?? new Date(),
           endDate: date ?? new Date(),

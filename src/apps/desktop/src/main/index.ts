@@ -1,17 +1,7 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import {
-  ConnectorRuntimeContext,
-  Context as TrackalizeContext,
-  FieldGroup,
-} from '@trackalize/connector-sdk'
-import {
-  createTrackalizeContainer,
-  PlatformDependencies,
-} from '@trackalize/container'
+import { ContainerBuilder, PlatformDependencies } from '@trackalize/container'
 import { JSONWorkspacesRepository } from '@trackalize/infra/data'
 import { KeytarTokenStorage } from '@trackalize/infra/storage'
-import RedmineConnector from '@trackalize/redmine-plugin'
-import { asClass, asValue } from 'awilix'
 import { app, BrowserWindow, Menu, screen, shell, Tray } from 'electron'
 import { join } from 'path'
 
@@ -60,6 +50,15 @@ const createWindow = () => {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+}
+
+export type IHandlersScope = {
+  authHandler: typeof AuthHandler
+  sessionHandler: typeof SessionHandler
+  taskHandler: typeof TaskHandler
+  timeEntriesHandler: typeof TimeEntriesHandler
+  tokenHandler: typeof TokenHandler
+  workspacesHandler: typeof WorkspacesHandler
 }
 
 const createSecondaryWindow = () => {
@@ -136,55 +135,26 @@ const createTray = () => {
 }
 
 app.whenReady().then(async () => {
-  TrackalizeContext.initialize({
-    credentialsStorage: new KeytarTokenStorage(),
-  })
-
-  const FAKE_WORKSPACE = {
-    id: 'ws-redmine-1234',
-    pluginId: '@trackalize/redmine-plugin',
-    config: {
-      apiUrl: 'http://redmine.atakone.com.br',
-    },
-  }
-
-  TrackalizeContext.setActiveWorkspaceId(FAKE_WORKSPACE.id)
-
-  const runtimeContext: ConnectorRuntimeContext = {
-    sessionData: await TrackalizeContext.getSessionData(),
-    workspaceConfig: FAKE_WORKSPACE.config,
-  }
-
-  const authStrategy =
-    RedmineConnector.getAuthenticationStrategy(runtimeContext)
-  const taskQuery = RedmineConnector.getTaskQuery(runtimeContext)
-  const memberQuery = RedmineConnector.getMemberQuery(runtimeContext)
-  const timeEntryQuery = RedmineConnector.getTimeEntryQuery(runtimeContext)
-  const taskMutation = RedmineConnector.getTaskMutation(runtimeContext)
-
-  const fieldGroups: FieldGroup[] = RedmineConnector.configFields
-
   const platformDeps: PlatformDependencies = {
-    authenticationStrategy: asValue(authStrategy),
-    taskQuery: asValue(taskQuery),
-    memberQuery: asValue(memberQuery),
-    timeEntryQuery: asValue(timeEntryQuery),
-    storagePath: asValue(app.getPath('userData')),
-    taskMutation: asValue(taskMutation),
-    credentialsStorage: asClass(KeytarTokenStorage).singleton(),
-    workspacesRepository: asClass(JSONWorkspacesRepository).scoped(),
+    credentialsStorage: new KeytarTokenStorage(),
+    workspacesRepository: new JSONWorkspacesRepository(app.getPath('userData')),
   }
 
-  const container = createTrackalizeContainer(platformDeps)
+  const handlersModule: IHandlersScope = {
+    authHandler: AuthHandler,
+    sessionHandler: SessionHandler,
+    taskHandler: TaskHandler,
+    timeEntriesHandler: TimeEntriesHandler,
+    tokenHandler: TokenHandler,
+    workspacesHandler: WorkspacesHandler,
+  }
 
-  container.register({
-    authHandler: asClass(AuthHandler),
-    sessionHandler: asClass(SessionHandler),
-    taskHandler: asClass(TaskHandler),
-    timeEntriesHandler: asClass(TimeEntriesHandler),
-    tokenHandler: asClass(TokenHandler),
-    workspacesHandler: asClass(WorkspacesHandler),
-  })
+  const container = new ContainerBuilder()
+    .addPlatformDependencies(platformDeps)
+    .addInfrastructure()
+    .addApplicationServices()
+    .addCustomScoped<IHandlersScope>(handlersModule)
+    .build()
 
   openIpcRoutes(container)
 

@@ -1,32 +1,37 @@
+import {
+  ICredentialsStorage,
+  IWorkspacesRepository,
+} from '@trackalize/application'
+import { IServiceProvider } from '@trackalize/container'
 import RedmineConnector from '@trackalize/redmine-plugin'
-import { AwilixContainer } from 'awilix'
 
 import { IpcHandler } from '@/main/adapters/IpcHandler'
 import { handleDiscordLogin } from '@/main/auth/discord-handler'
 import {
   AuthHandler,
   SessionHandler,
-  TaskHandler,
   TimeEntriesHandler,
   TokenHandler,
 } from '@/main/handlers'
 import { WorkspacesHandler } from '@/main/handlers/WorkspacesHandler'
 import { createAuthMiddleware } from '@/main/middlewares/ensureAuthenticated'
 
-export function openIpcRoutes(container: AwilixContainer): void {
-  const ensureAuthenticated = createAuthMiddleware(container)
+export function openIpcRoutes(serviceProvider: IServiceProvider): void {
+  const ensureAuthenticated = createAuthMiddleware(serviceProvider)
 
   /*
    * WORKSPACE
    */
 
   IpcHandler.register('WORKSPACES_CREATE', async (...args) => {
-    const handler = container.resolve<WorkspacesHandler>('workspacesHandler')
+    const handler =
+      serviceProvider.resolve<WorkspacesHandler>('workspacesHandler')
     return handler.create(...args)
   })
 
   IpcHandler.register('WORKSPACES_GET_ALL', async () => {
-    const handler = container.resolve<WorkspacesHandler>('workspacesHandler')
+    const handler =
+      serviceProvider.resolve<WorkspacesHandler>('workspacesHandler')
     return handler.listAll()
   })
 
@@ -47,17 +52,17 @@ export function openIpcRoutes(container: AwilixContainer): void {
    * TOKENs and SECRET KEYS
    */
   IpcHandler.register('SAVE_TOKEN', async (...args) => {
-    const handler = container.resolve<TokenHandler>('tokenHandler')
+    const handler = serviceProvider.resolve<TokenHandler>('tokenHandler')
     return handler.saveToken(...args)
   })
 
   IpcHandler.register('GET_TOKEN', async (...args) => {
-    const handler = container.resolve<TokenHandler>('tokenHandler')
+    const handler = serviceProvider.resolve<TokenHandler>('tokenHandler')
     return handler.getToken(...args)
   })
 
   IpcHandler.register('DELETE_TOKEN', async (...args) => {
-    const handler = container.resolve<TokenHandler>('tokenHandler')
+    const handler = serviceProvider.resolve<TokenHandler>('tokenHandler')
     return handler.deleteToken(...args)
   })
 
@@ -67,38 +72,82 @@ export function openIpcRoutes(container: AwilixContainer): void {
   IpcHandler.register(
     'GET_CURRENT_USER',
     [ensureAuthenticated],
-    async (...args) => {
-      const handler = container.resolve<SessionHandler>('sessionHandler')
-      return handler.listTimeEntries(...args)
+    async (event, args) => {
+      const { workspaceId } = args.body
+      const scoped = await configureConnector(serviceProvider, workspaceId)
+
+      const handler = scoped.resolve<SessionHandler>('sessionHandler')
+      return handler.listTimeEntries(event, args)
     },
   )
 
   /*
    * AUTH
    */
-  IpcHandler.register('LOGIN', async (...args) => {
-    const handler = container.resolve<AuthHandler>('authHandler')
-    return handler.login(...args)
+  IpcHandler.register('LOGIN', async (event, args) => {
+    const { workspaceId } = args.body
+
+    const scoped = await configureConnector(serviceProvider, workspaceId)
+    const handler = scoped.resolve<AuthHandler>('authHandler')
+    return handler.login(event, args)
   })
 
   /*
    * TASK
    */
-  IpcHandler.register('TASKS_LIST', [ensureAuthenticated], async (...args) => {
-    const handler = container.resolve<TaskHandler>('taskHandler')
-    return handler.listTasks(...args)
-  })
+  IpcHandler.register('LIST_TIME_ENTRIES', async (event, args) => {
+    const { workspaceId } = args.body
 
-  /*
-   * TIME_ENTRIES
-   */
-  IpcHandler.register(
-    'LIST_TIME_ENTRIES',
-    [ensureAuthenticated],
-    async (...args) => {
-      const handler =
-        container.resolve<TimeEntriesHandler>('timeEntriesHandler')
-      return handler.listTimeEntries(...args)
-    },
+    const scoped = await configureConnector(serviceProvider, workspaceId)
+
+    const handler = scoped.resolve<TimeEntriesHandler>('timeEntriesHandler')
+    return handler.listTimeEntries(event, args)
+  })
+}
+
+export async function configureConnector(
+  root: IServiceProvider,
+  workspaceId: string,
+): Promise<IServiceProvider> {
+  const scoped = root.createScope()
+
+  workspaceId = 'ws-f66c5f23-3471-4037-bf5c-7c6c111e16a4'
+
+  const workspacesRepo = scoped.resolve<IWorkspacesRepository>(
+    'workspacesRepository',
   )
+  const credentialsStorage =
+    scoped.resolve<ICredentialsStorage>('credentialsStorage')
+
+  const result = await workspacesRepo.findById(workspaceId)
+  if (result.isFailure()) {
+    throw new Error(`Workspace ${workspaceId} não encontrado`)
+  }
+
+  const { success: workspace } = result
+
+  const credentials = (await credentialsStorage.getToken(
+    'trackalize',
+    `workspace-session-${workspace!.id}`,
+  )) as string
+
+  // Força o config para ser um objeto e insere apiUrl diretamente
+  const config = {
+    apiUrl: 'http://redmine.atakone.com.br',
+  } as any
+
+  const context = {
+    config,
+    credentials,
+  }
+
+  const connectorDeps = {
+    authenticationStrategy: RedmineConnector.getAuthenticationStrategy(context),
+    taskQuery: RedmineConnector.getTaskQuery(context),
+    memberQuery: RedmineConnector.getMemberQuery(context),
+    timeEntryQuery: RedmineConnector.getTimeEntryQuery(context),
+    taskMutation: RedmineConnector.getTaskMutation(context),
+  }
+
+  return scoped.withConnector(connectorDeps)
 }

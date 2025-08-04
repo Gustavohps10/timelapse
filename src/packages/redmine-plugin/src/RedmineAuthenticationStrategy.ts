@@ -78,8 +78,7 @@ export class RedmineAuthenticationStrategy
       }
 
       const secretsToStore = {
-        key: 'apiKey',
-        value: member.api_key,
+        apiKey: member.api_key,
       }
 
       const authenticationResult: AuthenticationResult = {

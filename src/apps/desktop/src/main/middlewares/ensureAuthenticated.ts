@@ -1,14 +1,15 @@
-import { IJWTService, ISessionManager } from '@trackalize/application/contracts'
+import { IJWTService, ISessionManager } from '@trackalize/application'
+import { IServiceProvider } from '@trackalize/container'
 import { Either } from '@trackalize/cross-cutting/helpers'
 import { IRequest } from '@trackalize/cross-cutting/transport'
 import { ViewModel } from '@trackalize/presentation/view-models'
-import { AwilixContainer } from 'awilix'
 
 type NextFunction<TRes> = () => Promise<Either<any, TRes>>
 
-export function createAuthMiddleware(container: AwilixContainer) {
-  const jwtService = container.resolve<IJWTService>('jwtService')
-  const sessionManager = container.resolve<ISessionManager>('sessionManager')
+export function createAuthMiddleware(serviceProvider: IServiceProvider) {
+  const jwtService = serviceProvider.resolve<IJWTService>('jwtService')
+  const sessionManager =
+    serviceProvider.resolve<ISessionManager>('sessionManager')
 
   return async function ensureAuthenticated<TReq, TRes>(
     _event: Electron.IpcMainInvokeEvent,

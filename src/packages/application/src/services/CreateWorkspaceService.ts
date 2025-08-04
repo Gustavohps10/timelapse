@@ -5,12 +5,12 @@ import { randomUUID } from 'crypto'
 import {
   CreateWorkspaceInput,
   ICreateWorkspaceUseCase,
-  IUnitOfWork,
+  IWorkspacesRepository,
 } from '@/contracts'
 import { WorkspaceDTO } from '@/dtos'
 
 export class CreateWorkspaceService implements ICreateWorkspaceUseCase {
-  constructor(private readonly unitOfWork: IUnitOfWork) {}
+  constructor(private readonly workspacesRepository: IWorkspacesRepository) {}
 
   public async execute({
     name,
@@ -28,11 +28,11 @@ export class CreateWorkspaceService implements ICreateWorkspaceUseCase {
     if (pluginId && pluginConfig)
       workspace.linkDataSource('local', pluginId, pluginConfig)
 
-    const newWorkspace =
-      await this.unitOfWork.workspacesRepository.create(workspace)
+    const newWorkspace = await this.workspacesRepository.create(workspace)
 
-    if (!newWorkspace)
+    if (!newWorkspace) {
       return Either.failure(new AppError('ALGO DEU ERRADO AO CRIAR WORKSPACE'))
+    }
 
     const workspaceDTO: WorkspaceDTO = {
       id: workspace.id,
