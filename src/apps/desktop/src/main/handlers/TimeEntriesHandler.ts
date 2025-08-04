@@ -27,11 +27,13 @@ export class TimeEntriesHandler {
     const result: Either<AppError, TimeEntryDTO[]> =
       await this.listTimeEntriesService.execute(memberId, startDate, endDate)
 
+    console.log('RESULT LISTAGEM', result)
+
     if (result.isFailure()) {
       return {
         statusCode: 500,
         isSuccess: false,
-        error: 'Erro ao listar tarefas',
+        error: result.failure.messageKey,
         data: [],
         totalItems: 0,
         totalPages: 0,

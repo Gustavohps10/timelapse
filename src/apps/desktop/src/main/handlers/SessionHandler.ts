@@ -11,18 +11,20 @@ export class SessionHandler {
   constructor(private readonly getCurrentUserService: IGetCurrentUserUseCase) {}
 
   public async listTimeEntries(
+    // NOME POSSIVELMENTE ERRADO ALTERAR
     _event: Electron.IpcMainInvokeEvent,
     {}: IRequest,
   ): Promise<ViewModel<MemberViewModel>> {
-    console.log('BACKEND')
     const result: Either<AppError, MemberDTO> =
       await this.getCurrentUserService.execute()
+    console.log('BACKEND')
+    console.log(result)
 
     if (result.isFailure()) {
       return {
         statusCode: 500,
         isSuccess: false,
-        error: 'Erro ao listar tarefas',
+        error: 'Falha ao encontrar usuario da sessao',
       }
     }
 

@@ -1,15 +1,11 @@
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 
-import { IUnitOfWork, IWorkspacesRepository } from '@/contracts'
+import { IWorkspacesRepository } from '@/contracts'
 import { IListWorkspacesUseCase } from '@/contracts/use-cases/IListWorkspacesUseCase'
 import { WorkspaceDTO } from '@/dtos'
 
 export class ListWorkspacesService implements IListWorkspacesUseCase {
-  private readonly workspacesRepository: IWorkspacesRepository
-
-  constructor(unitOfWork: IUnitOfWork) {
-    this.workspacesRepository = unitOfWork.workspacesRepository
-  }
+  constructor(private readonly workspacesRepository: IWorkspacesRepository) {}
 
   public async execute(): Promise<Either<AppError, WorkspaceDTO[]>> {
     const result = await this.workspacesRepository.findAll()

@@ -22,22 +22,21 @@ export interface FieldGroup {
   fields: ConfigField[]
 }
 
-export interface ConnectorRuntimeContext {
-  workspaceConfig: Record<string, any>
-  sessionData: string | null
+export interface Context {
+  credentials?: string
+  config: any
 }
 
-export interface TrackalizeConnector {
-  id: string
-  dataSourceType: string
-  displayName: string
-  configFields: FieldGroup[]
+// No seu SDK
+export interface IConnector {
+  readonly id: string
+  readonly dataSourceType: string
+  readonly displayName: string
+  readonly configFields: FieldGroup[]
 
-  getAuthenticationStrategy(
-    context: ConnectorRuntimeContext,
-  ): IAuthenticationStrategy
-  getTaskQuery(context: ConnectorRuntimeContext): ITaskQuery
-  getTimeEntryQuery(context: ConnectorRuntimeContext): ITimeEntryQuery
-  getMemberQuery(context: ConnectorRuntimeContext): IMemberQuery
-  getTaskMutation(context: ConnectorRuntimeContext): ITaskMutation
+  getAuthenticationStrategy(context: Context): IAuthenticationStrategy
+  getTaskQuery(context: Context): ITaskQuery
+  getTimeEntryQuery(context: Context): ITimeEntryQuery
+  getMemberQuery(context: Context): IMemberQuery
+  getTaskMutation(context: Context): ITaskMutation
 }

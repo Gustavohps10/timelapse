@@ -100,6 +100,7 @@ export function Dashboard() {
     client.services.timeEntries
       .findByMemberId({
         body: {
+          workspaceId: 'ws-temp-uuid',
           memberId: user.id.toString(),
           startDate: monday,
           endDate: friday,

@@ -1,6 +1,5 @@
 import {
   AppError,
-  ConnectorRuntimeContext,
   Either,
   ITimeEntryQuery,
   TimeEntryDTO,
@@ -52,10 +51,6 @@ export class RedmineTimeEntryQuery
   extends RedmineBase
   implements ITimeEntryQuery
 {
-  constructor(context: ConnectorRuntimeContext) {
-    super(context)
-  }
-
   public async findByMemberId(
     memberId: string,
     startDate: Date,

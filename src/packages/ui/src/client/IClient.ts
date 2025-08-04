@@ -56,6 +56,7 @@ export interface ITaskClient {
 export interface ITimeEntriesClient {
   findByMemberId: (
     payload: IRequest<{
+      workspaceId: string
       memberId: string
       startDate: Date
       endDate: Date

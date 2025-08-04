@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useAuth } from '@/hooks'
 import { useClient } from '@/hooks/use-client'
 
 const workspaceSettingsSchema = z.object({
@@ -84,6 +85,7 @@ export function buildPluginConfigSchema(groups: FieldGroup[]) {
 }
 
 export function WorkspaceSettings() {
+  const { login } = useAuth()
   const client = useClient()
   const { workspaceId } = useParams<{ workspaceId: string }>()
   const [dynamicFields, setDynamicFields] = useState<FieldGroup[]>([])
@@ -133,6 +135,7 @@ export function WorkspaceSettings() {
     })
 
     if (response.isSuccess) {
+      login(response.data?.member!, response.data?.token!)
       toast(
         response.data?.member.firstname +
           ' ' +
