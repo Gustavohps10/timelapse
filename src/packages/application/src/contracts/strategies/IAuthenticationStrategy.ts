@@ -4,7 +4,7 @@ import { MemberDTO } from '@/dtos'
 
 export interface AuthenticationResult {
   member: MemberDTO
-  sessionDataToStore: string
+  credentials: Record<string, unknown>
 }
 
 export interface IAuthenticationStrategy<AuthCredentials = unknown> {

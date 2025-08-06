@@ -77,13 +77,11 @@ export class RedmineAuthenticationStrategy
         custom_fields: redmineUser.custom_fields,
       }
 
-      const secretsToStore = {
-        apiKey: member.api_key,
-      }
-
       const authenticationResult: AuthenticationResult = {
         member: member,
-        sessionDataToStore: JSON.stringify(secretsToStore),
+        credentials: {
+          apiKey: member.api_key,
+        },
       }
 
       return Either.success(authenticationResult)

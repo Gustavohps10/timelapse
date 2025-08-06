@@ -138,7 +138,7 @@ export async function configureConnector(
 
   const context = {
     config,
-    credentials,
+    credentials: JSON.parse(credentials),
   }
 
   const connectorDeps = {

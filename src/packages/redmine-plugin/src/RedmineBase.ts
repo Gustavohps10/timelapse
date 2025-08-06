@@ -11,15 +11,7 @@ export abstract class RedmineBase {
     console.log('CONTEXT', this.context)
     const apiUrl = this.context?.config?.apiUrl
 
-    let apiKey: string | undefined
-    if (this.context?.credentials) {
-      try {
-        const sessionData = JSON.parse(this.context.credentials)
-        apiKey = sessionData?.apiKey
-      } catch (e) {
-        console.error('Falha ao processar as credenciais do Redmine:', e)
-      }
-    }
+    const apiKey: string = this.context.credentials?.apiKey as string
 
     if (this.apiClient && this.cachedApiKey === apiKey) {
       return this.apiClient

@@ -30,12 +30,13 @@ export class AuthenticationService implements IAuthenticationUseCase {
     if (authenticationResult.isFailure())
       return authenticationResult.forwardFailure()
 
-    const { member, sessionDataToStore } = authenticationResult.success
+    const { member, credentials } = authenticationResult.success
+    const serializedCredentials = JSON.stringify(credentials)
 
     await this.credentialsStorage.saveToken(
       'trackalize',
       `workspace-session-${params.workspaceId}`,
-      sessionDataToStore,
+      serializedCredentials,
     )
 
     const token = await this.jwtService.generateToken({

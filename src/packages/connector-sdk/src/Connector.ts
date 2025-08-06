@@ -23,7 +23,7 @@ export interface FieldGroup {
 }
 
 export interface Context {
-  credentials?: string
+  credentials?: Record<string, unknown>
   config: any
 }
 
