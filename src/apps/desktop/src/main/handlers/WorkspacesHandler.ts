@@ -12,7 +12,7 @@ import { IpcMainInvokeEvent } from 'electron'
 export interface CreateWorkspaceRequest {
   name: string
   pluginId?: string
-  pluginConfig?: string
+  pluginConfig?: Record<string, unknown>
 }
 
 export class WorkspacesHandler {
@@ -50,7 +50,7 @@ export class WorkspacesHandler {
         name: newWorkspace.name,
         dataSourceType: newWorkspace.dataSourceType,
         pluginId: newWorkspace.pluginId,
-        config: newWorkspace.config,
+        pluginConfig: newWorkspace.pluginConfig,
         createdAt: newWorkspace.createdAt,
         updatedAt: newWorkspace.updatedAt,
       },
@@ -87,7 +87,7 @@ export class WorkspacesHandler {
       name: w.name,
       dataSourceType: w.dataSourceType,
       pluginId: w.pluginId,
-      config: w.config,
+      pluginConfig: w.pluginConfig,
       createdAt: w.createdAt,
       updatedAt: w.updatedAt,
     }))

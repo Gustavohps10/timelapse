@@ -39,7 +39,7 @@ export class CreateWorkspaceService implements ICreateWorkspaceUseCase {
       name: workspace.name,
       dataSourceType: workspace.dataSourceType,
       pluginId: workspace.pluginId,
-      config: workspace.config,
+      pluginConfig: workspace.pluginConfig,
       createdAt: workspace.createdAt,
       updatedAt: workspace.updatedAt,
     }
