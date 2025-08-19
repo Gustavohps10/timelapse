@@ -5,7 +5,7 @@ import { WorkspaceDTO } from '@/dtos'
 export type CreateWorkspaceInput = {
   name: string
   pluginId?: string
-  pluginConfig?: string
+  pluginConfig?: Record<string, unknown>
 }
 
 export interface ICreateWorkspaceUseCase {

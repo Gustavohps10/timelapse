@@ -9,7 +9,7 @@ type PlainWorkspace = {
   _Workspace__name: string
   _Workspace__dataSourceType: DataSourceType
   _Workspace__pluginId?: string
-  _Workspace__config?: string
+  _Workspace__pluginConfig?: Record<string, unknown>
   _Workspace__createdAt: string
   _Workspace__updatedAt: string
 }
@@ -34,7 +34,7 @@ export class JSONWorkspacesRepository implements IWorkspacesRepository {
           createdAt: new Date(p._Workspace__createdAt),
           updatedAt: new Date(p._Workspace__updatedAt),
           pluginId: p._Workspace__pluginId,
-          config: p._Workspace__config,
+          pluginConfig: p._Workspace__pluginConfig,
         }),
       )
     } catch {
@@ -49,7 +49,7 @@ export class JSONWorkspacesRepository implements IWorkspacesRepository {
       _Workspace__name: ws.name,
       _Workspace__dataSourceType: ws.dataSourceType,
       _Workspace__pluginId: ws.pluginId,
-      _Workspace__config: ws.config,
+      _Workspace__pluginConfig: ws.pluginConfig,
       _Workspace__createdAt: ws.createdAt.toISOString(),
       _Workspace__updatedAt: ws.updatedAt.toISOString(),
     }))
@@ -145,12 +145,12 @@ export class JSONWorkspacesRepository implements IWorkspacesRepository {
       dto.createdAt,
     )
 
-    if (dto.pluginId && dto.config && dto.dataSourceType !== 'local') {
+    if (dto.pluginId && dto.pluginConfig && dto.dataSourceType !== 'local') {
       try {
         entity.linkDataSource(
           dto.dataSourceType as DataSourceType,
           dto.pluginId,
-          dto.config,
+          dto.pluginConfig,
         )
       } catch {}
     }

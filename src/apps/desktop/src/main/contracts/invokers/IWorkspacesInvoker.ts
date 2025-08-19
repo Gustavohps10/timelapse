@@ -9,7 +9,7 @@ import {
 export interface CreateWorkspaceRequest {
   name: string
   pluginId?: string
-  pluginConfig?: string
+  pluginConfig?: Record<string, unknown>
 }
 
 export interface IWorkspacesInvoker {

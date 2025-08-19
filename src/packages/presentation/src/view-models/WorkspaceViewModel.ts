@@ -3,7 +3,7 @@ export interface WorkspaceViewModel {
   name: string
   dataSourceType: string
   pluginId?: string
-  config?: string
+  pluginConfig?: Record<string, unknown>
   createdAt: Date
   updatedAt: Date
 }

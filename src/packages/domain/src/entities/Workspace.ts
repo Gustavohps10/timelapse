@@ -5,7 +5,7 @@ export class Workspace {
   #name: string
   #dataSourceType: DataSourceType
   #pluginId?: string
-  #config?: string
+  #pluginConfig?: Record<string, unknown>
   #createdAt: Date
   #updatedAt: Date
 
@@ -39,8 +39,8 @@ export class Workspace {
     return this.#pluginId
   }
 
-  get config(): string | undefined {
-    return this.#config
+  get pluginConfig(): Record<string, unknown> | undefined {
+    return this.#pluginConfig
   }
 
   get createdAt(): Date {
@@ -54,17 +54,11 @@ export class Workspace {
   public linkDataSource(
     dataSourceType: DataSourceType,
     pluginId: string,
-    config: string,
+    pluginConfig: Record<string, unknown>,
   ): void {
-    if (this.#dataSourceType !== 'local') {
-      throw new Error(
-        'Este workspace já está vinculado a um datasource e não pode ser alterado.',
-      )
-    }
-
     this.#dataSourceType = dataSourceType
     this.#pluginId = pluginId
-    this.#config = config
+    this.#pluginConfig = pluginConfig
     this.touch()
   }
 
