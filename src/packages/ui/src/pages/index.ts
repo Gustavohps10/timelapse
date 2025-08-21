@@ -1,6 +1,7 @@
 export * from './dashboard'
 export * from './docs'
 export * from './error'
+export * from './home'
 export * from './login'
 export * from './not-found'
 export * from './time-entries'
