@@ -9,6 +9,8 @@ import React, {
 import { User } from '@/contexts/session/User'
 import { useClient } from '@/hooks/use-client'
 
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
 export interface AuthContextType {
   isLoading: boolean
   isAuthenticated: boolean
@@ -18,65 +20,76 @@ export interface AuthContextType {
   changeAvatar: (avatarUrl: string) => void
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
 interface AuthProviderProps {
   children: ReactNode
+  workspaceId: string
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<AuthProviderProps> = ({
+  children,
+  workspaceId,
+}) => {
   const client = useClient()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [user, setUser] = useState<User | null>(null)
 
-  const login = useCallback(async (user: User, token: string) => {
-    await client.modules.tokenStorage.saveToken({
-      body: { service: 'trackalize', account: 'jwt', token },
-    })
-    client.modules.headers.setDefaultHeaders({
-      authorization: `Bearer ${token}`,
-    })
-    setIsAuthenticated(true)
-    setUser(user)
-  }, [])
+  const login = useCallback(
+    async (user: User, token: string) => {
+      await client.modules.tokenStorage.saveToken({
+        body: { service: 'trackalize', account: `jwt-${workspaceId}`, token },
+      })
+      client.modules.headers.setDefaultHeaders({
+        authorization: `Bearer ${token}`,
+      })
+      setIsAuthenticated(true)
+      setUser(user)
+    },
+    [client, workspaceId],
+  )
 
   const changeAvatar = useCallback((avatarUrl: string) => {
-    setUser((currentUser) => {
-      if (!currentUser) return null
-      return {
-        ...currentUser,
-        avatarUrl: avatarUrl,
-      }
-    })
+    setUser((currentUser) =>
+      currentUser ? { ...currentUser, avatarUrl } : null,
+    )
   }, [])
 
   const logout = useCallback(async () => {
     await client.modules.tokenStorage.deleteToken({
-      body: { service: 'trackalize', account: 'jwt' },
+      body: { service: 'trackalize', account: `jwt-${workspaceId}` },
     })
     setIsAuthenticated(false)
     setUser(null)
-  }, [])
+  }, [client, workspaceId])
 
   useEffect(() => {
     const autoLogin = async () => {
+      console.log(workspaceId + 'AUTO LOGIN')
       try {
         const res = await client.modules.tokenStorage.getToken({
-          body: { service: 'trackalize', account: 'jwt' },
+          body: { service: 'trackalize', account: `jwt-${workspaceId}` },
         })
 
-        if (!res.isSuccess || !res.data) return
+        if (!res.isSuccess || !res.data) {
+          setIsAuthenticated(false)
+          setUser(null)
+          return
+        }
 
         client.modules.headers.setDefaultHeaders({
           authorization: `Bearer ${res.data}`,
         })
 
-        const response = await client.services.session.getCurrentUser()
+        const response = await client.services.session.getCurrentUser({
+          body: { workspaceId },
+        })
 
         if (response.isSuccess && response.data) {
           setIsAuthenticated(true)
           setUser(response.data)
+        } else {
+          setIsAuthenticated(false)
+          setUser(null)
         }
       } catch {
         setIsAuthenticated(false)
@@ -87,12 +100,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     autoLogin()
-  }, [])
+  }, [workspaceId, client])
 
   useEffect(() => {
-    const handleForceLogout = () => {
-      logout()
-    }
+    const handleForceLogout = () => logout()
     window.addEventListener('force-logout', handleForceLogout)
     return () => {
       window.removeEventListener('force-logout', handleForceLogout)

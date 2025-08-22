@@ -2,13 +2,12 @@ import {
   Dashboard,
   Docs,
   Error,
-  Login,
   NotFound,
   TimeEntries,
   TimerWidget,
   WorkspaceSettings,
 } from '@trackalize/ui'
-import { AuthLayout, HomeLayout, WorkspaceLayout } from '@trackalize/ui'
+import { HomeLayout, WorkspaceLayout } from '@trackalize/ui'
 import { createHashRouter } from 'react-router-dom'
 
 export const router = createHashRouter([
@@ -36,11 +35,6 @@ export const router = createHashRouter([
         children: [{ path: 'timer', element: <TimerWidget /> }],
       },
     ],
-  },
-  {
-    path: '/login',
-    element: <AuthLayout />,
-    children: [{ index: true, element: <Login /> }],
   },
   { path: '*', element: <NotFound /> },
 ])
