@@ -106,18 +106,14 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
 }
 
 export async function configureConnector(
-  root: IServiceProvider,
+  provider: IServiceProvider,
   workspaceId: string,
 ): Promise<IServiceProvider> {
-  const scoped = root.createScope()
-
-  workspaceId = 'ws-f66c5f23-3471-4037-bf5c-7c6c111e16a4'
-
-  const workspacesRepo = scoped.resolve<IWorkspacesRepository>(
+  const workspacesRepo = provider.resolve<IWorkspacesRepository>(
     'workspacesRepository',
   )
   const credentialsStorage =
-    scoped.resolve<ICredentialsStorage>('credentialsStorage')
+    provider.resolve<ICredentialsStorage>('credentialsStorage')
 
   const result = await workspacesRepo.findById(workspaceId)
   if (result.isFailure()) {
@@ -131,13 +127,8 @@ export async function configureConnector(
     `workspace-session-${workspace!.id}`,
   )) as string
 
-  // Força o config para ser um objeto e insere apiUrl diretamente
-  const config = {
-    apiUrl: 'http://redmine.atakone.com.br',
-  } as any
-
   const context = {
-    config,
+    config: workspace?.pluginConfig,
     credentials: JSON.parse(credentials),
   }
 
@@ -149,5 +140,5 @@ export async function configureConnector(
     taskMutation: RedmineConnector.getTaskMutation(context),
   }
 
-  return scoped.withConnector(connectorDeps)
+  return provider.withConnector(connectorDeps)
 }

@@ -4,7 +4,6 @@ import { IClient } from '@/client'
 import { ThemeProvider } from '@/components/theme-provider'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { AuthProvider } from '@/contexts/auth'
 import { ClientProvider } from '@/contexts/ClientContext'
 import { TimeEntriesContextProvider } from '@/contexts/TimeEntriesContext'
 import { queryClient } from '@/lib/query-client'
@@ -21,11 +20,9 @@ export function AppProviders({ client, children }: AppProvidersProps) {
         <TooltipProvider>
           <TimeEntriesContextProvider>
             <SidebarProvider>
-              <AuthProvider>
-                <QueryClientProvider client={queryClient}>
-                  {children}
-                </QueryClientProvider>
-              </AuthProvider>
+              <QueryClientProvider client={queryClient}>
+                {children}
+              </QueryClientProvider>
             </SidebarProvider>
           </TimeEntriesContextProvider>
         </TooltipProvider>

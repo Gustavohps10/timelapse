@@ -9,5 +9,11 @@ import { ISessionInvoker } from '@/main/contracts/invokers/ISessionInvoker'
 
 /* eslint-disable prettier/prettier */
 export const sessionInvoker: ISessionInvoker = {
-  getCurrentUser: (): Promise<ViewModel<MemberViewModel>> => IpcInvoker.invoke<IRequest, ViewModel<MemberViewModel>>('GET_CURRENT_USER'),
+  getCurrentUser: (
+    input: IRequest<{
+      workspaceId: string
+    }>,
+  ): Promise<ViewModel<MemberViewModel>> => IpcInvoker.invoke<IRequest<{
+      workspaceId: string
+    }>, ViewModel<MemberViewModel>>('GET_CURRENT_USER', input),
 }

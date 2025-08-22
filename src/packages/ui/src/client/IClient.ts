@@ -40,7 +40,11 @@ export interface IWorkspacesClient {
 }
 
 export interface ISessionClient {
-  getCurrentUser(): Promise<ViewModel<MemberViewModel>>
+  getCurrentUser(
+    input: IRequest<{
+      workspaceId: string
+    }>,
+  ): Promise<ViewModel<MemberViewModel>>
 }
 
 interface LoginRequest<AuthCredentials> {

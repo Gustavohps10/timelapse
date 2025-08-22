@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router'
+import { Outlet, useParams } from 'react-router'
 import { Toaster } from 'sonner'
 
 import {
@@ -9,10 +9,14 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { AuthProvider } from '@/providers'
 
 export function WorkspaceLayout() {
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  if (!workspaceId) throw new Error('WorkspaceId not found')
+
   return (
-    <>
+    <AuthProvider workspaceId={workspaceId}>
       <AppSidebar
         content={<AppSidebarWorkspacesContent />}
         footer={<AppSidebarWorkspacesFooter />}
@@ -27,6 +31,6 @@ export function WorkspaceLayout() {
         </ScrollArea>
         <Toaster />
       </main>
-    </>
+    </AuthProvider>
   )
 }
