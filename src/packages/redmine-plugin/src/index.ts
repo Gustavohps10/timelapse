@@ -1,6 +1,6 @@
 import { Context, IConnector } from '@trackalize/connector-sdk'
 
-import { configFields } from '@/configFields'
+import { configurationFieldGroups, credentialFieldGroups } from '@/configFields'
 import { RedmineAuthenticationStrategy } from '@/RedmineAuthenticationStrategy'
 import { RedmineMemberQuery } from '@/RedmineMemberQuery'
 import { RedmineTaskMutation } from '@/RedmineTaskMutation'
@@ -11,7 +11,10 @@ const RedmineConnector: IConnector = {
   id: '@trackalize/redmine-plugin',
   dataSourceType: 'redmine',
   displayName: 'Redmine (Oficial)',
-  configFields: configFields,
+  configFields: {
+    configuration: configurationFieldGroups,
+    credentials: credentialFieldGroups,
+  },
 
   // eslint-disable-next-line prettier/prettier
   getAuthenticationStrategy: (context: Context) => new RedmineAuthenticationStrategy(),

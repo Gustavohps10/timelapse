@@ -14,8 +14,6 @@ export class CreateWorkspaceService implements ICreateWorkspaceUseCase {
 
   public async execute({
     name,
-    pluginConfig,
-    pluginId,
   }: CreateWorkspaceInput): Promise<Either<AppError, WorkspaceDTO>> {
     const workspace = new Workspace(
       `ws-${randomUUID()}`,
@@ -24,9 +22,6 @@ export class CreateWorkspaceService implements ICreateWorkspaceUseCase {
       new Date(),
       new Date(),
     )
-
-    if (pluginId && pluginConfig)
-      workspace.linkDataSource('local', pluginId, pluginConfig)
 
     const newWorkspace = await this.workspacesRepository.create(workspace)
 

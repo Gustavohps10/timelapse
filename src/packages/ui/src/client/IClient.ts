@@ -15,7 +15,6 @@ export interface ConfigField {
   type: 'text' | 'password' | 'url'
   required: boolean
   placeholder?: string
-  persistable: boolean
 }
 
 export interface FieldGroup {
@@ -29,14 +28,15 @@ export interface IWorkspacesClient {
   create(
     input: IRequest<{
       name: string
-      pluginId?: string
-      pluginConfig?: Record<string, unknown>
     }>,
   ): Promise<ViewModel<WorkspaceViewModel>>
 
   listAll(): Promise<PaginatedViewModel<WorkspaceViewModel[]>>
 
-  getPluginFields(): Promise<FieldGroup[]>
+  getPluginFields(): Promise<{
+    credentials: FieldGroup[]
+    configuration: FieldGroup[]
+  }>
 }
 
 export interface ISessionClient {

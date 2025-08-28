@@ -1,6 +1,6 @@
 import {
   AppError,
-  ConnectorRuntimeContext,
+  Context,
   Either,
   IMemberQuery,
   MemberDTO,
@@ -30,7 +30,7 @@ interface RedmineUserResponse {
 }
 
 export class RedmineMemberQuery extends RedmineBase implements IMemberQuery {
-  constructor(context: ConnectorRuntimeContext) {
+  constructor(context: Context) {
     super(context)
   }
 

@@ -22,6 +22,7 @@ import {
   asValue,
   AwilixContainer,
   createContainer,
+  Lifetime,
   Resolver,
 } from 'awilix'
 
@@ -62,29 +63,6 @@ export class ContainerBuilder {
     this.container = createContainer({
       injectionMode: 'CLASSIC',
     })
-  }
-
-  /**
-   * Registra as dependências de plataforma (globais e singletons).
-   * @param deps As instâncias das dependências de plataforma.
-   * @returns A própria instância do builder para encadeamento.
-   */
-  /**
-   * Registra as dependências específicas de um conector.
-   * Este método recebe as instâncias e as registra com `asValue`.
-   * Deve ser usado em um contêiner de escopo.
-   * @param deps Um objeto contendo as instâncias das dependências do conector.
-   * @returns A própria instância do builder para encadeamento.
-   */
-  public addConnector(deps: ConnectorDependencies): this {
-    this.container.register({
-      authenticationStrategy: asValue(deps.authenticationStrategy),
-      taskQuery: asValue(deps.taskQuery),
-      memberQuery: asValue(deps.memberQuery),
-      timeEntryQuery: asValue(deps.timeEntryQuery),
-      taskMutation: asValue(deps.taskMutation),
-    })
-    return this
   }
 
   /**
@@ -134,7 +112,7 @@ export class ContainerBuilder {
    * @param module Um objeto contendo os resolvers para o módulo de dependências.
    * @returns A própria instância do builder para encadeamento.
    */
-  public addCustomScoped<T extends Record<string, Class>>(module: T): this {
+  public addScoped<T extends Record<string, Class>>(module: T): this {
     const scopedModule = {} as {
       [K in keyof T]: Resolver<InstanceType<T[K]>>
     }
@@ -147,6 +125,26 @@ export class ContainerBuilder {
     }
 
     this.container.register(scopedModule)
+    return this
+  }
+
+  public addFromPath(pathOrFile: string): this {
+    let normalizedPath =
+      pathOrFile.endsWith('.ts') || pathOrFile.endsWith('.js')
+        ? pathOrFile.replace(/[^/\\]+$/, '*')
+        : pathOrFile.endsWith('/')
+          ? `${pathOrFile}*`
+          : `${pathOrFile}/*`
+
+    normalizedPath = normalizedPath.replace('*', '{!index,*}')
+
+    this.container.loadModules([normalizedPath], {
+      formatName: 'camelCase',
+      resolverOptions: {
+        lifetime: Lifetime.SCOPED,
+      },
+    })
+
     return this
   }
 

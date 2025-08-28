@@ -1,13 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { CheckCircle2, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import React, { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { FieldGroup } from '@/client'
-import { Plugin, PluginList } from '@/components/plugins-list'
+import { Plugin } from '@/components/plugins-list'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +18,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -38,7 +37,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { useClient } from '@/hooks/use-client'
@@ -292,110 +290,6 @@ export function NewWorkspaceDialog({
                     type="number"
                     {...register('weeklyHourGoal')}
                   />
-                </div>
-              </TabsContent>
-
-              <TabsContent
-                value="conector"
-                className="flex flex-col space-y-4 py-4"
-              >
-                <div className="space-y-4 pr-2">
-                  {!selectedPlugin ? (
-                    <PluginList
-                      onSelectPlugin={(plugin) => setPluginToLink(plugin)}
-                    />
-                  ) : (
-                    <div>
-                      <div className="flex items-center justify-between rounded-md border p-4">
-                        <div className="flex flex-col gap-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <img
-                              src={selectedPlugin.logo}
-                              alt={selectedPlugin.name}
-                              className="h-10 w-10 rounded-lg border bg-white object-contain p-1"
-                            />
-                            <div>
-                              <p className="leading-4 font-semibold">
-                                {selectedPlugin.name}
-                              </p>
-                              <p className="text-muted-foreground text-sm leading-4">
-                                por {selectedPlugin.creator}
-                              </p>
-                            </div>
-                          </div>
-                          <Badge
-                            variant="outline"
-                            className="w-fit items-center gap-1.5 border-green-600 bg-green-50 text-green-700"
-                          >
-                            <CheckCircle2 size={14} />
-                            Vinculado
-                          </Badge>
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          type="button"
-                          onClick={handleDisconnect}
-                        >
-                          Desvincular
-                        </Button>
-                      </div>
-
-                      {isLoadingFields ? (
-                        <div className="mt-4 space-y-4 border-t pt-4">
-                          <Skeleton className="h-8 w-1/2" />
-                          <Skeleton className="h-6 w-1/4" />
-                          <Skeleton className="h-10 w-full" />
-                        </div>
-                      ) : (
-                        <div className="mt-4 space-y-4 border-t pt-4">
-                          <h3 className="font-medium">
-                            Configuração do {selectedPlugin.name}
-                          </h3>
-                          {dynamicFields.map((group) => (
-                            <div key={group.id} className="space-y-4">
-                              <div>
-                                <h4 className="font-semibold">{group.label}</h4>
-                                {group.description && (
-                                  <p className="text-muted-foreground text-sm">
-                                    {group.description}
-                                  </p>
-                                )}
-                              </div>
-                              {group.fields.map((field) => (
-                                <div key={field.id} className="space-y-2">
-                                  <Label htmlFor={`plugin-${field.id}`}>
-                                    {field.label}
-                                    {field.required && (
-                                      <span className="ml-1 text-red-500">
-                                        *
-                                      </span>
-                                    )}
-                                  </Label>
-                                  <Input
-                                    id={`plugin-${field.id}`}
-                                    type={field.type}
-                                    placeholder={field.placeholder}
-                                    {...register(
-                                      `pluginConfig.${field.id}` as const,
-                                    )}
-                                  />
-                                  {errors.pluginConfig?.[field.id] && (
-                                    <p className="text-sm text-red-500">
-                                      {
-                                        errors.pluginConfig[field.id]
-                                          ?.message as string
-                                      }
-                                    </p>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               </TabsContent>
             </Tabs>

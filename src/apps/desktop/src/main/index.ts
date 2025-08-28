@@ -140,23 +140,22 @@ app.whenReady().then(async () => {
     workspacesRepository: new JSONWorkspacesRepository(app.getPath('userData')),
   }
 
-  const handlersModule: IHandlersScope = {
-    authHandler: AuthHandler,
-    sessionHandler: SessionHandler,
-    taskHandler: TaskHandler,
-    timeEntriesHandler: TimeEntriesHandler,
-    tokenHandler: TokenHandler,
-    workspacesHandler: WorkspacesHandler,
-  }
-
-  const container = new ContainerBuilder()
+  const serviceProvider = new ContainerBuilder()
     .addPlatformDependencies(platformDeps)
     .addInfrastructure()
     .addApplicationServices()
-    .addCustomScoped<IHandlersScope>(handlersModule)
+    // .addFromPath('out/main/handlers')
+    .addScoped<IHandlersScope>({
+      authHandler: AuthHandler,
+      sessionHandler: SessionHandler,
+      taskHandler: TaskHandler,
+      timeEntriesHandler: TimeEntriesHandler,
+      tokenHandler: TokenHandler,
+      workspacesHandler: WorkspacesHandler,
+    })
     .build()
 
-  openIpcRoutes(container)
+  openIpcRoutes(serviceProvider)
 
   electronApp.setAppUserModelId('com.electron')
 

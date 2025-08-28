@@ -11,8 +11,6 @@ import { IpcMainInvokeEvent } from 'electron'
 
 export interface CreateWorkspaceRequest {
   name: string
-  pluginId?: string
-  pluginConfig?: Record<string, unknown>
 }
 
 export class WorkspacesHandler {
@@ -23,14 +21,10 @@ export class WorkspacesHandler {
 
   public async create(
     _event: IpcMainInvokeEvent,
-    {
-      body: { name, pluginId, pluginConfig },
-    }: IRequest<CreateWorkspaceRequest>,
+    { body: { name } }: IRequest<CreateWorkspaceRequest>,
   ): Promise<ViewModel<WorkspaceViewModel>> {
     const result = await this.createWorkspaceService.execute({
       name,
-      pluginId,
-      pluginConfig,
     })
 
     if (result.isFailure()) {
