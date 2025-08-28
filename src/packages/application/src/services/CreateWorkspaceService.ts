@@ -1,6 +1,5 @@
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 import { Workspace } from '@trackalize/domain'
-import { randomUUID } from 'crypto'
 
 import {
   CreateWorkspaceInput,
@@ -15,13 +14,7 @@ export class CreateWorkspaceService implements ICreateWorkspaceUseCase {
   public async execute({
     name,
   }: CreateWorkspaceInput): Promise<Either<AppError, WorkspaceDTO>> {
-    const workspace = new Workspace(
-      `ws-${randomUUID()}`,
-      name,
-      'local',
-      new Date(),
-      new Date(),
-    )
+    const workspace = Workspace.create(name)
 
     const newWorkspace = await this.workspacesRepository.create(workspace)
 
