@@ -79,16 +79,16 @@ export function buildPluginConfigSchema(groups: FieldGroup[]) {
     }
   }
 
-  return z.object({
-    pluginConfig: z.object(shape),
-  })
+  return z.object(shape)
 }
-
 export function WorkspaceSettings() {
   const { login } = useAuth()
   const client = useClient()
   const { workspaceId } = useParams<{ workspaceId: string }>()
-  const [dynamicFields, setDynamicFields] = useState<FieldGroup[]>([])
+  const [dynamicFields, setDynamicFields] = useState<{
+    credentials: FieldGroup[]
+    configuration: FieldGroup[]
+  }>({ credentials: [], configuration: [] })
   const [pluginToLink, setPluginToLink] = useState<Plugin | null>(null)
 
   const {
@@ -110,10 +110,18 @@ export function WorkspaceSettings() {
 
   const selectedPlugin = watch('plugin')
 
-  const pluginSchema = useMemo(
-    () => buildPluginConfigSchema(dynamicFields),
-    [dynamicFields],
-  )
+  const pluginSchema = useMemo(() => {
+    const allFieldGroups = [
+      ...(dynamicFields.credentials || []),
+      ...(dynamicFields.configuration || []),
+    ]
+
+    const fieldsSchema = buildPluginConfigSchema(allFieldGroups)
+
+    return z.object({
+      pluginConfig: fieldsSchema,
+    })
+  }, [dynamicFields])
 
   const {
     register: registerPluginForm,
@@ -126,7 +134,7 @@ export function WorkspaceSettings() {
     resolver: zodResolver(pluginSchema),
   })
 
-  async function handleAuthenticate(data: z.infer<typeof pluginSchema>) {
+  async function handleLinkConnector(data: z.infer<typeof pluginSchema>) {
     const response = await client.services.auth.login({
       body: {
         workspaceId: workspaceId!,
@@ -134,38 +142,35 @@ export function WorkspaceSettings() {
       },
     })
 
-    if (response.isSuccess) {
-      login(response.data?.member!, response.data?.token!)
-      toast(
-        response.data?.member.firstname +
-          ' ' +
-          response.data?.member.lastname +
-          ' , sua sessão foi iniciada com sucesso',
-      )
+    if (!response.isSuccess) {
+      toast(response.error)
       return
     }
 
-    toast(response.error)
+    login(response.data?.member!, response.data?.token!)
+    toast(
+      response.data?.member.firstname +
+        ' ' +
+        response.data?.member.lastname +
+        ' , sua sessão foi iniciada com sucesso',
+    )
   }
 
   useEffect(() => {
     if (!selectedPlugin) {
-      setDynamicFields([])
+      setDynamicFields({ credentials: [], configuration: [] })
       return
     }
 
     const loadPluginFields = async () => {
-      const pluginFields = await client.workspaces.getPluginFields() /// FUTURAMENTE USAR O ID PARA PEGAR PELO NOME DA PASTA E ACESSAR O MODULO CORRESPONDENTE
-      setDynamicFields(pluginFields)
+      const response = await client.workspaces.getPluginFields()
+      setDynamicFields(response)
     }
 
     loadPluginFields()
   }, [selectedPlugin])
-
   const onSubmit = async (data: WorkspaceSettingsSchema) => {
     await new Promise((resolve) => setTimeout(resolve, 1000))
-    console.log('DADOS DO FORMULÁRIO:', data)
-    console.log('ID DO WORKSPACE:', workspaceId)
     toast.success('Alterações salvas com sucesso!')
   }
 
@@ -194,7 +199,7 @@ export function WorkspaceSettings() {
         </p>
       </div>
 
-      <form className="space-y-6">
+      <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Informações Gerais</CardTitle>
@@ -375,15 +380,22 @@ export function WorkspaceSettings() {
                     </AlertDialogContent>
                   </AlertDialog>
                 </div>
-                <div className="mt-4 space-y-4 border-t pt-4">
-                  <h3 className="font-medium">
-                    Configuração do {selectedPlugin.name}
-                  </h3>
+                <div className="mt-4 space-y-8 border-t pt-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      Conectar com {selectedPlugin.name}
+                    </h3>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                      Preencha as configurações e suas credenciais de acesso
+                      para vincular este workspace.
+                    </p>
+                  </div>
 
-                  {dynamicFields.map((group) => (
+                  {/* Seção de Configurações */}
+                  {dynamicFields.configuration.map((group) => (
                     <div key={group.id} className="space-y-4">
                       <div>
-                        <h4 className="font-semibold">{group.label}</h4>
+                        <h4 className="font-medium">{group.label}</h4>
                         {group.description && (
                           <p className="text-muted-foreground text-sm">
                             {group.description}
@@ -416,15 +428,57 @@ export function WorkspaceSettings() {
                     </div>
                   ))}
 
-                  <Button onClick={handleSubmitPluginForm(handleAuthenticate)}>
-                    Conectar
+                  {/* Seção de Credenciais */}
+                  {dynamicFields.credentials.map((group) => (
+                    <div key={group.id} className="space-y-4">
+                      <div>
+                        <h4 className="font-medium">{group.label}</h4>
+                        {group.description && (
+                          <p className="text-muted-foreground text-sm">
+                            {group.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {group.fields.map((field) => (
+                        <div key={field.id} className="space-y-2">
+                          <Label htmlFor={field.id}>{field.label}</Label>
+                          <Input
+                            id={field.id}
+                            type={field.type}
+                            placeholder={field.placeholder}
+                            {...registerPluginForm(
+                              `pluginConfig.${field.id}` as const,
+                            )}
+                            required={field.required}
+                          />
+                          {errorsPluginForm?.pluginConfig?.[field.id] && (
+                            <p className="text-sm text-red-500">
+                              {
+                                errorsPluginForm.pluginConfig[field.id]
+                                  ?.message as string
+                              }
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+
+                  <Button
+                    onClick={handleSubmitPluginForm(handleLinkConnector)}
+                    disabled={isSubmittingPluginForm}
+                  >
+                    {isSubmittingPluginForm
+                      ? 'Conectando...'
+                      : 'Conectar e Salvar'}
                   </Button>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
-      </form>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-export type DataSourceType = 'local' | 'remote'
+export type DataSourceType = 'local' | string
 
 export class Workspace {
   #id: string
@@ -51,14 +51,10 @@ export class Workspace {
     return this.#updatedAt
   }
 
-  public linkDataSource(
-    dataSourceType: DataSourceType,
-    pluginId: string,
-    pluginConfig: Record<string, unknown>,
-  ): void {
-    this.#dataSourceType = dataSourceType
+  public setDataSource(pluginId: string): void {
+    this.#dataSourceType = 'remote'
     this.#pluginId = pluginId
-    this.#pluginConfig = pluginConfig
+    this.#pluginConfig = undefined
     this.touch()
   }
 

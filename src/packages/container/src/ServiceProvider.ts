@@ -1,6 +1,5 @@
 import { asValue, AwilixContainer } from 'awilix'
 
-import { ConnectorDependencies } from '@/Ioc'
 import { IServiceProvider } from '@/IServiceProvider'
 
 export class ServiceProvider implements IServiceProvider {
@@ -27,25 +26,11 @@ export class ServiceProvider implements IServiceProvider {
     return scopedProvider
   }
 
-  withConnector(
-    deps: ConnectorDependencies,
-    scopeKey?: string,
-  ): IServiceProvider {
-    const scoped = this.container.createScope()
-    scoped.register({
-      authenticationStrategy: asValue(deps.authenticationStrategy),
-      taskQuery: asValue(deps.taskQuery),
-      memberQuery: asValue(deps.memberQuery),
-      timeEntryQuery: asValue(deps.timeEntryQuery),
-      taskMutation: asValue(deps.taskMutation),
-    })
-
-    const scopedProvider = new ServiceProvider(scoped)
-
-    if (scopeKey) {
-      this.scopeCache.set(scopeKey, scopedProvider)
+  include<T>(deps: T): void {
+    const registrations: Record<string, any> = {}
+    for (const key in deps) {
+      registrations[key] = asValue((deps as any)[key])
     }
-
-    return scopedProvider
+    this.container.register(registrations)
   }
 }

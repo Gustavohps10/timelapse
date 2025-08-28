@@ -12,7 +12,6 @@ export interface ConfigField {
   type: 'text' | 'password' | 'url'
   required: boolean
   placeholder?: string
-  persistable: boolean
 }
 
 export interface FieldGroup {
@@ -27,12 +26,14 @@ export interface Context {
   config: any
 }
 
-// No seu SDK
 export interface IConnector {
   readonly id: string
   readonly dataSourceType: string
   readonly displayName: string
-  readonly configFields: FieldGroup[]
+  readonly configFields: {
+    credentials: FieldGroup[]
+    configuration: FieldGroup[]
+  }
 
   getAuthenticationStrategy(context: Context): IAuthenticationStrategy
   getTaskQuery(context: Context): ITaskQuery
