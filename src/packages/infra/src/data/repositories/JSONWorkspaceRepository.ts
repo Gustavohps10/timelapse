@@ -34,10 +34,8 @@ export class JSONWorkspacesRepository implements IWorkspacesRepository {
           updatedAt: new Date(p.updatedAt),
         })
       })
-      console.log(entities)
       return entities
-    } catch (erro) {
-      console.log(erro)
+    } catch {
       return []
     }
   }
@@ -63,7 +61,6 @@ export class JSONWorkspacesRepository implements IWorkspacesRepository {
   public async create(entity: Workspace): Promise<void> {
     const items = await this._readWorkspaces()
     console.log(this.filePath)
-    console.log(items)
     items.push(entity)
     await this._writeWorkspaces(items)
   }

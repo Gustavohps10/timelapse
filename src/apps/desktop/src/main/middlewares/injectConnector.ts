@@ -16,27 +16,27 @@ export function createInjectConnectorMiddleware(
     next: () => Promise<any>,
   ) => {
     const { workspaceId } = req.body
-    if (!workspaceId) throw new Error('workspaceId não informado')
 
-    const workspacesRepo = serviceProvider.resolve<IWorkspacesRepository>(
+    const workspacesRepository = serviceProvider.resolve<IWorkspacesRepository>(
       'workspacesRepository',
     )
     const credentialsStorage =
       serviceProvider.resolve<ICredentialsStorage>('credentialsStorage')
 
-    const result = await workspacesRepo.findById(workspaceId)
-    if (result.isFailure())
-      throw new Error(`Workspace ${workspaceId} não encontrado`)
+    const workspace = await workspacesRepository.findById(workspaceId)
 
-    const { success: workspace } = result
-    const credentials = (await credentialsStorage.getToken(
+    const credentialsSerialized = await credentialsStorage.getToken(
       'trackalize',
       `workspace-session-${workspace!.id}`,
-    )) as string
+    )
+
+    const credentialsJSON = credentialsSerialized
+      ? JSON.parse(credentialsSerialized)
+      : undefined
 
     const context = {
-      config: workspace?.pluginConfig,
-      credentials: JSON.parse(credentials),
+      config: workspace?.dataSourceConfiguration,
+      credentials: credentialsJSON,
     }
 
     const connectorDeps = {
