@@ -1,7 +1,7 @@
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 
-import { WorkspaceDTO } from '@/dtos'
+import { PagedResultDTO, WorkspaceDTO } from '@/dtos'
 
 export interface IListWorkspacesUseCase {
-  execute(): Promise<Either<AppError, WorkspaceDTO[]>>
+  execute(): Promise<Either<AppError, PagedResultDTO<WorkspaceDTO>>>
 }

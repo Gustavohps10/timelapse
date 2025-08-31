@@ -1,18 +1,20 @@
 export { Context, FieldGroup, IConnector } from './Connector'
-export {
+export type {
   AuthenticationDTO,
   AuthenticationResult,
   IAuthenticationStrategy,
   IMemberQuery,
-  ITaskMutation,
   ITaskQuery,
+  ITaskRepository,
   ITimeEntryQuery,
   MemberDTO,
+  PagedResultDTO,
+  PaginationOptionsDTO,
   TaskDTO,
   TimeEntryDTO,
   WorkspaceDTO,
 } from '@trackalize/application'
 export { AppError, Either } from '@trackalize/cross-cutting/helpers'
-export { IHeaders, IRequest } from '@trackalize/cross-cutting/transport'
+export type { IHeaders, IRequest } from '@trackalize/cross-cutting/transport'
 export { Member, Task, TimeEntry, Workspace } from '@trackalize/domain'
 export * from '@trackalize/presentation/view-models'

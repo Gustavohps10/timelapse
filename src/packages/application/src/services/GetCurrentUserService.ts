@@ -12,13 +12,24 @@ export class GetCurrentUserService implements IGetCurrentUserUseCase {
   ) {}
 
   public async execute(): Promise<Either<AppError, MemberDTO>> {
-    const sessionUser = this.sessionManager.getCurrentUser()
+    try {
+      const sessionUser = this.sessionManager.getCurrentUser()
+      if (!sessionUser)
+        return Either.failure(
+          new AppError('NAO_FOI_POSSIVEL_OBTER_USUARIO', '', 422),
+        )
+      const user = await this.memberQuery.findById(sessionUser.id)
 
-    if (!sessionUser)
+      if (!user)
+        return Either.failure(
+          new AppError('NAO_FOI_POSSIVEL_OBTER_USUARIO', '', 422),
+        )
+
+      return Either.success(user)
+    } catch {
       return Either.failure(
         new AppError('NAO_FOI_POSSIVEL_OBTER_USUARIO', '', 422),
       )
-
-    return await this.memberQuery.findMeById(sessionUser.id)
+    }
   }
 }

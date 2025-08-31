@@ -1,7 +1,13 @@
-import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { PagedResultDTO, PaginationOptionsDTO } from '@/dtos/pagination'
 
 export interface IQueryBase<T> {
-  findAll(): Promise<Either<AppError, T[]>>
-  findById(id: string): Promise<Either<AppError, T | null>>
-  exists(criteria: Partial<T>): Promise<Either<AppError, boolean>>
+  findAll(pagination?: PaginationOptionsDTO): Promise<PagedResultDTO<T>>
+  findById(id: string): Promise<T | undefined>
+  findByIds(ids: string[]): Promise<T[]>
+  findByCondition(
+    condition: Partial<T>,
+    pagination?: PaginationOptionsDTO,
+  ): Promise<PagedResultDTO<T>>
+  count(criteria?: Partial<T>): Promise<number>
+  exists(criteria: Partial<T>): Promise<boolean>
 }

@@ -5,9 +5,10 @@ import {
   IAuthenticationStrategy,
   ICredentialsStorage,
   IMemberQuery,
-  ITaskMutation,
   ITaskQuery,
+  ITaskRepository,
   ITimeEntryQuery,
+  IWorkspacesQuery,
   IWorkspacesRepository,
   ListTaskService,
   ListTimeEntriesService,
@@ -38,6 +39,7 @@ type Class<T = unknown> = new (...args: any[]) => T
 export interface PlatformDependencies {
   credentialsStorage: ICredentialsStorage
   workspacesRepository: IWorkspacesRepository
+  workspacesQuery: IWorkspacesQuery
 }
 
 /**
@@ -50,7 +52,7 @@ export interface ConnectorDependencies {
   taskQuery: ITaskQuery
   memberQuery: IMemberQuery
   timeEntryQuery: ITimeEntryQuery
-  taskMutation: ITaskMutation
+  taskRepository: ITaskRepository
 }
 
 /**
@@ -74,6 +76,7 @@ export class ContainerBuilder {
     this.container.register({
       credentialsStorage: asValue(deps.credentialsStorage),
       workspacesRepository: asValue(deps.workspacesRepository),
+      workspacesQuery: asValue(deps.workspacesQuery),
     })
     return this
   }

@@ -1,6 +1,9 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { ContainerBuilder, PlatformDependencies } from '@trackalize/container'
-import { JSONWorkspacesRepository } from '@trackalize/infra/data'
+import {
+  JSONWorkspacesQuery,
+  JSONWorkspacesRepository,
+} from '@trackalize/infra/data'
 import { KeytarTokenStorage } from '@trackalize/infra/storage'
 import { app, BrowserWindow, Menu, screen, shell, Tray } from 'electron'
 import { join } from 'path'
@@ -138,6 +141,7 @@ app.whenReady().then(async () => {
   const platformDeps: PlatformDependencies = {
     credentialsStorage: new KeytarTokenStorage(),
     workspacesRepository: new JSONWorkspacesRepository(app.getPath('userData')),
+    workspacesQuery: new JSONWorkspacesQuery(app.getPath('userData')),
   }
 
   const serviceProvider = new ContainerBuilder()

@@ -1,9 +1,8 @@
 export interface WorkspaceViewModel {
   id: string
   name: string
-  dataSourceType: string
-  pluginId?: string
-  pluginConfig?: Record<string, unknown>
+  dataSource: string
+  dataSourceConfiguration?: Record<string, unknown>
   createdAt: Date
   updatedAt: Date
 }

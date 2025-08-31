@@ -16,18 +16,17 @@ export class CreateWorkspaceService implements ICreateWorkspaceUseCase {
   }: CreateWorkspaceInput): Promise<Either<AppError, WorkspaceDTO>> {
     const workspace = Workspace.create(name)
 
-    const newWorkspace = await this.workspacesRepository.create(workspace)
-
-    if (!newWorkspace) {
+    try {
+      await this.workspacesRepository.create(workspace)
+    } catch {
       return Either.failure(new AppError('ALGO DEU ERRADO AO CRIAR WORKSPACE'))
     }
 
     const workspaceDTO: WorkspaceDTO = {
       id: workspace.id,
       name: workspace.name,
-      dataSourceType: workspace.dataSourceType,
-      pluginId: workspace.pluginId,
-      pluginConfig: workspace.pluginConfig,
+      dataSource: workspace.dataSource,
+      dataSourceConfiguration: workspace.dataSourceConfiguration,
       createdAt: workspace.createdAt,
       updatedAt: workspace.updatedAt,
     }

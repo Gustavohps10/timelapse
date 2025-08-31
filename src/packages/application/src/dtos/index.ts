@@ -1,5 +1,6 @@
 export * from './AuthenticationDTO'
 export * from './MemberDTO'
+export * from './pagination'
 export * from './TaskDTO'
 export * from './TimeEntryDTO'
 export * from './WorkspaceDTO'

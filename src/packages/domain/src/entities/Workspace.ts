@@ -2,16 +2,15 @@ import { randomUUID } from 'crypto'
 
 import { Entity } from '@/entities/Entity'
 
-export type DataSourceType = 'local' | string
+export type DataSource = 'local' | string
 
 export class Workspace extends Entity {
-  #id: string
-  #name: string
-  #dataSourceType: DataSourceType
-  #pluginId?: string
-  #pluginConfig?: Record<string, unknown>
-  #createdAt: Date
-  #updatedAt: Date
+  private _id: string
+  private _name: string
+  private _dataSource: DataSource
+  private _dataSourceConfiguration?: Record<string, unknown>
+  private _createdAt: Date
+  private _updatedAt: Date
 
   private constructor(
     id: string,
@@ -20,11 +19,11 @@ export class Workspace extends Entity {
     createdAt: Date,
   ) {
     super()
-    this.#id = id
-    this.#name = name
-    this.#createdAt = createdAt
-    this.#updatedAt = updatedAt
-    this.#dataSourceType = 'local'
+    this._id = id
+    this._name = name
+    this._createdAt = createdAt
+    this._updatedAt = updatedAt
+    this._dataSource = 'local'
   }
 
   static create(name: string): Workspace {
@@ -33,40 +32,61 @@ export class Workspace extends Entity {
   }
 
   get id(): string {
-    return this.#id
+    return this._id
   }
-  get name(): string {
-    return this.#name
-  }
-  get dataSourceType(): DataSourceType {
-    return this.#dataSourceType
-  }
-  get pluginId(): string | undefined {
-    return this.#pluginId
-  }
-  get pluginConfig(): Record<string, unknown> | undefined {
-    return this.#pluginConfig
-  }
-  get createdAt(): Date {
-    return this.#createdAt
-  }
-  get updatedAt(): Date {
-    return this.#updatedAt
+  private set id(value: string) {
+    this._id = value
   }
 
-  setDataSource(pluginId: string) {
-    this.#dataSourceType = 'remote'
-    this.#pluginId = pluginId
-    this.#pluginConfig = undefined
+  get name(): string {
+    return this._name
+  }
+  private set name(value: string) {
+    this._name = value
+  }
+
+  get dataSource(): DataSource {
+    return this._dataSource
+  }
+  private set dataSource(value: DataSource) {
+    this._dataSource = value
+  }
+
+  get dataSourceConfiguration(): Record<string, unknown> | undefined {
+    return this._dataSourceConfiguration
+  }
+  private set dataSourceConfiguration(
+    value: Record<string, unknown> | undefined,
+  ) {
+    this._dataSourceConfiguration = value
+  }
+
+  get createdAt(): Date {
+    return this._createdAt
+  }
+  private set createdAt(value: Date) {
+    this._createdAt = value
+  }
+
+  get updatedAt(): Date {
+    return this._updatedAt
+  }
+  private set updatedAt(value: Date) {
+    this._updatedAt = value
+  }
+
+  setDataSource(dataSource: string) {
+    this._dataSource = dataSource
+    this._dataSourceConfiguration = undefined
     this.touch()
   }
 
   updateName(newName: string) {
-    this.#name = newName
+    this._name = newName
     this.touch()
   }
 
   private touch() {
-    this.#updatedAt = new Date()
+    this._updatedAt = new Date()
   }
 }

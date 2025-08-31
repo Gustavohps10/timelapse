@@ -45,7 +45,7 @@ export function createInjectConnectorMiddleware(
       taskQuery: RedmineConnector.getTaskQuery(context),
       memberQuery: RedmineConnector.getMemberQuery(context),
       timeEntryQuery: RedmineConnector.getTimeEntryQuery(context),
-      taskMutation: RedmineConnector.getTaskMutation(context),
+      taskRepository: RedmineConnector.getTaskRepository(context),
     }
 
     serviceProvider.include(connectorDeps)
