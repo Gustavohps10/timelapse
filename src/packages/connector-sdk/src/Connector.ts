@@ -1,8 +1,8 @@
 import {
   IAuthenticationStrategy,
   IMemberQuery,
-  ITaskMutation,
   ITaskQuery,
+  ITaskRepository,
   ITimeEntryQuery,
 } from '@trackalize/application'
 
@@ -39,5 +39,5 @@ export interface IConnector {
   getTaskQuery(context: Context): ITaskQuery
   getTimeEntryQuery(context: Context): ITimeEntryQuery
   getMemberQuery(context: Context): IMemberQuery
-  getTaskMutation(context: Context): ITaskMutation
+  getTaskRepository(context: Context): ITaskRepository
 }

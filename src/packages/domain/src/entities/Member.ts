@@ -1,107 +1,115 @@
-export class Member {
+import { Entity } from '@/entities/Entity'
+
+export class Member extends Entity {
   #id: number
   #login: string
   #firstname: string
   #lastname: string
   #admin: boolean
-  #created_on: string
-  #last_login_on: string
-  #redmine_api_key: string
-  #custom_fields: { id: number; name: string; value: string }[]
+  #createdAt: Date
+  #lastLoginOn: Date
+  #redmineApiKey: string
+  #customFields: { id: number; name: string; value: string }[]
 
-  // Construtor
-  constructor(
+  private constructor(
     id: number,
     login: string,
     firstname: string,
     lastname: string,
     admin: boolean,
-    created_on: string,
-    last_login_on: string,
-    redmine_api_key: string,
-    custom_fields: { id: number; name: string; value: string }[],
+    createdAt: Date,
+    lastLoginOn: Date,
+    redmineApiKey: string,
+    customFields: { id: number; name: string; value: string }[],
   ) {
+    super()
     this.#id = id
     this.#login = login
     this.#firstname = firstname
     this.#lastname = lastname
     this.#admin = admin
-    this.#created_on = created_on
-    this.#last_login_on = last_login_on
-    this.#redmine_api_key = redmine_api_key
-    this.#custom_fields = custom_fields
+    this.#createdAt = createdAt
+    this.#lastLoginOn = lastLoginOn
+    this.#redmineApiKey = redmineApiKey
+    this.#customFields = customFields
   }
 
-  // Getters e Setters
+  static create(props: {
+    id: number
+    login: string
+    firstname: string
+    lastname: string
+    admin: boolean
+    redmineApiKey: string
+    customFields: { id: number; name: string; value: string }[]
+  }): Member {
+    const now = new Date()
+    return new Member(
+      props.id,
+      props.login,
+      props.firstname,
+      props.lastname,
+      props.admin,
+      now,
+      now,
+      props.redmineApiKey,
+      props.customFields,
+    )
+  }
+
   get id(): number {
     return this.#id
-  }
-
-  set id(value: number) {
-    this.#id = value
   }
 
   get login(): string {
     return this.#login
   }
 
-  set login(value: string) {
-    this.#login = value
-  }
-
   get firstname(): string {
     return this.#firstname
-  }
-
-  set firstname(value: string) {
-    this.#firstname = value
   }
 
   get lastname(): string {
     return this.#lastname
   }
 
-  set lastname(value: string) {
-    this.#lastname = value
-  }
-
   get admin(): boolean {
     return this.#admin
   }
 
-  set admin(value: boolean) {
-    this.#admin = value
+  get createdAt(): Date {
+    return this.#createdAt
   }
 
-  get created_on(): string {
-    return this.#created_on
+  get lastLoginOn(): Date {
+    return this.#lastLoginOn
   }
 
-  set created_on(value: string) {
-    this.#created_on = value
+  get redmineApiKey(): string {
+    return this.#redmineApiKey
   }
 
-  get last_login_on(): string {
-    return this.#last_login_on
+  get customFields(): { id: number; name: string; value: string }[] {
+    return this.#customFields
   }
 
-  set last_login_on(value: string) {
-    this.#last_login_on = value
+  updateLogin(login: string) {
+    this.#login = login
+    this.touch()
   }
 
-  get redmine_api_key(): string {
-    return this.#redmine_api_key
+  updateName(firstname: string, lastname: string) {
+    this.#firstname = firstname
+    this.#lastname = lastname
+    this.touch()
   }
 
-  set redmine_api_key(value: string) {
-    this.#redmine_api_key = value
+  updateCustomFields(fields: { id: number; name: string; value: string }[]) {
+    this.#customFields = fields
+    this.touch()
   }
 
-  get custom_fields(): { id: number; name: string; value: string }[] {
-    return this.#custom_fields
-  }
-
-  set custom_fields(value: { id: number; name: string; value: string }[]) {
-    this.#custom_fields = value
+  private touch() {
+    this.#lastLoginOn = new Date()
   }
 }

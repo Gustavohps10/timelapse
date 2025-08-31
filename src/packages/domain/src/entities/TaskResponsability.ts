@@ -8,12 +8,18 @@ export class TaskResponsibility {
   #role: Role
   #assignedAt: Date
 
-  constructor(task: Task, member: Member, role: Role) {
-    this.#id = crypto.randomUUID()
+  constructor(
+    task: Task,
+    member: Member,
+    role: Role,
+    id?: string,
+    assignedAt?: Date,
+  ) {
+    this.#id = id ?? crypto.randomUUID()
     this.#task = task
     this.#member = member
     this.#role = role
-    this.#assignedAt = new Date()
+    this.#assignedAt = assignedAt ?? new Date()
   }
 
   get id(): string {

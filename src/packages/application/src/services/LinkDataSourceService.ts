@@ -13,35 +13,38 @@ export class LinkDataSourceService implements ILinkDataSourceUseCase {
   public async execute(
     input: LinkDataSourceInput,
   ): Promise<Either<AppError, WorkspaceDTO>> {
-    const findResult = await this.workspacesRepository.findById(
-      input.workspaceId,
-    )
+    try {
+      const workspace = await this.workspacesRepository.findById(
+        input.workspaceId,
+      )
 
-    if (findResult.isFailure()) {
-      return findResult.forwardFailure()
-    }
+      if (workspace == null)
+        return Either.failure(new AppError('WORKSPACE_NAO_ENCONTRADO', '', 404))
 
-    const workspaceDTO = findResult.success
+      workspace.setDataSource(input.workspaceId)
 
-    if (workspaceDTO == null)
-      return Either.failure(new AppError('WORKSPACE_NAO_ENCONTRADO', '', 404))
+      const workspaceEntity = await this.workspacesRepository.update(workspace)
 
-    const updatePayload: Partial<WorkspaceDTO> = {
-      dataSourceType: input.dataSource,
-      pluginConfig: undefined,
-    }
+      if (workspaceEntity == null) {
+        return Either.failure(
+          new AppError('NAO_FOI_POSSIVEL_ATUALIZAR_WORKSPACE', '', 422),
+        )
+      }
 
-    const workspaceEntity = await this.workspacesRepository.update(
-      workspaceDTO.id,
-      updatePayload,
-    )
+      const workspaceDTO: WorkspaceDTO = {
+        id: workspace.id,
+        name: workspace.name,
+        dataSource: workspace.dataSource,
+        dataSourceConfiguration: workspace.dataSourceConfiguration,
+        createdAt: workspace.createdAt,
+        updatedAt: workspace.updatedAt,
+      }
 
-    if (workspaceEntity == null) {
+      return Either.success(workspaceDTO)
+    } catch (error) {
       return Either.failure(
-        new AppError('NAO_FOI_POSSIVEL_ATUALIZAR_WORKSPACE', '', 422),
+        new AppError('ERRO_INESPERADO', (error as Error).message, 500),
       )
     }
-
-    return Either.success(workspaceDTO)
   }
 }

@@ -42,9 +42,8 @@ export class WorkspacesHandler {
       data: {
         id: newWorkspace.id,
         name: newWorkspace.name,
-        dataSourceType: newWorkspace.dataSourceType,
-        pluginId: newWorkspace.pluginId,
-        pluginConfig: newWorkspace.pluginConfig,
+        dataSource: newWorkspace.dataSource,
+        dataSourceConfiguration: newWorkspace.dataSourceConfiguration,
         createdAt: newWorkspace.createdAt,
         updatedAt: newWorkspace.updatedAt,
       },
@@ -74,14 +73,14 @@ export class WorkspacesHandler {
       }
     }
 
-    const workspaces = result.success
+    const workspacesPagedDTO = result.success
+    const workspaces = workspacesPagedDTO.items
 
     const viewModels: WorkspaceViewModel[] = workspaces.map((w) => ({
       id: w.id,
       name: w.name,
-      dataSourceType: w.dataSourceType,
-      pluginId: w.pluginId,
-      pluginConfig: w.pluginConfig,
+      dataSource: w.dataSource,
+      dataSourceConfiguration: w.dataSourceConfiguration,
       createdAt: w.createdAt,
       updatedAt: w.updatedAt,
     }))
@@ -90,9 +89,11 @@ export class WorkspacesHandler {
       statusCode: 200,
       isSuccess: true,
       data: viewModels,
-      totalItems: viewModels.length,
-      totalPages: 1,
-      currentPage: 1,
+      totalItems: workspacesPagedDTO.total,
+      totalPages: Math.ceil(
+        workspacesPagedDTO.total / (workspacesPagedDTO.pageSize || 1),
+      ),
+      currentPage: workspacesPagedDTO.page || 1,
     }
   }
 }

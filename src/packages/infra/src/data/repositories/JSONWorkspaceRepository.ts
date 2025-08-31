@@ -1,17 +1,15 @@
-import { IWorkspacesRepository, WorkspaceDTO } from '@trackalize/application'
-import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-import { DataSourceType, Workspace } from '@trackalize/domain'
+import { IWorkspacesRepository } from '@trackalize/application'
+import { Workspace } from '@trackalize/domain'
 import { promises as fs } from 'fs'
 import path from 'path'
 
 type PlainWorkspace = {
-  _Workspace__id: string
-  _Workspace__name: string
-  _Workspace__dataSourceType: DataSourceType
-  _Workspace__pluginId?: string
-  _Workspace__pluginConfig?: Record<string, unknown>
-  _Workspace__createdAt: string
-  _Workspace__updatedAt: string
+  id: string
+  name: string
+  dataSource: string
+  dataSourceConfiguration?: Record<string, unknown>
+  createdAt: string
+  updatedAt: string
 }
 
 export class JSONWorkspacesRepository implements IWorkspacesRepository {
@@ -21,140 +19,67 @@ export class JSONWorkspacesRepository implements IWorkspacesRepository {
     this.filePath = path.join(storagePath, 'workspaces.json')
   }
 
-  private async _readWorkspaces(): Promise<WorkspaceDTO[]> {
+  private async _readWorkspaces(): Promise<Workspace[]> {
     try {
       const data = await fs.readFile(this.filePath, 'utf-8')
-      const plainWorkspaces: PlainWorkspace[] = JSON.parse(data)
+      const plain: PlainWorkspace[] = JSON.parse(data)
 
-      return plainWorkspaces.map(
-        (p): WorkspaceDTO => ({
-          id: p._Workspace__id,
-          name: p._Workspace__name,
-          dataSourceType: p._Workspace__dataSourceType,
-          createdAt: new Date(p._Workspace__createdAt),
-          updatedAt: new Date(p._Workspace__updatedAt),
-          pluginId: p._Workspace__pluginId,
-          pluginConfig: p._Workspace__pluginConfig,
-        }),
-      )
-    } catch {
+      const entities = plain.map((p): Workspace => {
+        return Workspace.hydrate({
+          id: p.id,
+          name: p.name,
+          dataSource: p.dataSource,
+          dataSourceConfiguration: p.dataSourceConfiguration,
+          createdAt: new Date(p.createdAt),
+          updatedAt: new Date(p.updatedAt),
+        })
+      })
+      console.log(entities)
+      return entities
+    } catch (erro) {
+      console.log(erro)
       return []
     }
   }
 
   private async _writeWorkspaces(workspaces: Workspace[]): Promise<void> {
-    console.log(this.filePath)
-    const plainWorkspaces = workspaces.map((ws) => ({
-      _Workspace__id: ws.id,
-      _Workspace__name: ws.name,
-      _Workspace__dataSourceType: ws.dataSourceType,
-      _Workspace__pluginId: ws.pluginId,
-      _Workspace__pluginConfig: ws.pluginConfig,
-      _Workspace__createdAt: ws.createdAt.toISOString(),
-      _Workspace__updatedAt: ws.updatedAt.toISOString(),
+    const plain: PlainWorkspace[] = workspaces.map((ws) => ({
+      id: ws.id,
+      name: ws.name,
+      dataSource: ws.dataSource,
+      dataSourceConfiguration: ws.dataSourceConfiguration,
+      createdAt: ws.createdAt.toISOString(),
+      updatedAt: ws.updatedAt.toISOString(),
     }))
 
-    await fs.writeFile(this.filePath, JSON.stringify(plainWorkspaces, null, 2))
+    await fs.writeFile(this.filePath, JSON.stringify(plain, null, 2))
   }
 
-  public async findAll(): Promise<Either<AppError, WorkspaceDTO[]>> {
-    try {
-      const workspaces = await this._readWorkspaces()
-      return Either.success(workspaces)
-    } catch (error: any) {
-      return Either.failure(new AppError(error.message))
+  public async findById(id: string): Promise<Workspace | undefined> {
+    const items = await this._readWorkspaces()
+    return items.find((ws) => ws.id === id)
+  }
+
+  public async create(entity: Workspace): Promise<void> {
+    const items = await this._readWorkspaces()
+    console.log(this.filePath)
+    console.log(items)
+    items.push(entity)
+    await this._writeWorkspaces(items)
+  }
+
+  public async update(entity: Workspace): Promise<void> {
+    const items = await this._readWorkspaces()
+    const index = items.findIndex((ws) => ws.id === entity.id)
+    items[index] = entity
+    await this._writeWorkspaces(items)
+  }
+
+  public async delete(id: string): Promise<void> {
+    const items = await this._readWorkspaces()
+    const filtered = items.filter((ws) => ws.id !== id)
+    if (filtered.length !== items.length) {
+      await this._writeWorkspaces(filtered)
     }
-  }
-
-  public async findById(
-    id: string,
-  ): Promise<Either<AppError, WorkspaceDTO | null>> {
-    try {
-      const workspaces = await this._readWorkspaces()
-      const workspace = workspaces.find((ws) => ws.id === id) || null
-      return Either.success(workspace)
-    } catch (error: any) {
-      return Either.failure(new AppError(error.message))
-    }
-  }
-
-  public async exists(
-    criteria: Partial<WorkspaceDTO>,
-  ): Promise<Either<AppError, boolean>> {
-    try {
-      const workspaces = await this._readWorkspaces()
-      const exists = workspaces.some((ws) =>
-        (Object.keys(criteria) as Array<keyof WorkspaceDTO>).every(
-          (key) => ws[key] === criteria[key],
-        ),
-      )
-      return Either.success(exists)
-    } catch (error: any) {
-      return Either.failure(new AppError(error.message))
-    }
-  }
-
-  public async create(workspace: Workspace): Promise<Workspace> {
-    const dtos = await this._readWorkspaces()
-    const workspaces = dtos.map(this._hydrateEntity.bind(this))
-
-    workspaces.push(workspace)
-    await this._writeWorkspaces(workspaces)
-    return workspace
-  }
-
-  public async update(
-    id: string,
-    entity: Partial<Workspace>,
-  ): Promise<Workspace | null> {
-    const dtos = await this._readWorkspaces()
-    const workspaces = dtos.map(this._hydrateEntity.bind(this))
-    const index = workspaces.findIndex((ws) => ws.id === id)
-    if (index === -1) {
-      return null
-    }
-
-    const originalWorkspace = workspaces[index]
-    const updatedWorkspace = Object.assign(originalWorkspace, entity)
-
-    workspaces[index] = updatedWorkspace
-    await this._writeWorkspaces(workspaces)
-    return updatedWorkspace
-  }
-
-  public async delete(id: string): Promise<boolean> {
-    const dtos = await this._readWorkspaces()
-    const workspaces = dtos.map(this._hydrateEntity.bind(this))
-    const initialLength = workspaces.length
-    const filteredWorkspaces = workspaces.filter((ws) => ws.id !== id)
-
-    if (initialLength === filteredWorkspaces.length) {
-      return false // Nenhum item foi removido
-    }
-
-    await this._writeWorkspaces(filteredWorkspaces)
-    return true
-  }
-
-  private _hydrateEntity(dto: WorkspaceDTO): Workspace {
-    const entity = new Workspace(
-      dto.id,
-      dto.name,
-      dto.dataSourceType as DataSourceType,
-      dto.updatedAt,
-      dto.createdAt,
-    )
-
-    if (dto.pluginId && dto.pluginConfig && dto.dataSourceType !== 'local') {
-      try {
-        entity.linkDataSource(
-          dto.dataSourceType as DataSourceType,
-          dto.pluginId,
-          dto.pluginConfig,
-        )
-      } catch {}
-    }
-
-    return entity
   }
 }

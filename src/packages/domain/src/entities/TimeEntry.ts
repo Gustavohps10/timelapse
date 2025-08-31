@@ -1,40 +1,68 @@
-export class TimeEntry {
-  #id: number
+import { Entity } from '@/entities/Entity'
+
+export class TimeEntry extends Entity {
+  #id: string
   #project: { id: number; name: string }
   #issue: { id: number }
   #user: { id: number; name: string }
   #activity: { id: number; name: string }
   #hours: number
   #comments: string
-  #spentOn: string
-  #createdAt: string
-  #updatedAt: string
+  #spentOn: Date
+  #createdAt: Date
+  #updatedAt: Date
 
-  constructor(props: {
-    id: number
+  private constructor(
+    id: string,
+    project: { id: number; name: string },
+    issue: { id: number },
+    user: { id: number; name: string },
+    activity: { id: number; name: string },
+    hours: number,
+    comments: string,
+    spentOn: Date,
+    createdAt: Date,
+    updatedAt: Date,
+  ) {
+    super()
+    this.#id = id
+    this.#project = project
+    this.#issue = issue
+    this.#user = user
+    this.#activity = activity
+    this.#hours = hours
+    this.#comments = comments
+    this.#spentOn = spentOn
+    this.#createdAt = createdAt
+    this.#updatedAt = updatedAt
+  }
+
+  static create(props: {
+    id: string
     project: { id: number; name: string }
     issue: { id: number }
     user: { id: number; name: string }
     activity: { id: number; name: string }
     hours: number
     comments: string
-    spent_on: string
-    created_at: string
-    updated_at: string
-  }) {
-    this.#id = props.id
-    this.#project = props.project
-    this.#issue = props.issue
-    this.#user = props.user
-    this.#activity = props.activity
-    this.#hours = props.hours
-    this.#comments = props.comments
-    this.#spentOn = props.spent_on
-    this.#createdAt = props.created_at
-    this.#updatedAt = props.updated_at
+    spentOn: Date
+  }): TimeEntry {
+    const now = new Date()
+    return new TimeEntry(
+      props.id,
+      props.project,
+      props.issue,
+      props.user,
+      props.activity,
+      props.hours,
+      props.comments,
+      props.spentOn,
+      now,
+      now,
+    )
   }
 
-  get id() {
+  get id(): string {
     return this.#id
   }
 
@@ -54,34 +82,37 @@ export class TimeEntry {
     return this.#activity
   }
 
-  get hours() {
+  get hours(): number {
     return this.#hours
   }
 
-  get comments() {
+  get comments(): string {
     return this.#comments
   }
 
-  get spentOn() {
+  get spentOn(): Date {
     return this.#spentOn
   }
 
-  get createdAt() {
+  get createdAt(): Date {
     return this.#createdAt
   }
 
-  get updatedAt() {
+  get updatedAt(): Date {
     return this.#updatedAt
   }
 
-  //   updateHours(newHours: number) {
-  //     if (newHours < 0) throw new Error('Horas não podem ser negativas.')
-  //     this.#hours = newHours
-  //     this.#updatedAt = new Date().toISOString()
-  //   }
+  updateHours(hours: number) {
+    this.#hours = hours
+    this.touch()
+  }
 
-  //   updateComments(newComment: string) {
-  //     this.#comments = newComment
-  //     this.#updatedAt = new Date().toISOString()
-  //   }
+  updateComments(comments: string) {
+    this.#comments = comments
+    this.touch()
+  }
+
+  private touch() {
+    this.#updatedAt = new Date()
+  }
 }

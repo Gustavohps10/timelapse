@@ -5,7 +5,8 @@
   "description": "Pacote de infraestrutura consolidado para o Trackalize, contendo implementações concretas de recursos externos",
   "type": "module",
   "scripts": {
-    "build": "tsup --format esm,cjs --dts"
+    "build": "tsup --format esm,cjs --dts",
+     "clean": "rimraf dist .turbo"
   },
   "exports": {
     "./auth": {

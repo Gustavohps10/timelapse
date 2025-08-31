@@ -1,29 +1,22 @@
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 
-import { IWorkspacesRepository } from '@/contracts'
+import { IWorkspacesQuery } from '@/contracts/data/queries'
 import { IListWorkspacesUseCase } from '@/contracts/use-cases/IListWorkspacesUseCase'
-import { WorkspaceDTO } from '@/dtos'
+import { PagedResultDTO, WorkspaceDTO } from '@/dtos'
 
 export class ListWorkspacesService implements IListWorkspacesUseCase {
-  constructor(private readonly workspacesRepository: IWorkspacesRepository) {}
+  constructor(private readonly workspacesQuery: IWorkspacesQuery) {}
 
-  public async execute(): Promise<Either<AppError, WorkspaceDTO[]>> {
-    const result = await this.workspacesRepository.findAll()
-    if (result.isFailure()) return result.forwardFailure()
-
-    const workspaces: WorkspaceDTO[] = result.success
-    return Either.success(
-      workspaces.map(
-        (workspace): WorkspaceDTO => ({
-          id: workspace.id,
-          name: workspace.name,
-          dataSourceType: workspace.dataSourceType,
-          pluginId: workspace.pluginId,
-          pluginConfig: workspace.pluginConfig,
-          createdAt: workspace.createdAt,
-          updatedAt: workspace.updatedAt,
-        }),
-      ),
-    )
+  public async execute(): Promise<
+    Either<AppError, PagedResultDTO<WorkspaceDTO>>
+  > {
+    try {
+      const workspaces = await this.workspacesQuery.findAll()
+      return Either.success(workspaces)
+    } catch (error) {
+      return Either.failure(
+        new AppError('ERRO_INESPERADO', (error as Error).message, 500),
+      )
+    }
   }
 }

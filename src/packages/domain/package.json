@@ -13,7 +13,8 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts"
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "clean": "rimraf dist .turbo"
   },
   "dependencies": {
     "zod": "^3.24.2"

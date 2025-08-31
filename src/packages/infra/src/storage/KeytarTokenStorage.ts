@@ -10,11 +10,15 @@ export class KeytarTokenStorage implements ICredentialsStorage {
     await keytar.setPassword(service, account, token)
   }
 
-  async getToken(service: string, account: string): Promise<string | null> {
+  async getToken(
+    service: string,
+    account: string,
+  ): Promise<string | undefined> {
     try {
-      return keytar.getPassword(service, account)
+      const token = await keytar.getPassword(service, account)
+      return token ?? undefined
     } catch {
-      return null
+      return undefined
     }
   }
 

@@ -5,8 +5,8 @@ export class Task {
   createdAt: Date
   updatedAt: Date
 
-  constructor(title: string, description: string) {
-    this.#id = crypto.randomUUID()
+  constructor(title: string, description: string, id?: string) {
+    this.#id = id ?? crypto.randomUUID()
     this.#title = title
     this.#description = description
     this.createdAt = new Date()
