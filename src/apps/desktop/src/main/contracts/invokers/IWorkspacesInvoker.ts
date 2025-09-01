@@ -19,6 +19,10 @@ export interface IWorkspacesInvoker {
     configuration: FieldGroup[]
   }>
 
+  getById(
+    request: IRequest<{ workspaceId: string }>,
+  ): Promise<ViewModel<WorkspaceViewModel>>
+
   linkDataSource(
     request: IRequest<{ workspaceId: string; dataSource: string }>,
   ): Promise<ViewModel<WorkspaceViewModel>>

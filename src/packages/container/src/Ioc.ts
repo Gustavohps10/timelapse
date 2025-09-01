@@ -3,6 +3,7 @@ import {
   CreateWorkspaceService,
   DisconnectDataSourceService,
   GetCurrentUserService,
+  GetWorkspaceService,
   IAuthenticationStrategy,
   ICredentialsStorage,
   IMemberQuery,
@@ -101,6 +102,7 @@ export class ContainerBuilder {
       disconnectDataSourceService: asClass(
         DisconnectDataSourceService,
       ).scoped(),
+      getWorkspaceService: asClass(GetWorkspaceService),
     })
     return this
   }
