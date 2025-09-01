@@ -1,6 +1,7 @@
 import {
-  AuthenticationService,
+  ConnectDataSourceService,
   CreateWorkspaceService,
+  DisconnectDataSourceService,
   GetCurrentUserService,
   IAuthenticationStrategy,
   ICredentialsStorage,
@@ -10,10 +11,12 @@ import {
   ITimeEntryQuery,
   IWorkspacesQuery,
   IWorkspacesRepository,
+  LinkDataSourceService,
   ListTaskService,
   ListTimeEntriesService,
   ListWorkspacesService,
   SessionManager,
+  UnlinkDataSourceService,
 } from '@trackalize/application'
 import { JwtService } from '@trackalize/infra/auth'
 import { HttpClient } from '@trackalize/infra/http'
@@ -87,12 +90,17 @@ export class ContainerBuilder {
   public addApplicationServices(): this {
     this.container.register({
       sessionManager: asClass(SessionManager).scoped(),
-      authenticationService: asClass(AuthenticationService).scoped(),
       listTasksService: asClass(ListTaskService).scoped(),
       listTimeEntriesService: asClass(ListTimeEntriesService).scoped(),
       getCurrentUserService: asClass(GetCurrentUserService).scoped(),
       createWorkspaceService: asClass(CreateWorkspaceService).scoped(),
       listWorkspacesService: asClass(ListWorkspacesService).scoped(),
+      linkDataSourceService: asClass(LinkDataSourceService).scoped(),
+      unlinkDataSourceService: asClass(UnlinkDataSourceService).scoped(),
+      connectDataSourceService: asClass(ConnectDataSourceService).scoped(),
+      disconnectDataSourceService: asClass(
+        DisconnectDataSourceService,
+      ).scoped(),
     })
     return this
   }

@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
-export interface Plugin {
+export interface DataSource {
   id: string
   name: string
   creator: string
@@ -21,7 +21,7 @@ export interface Plugin {
   installed: boolean
 }
 
-const fakePluginList: Plugin[] = [
+const fakePluginList: DataSource[] = [
   {
     id: 'jira',
     name: 'Jira',
@@ -66,16 +66,16 @@ const formatDownloads = (num: number) => {
 }
 interface PluginListProps {
   selectedPluginId?: string
-  onSelectPlugin: (plugin: Plugin | null) => void
+  onSelectDataSource: (plugin: DataSource | null) => void
   onInstallPlugin?: (pluginId: string) => void
 }
 
-export function PluginList({
+export function DataSourceList({
   selectedPluginId,
-  onSelectPlugin,
+  onSelectDataSource,
   onInstallPlugin,
 }: PluginListProps) {
-  const [plugins, setPlugins] = useState<Plugin[]>(fakePluginList)
+  const [plugins, setPlugins] = useState<DataSource[]>(fakePluginList)
   const [installationStatus, setInstallationStatus] = useState<
     Record<string, { progress: number }>
   >({})
@@ -112,7 +112,8 @@ export function PluginList({
             <Card
               key={plugin.id}
               onClick={() =>
-                plugin.installed && onSelectPlugin(isSelected ? null : plugin)
+                plugin.installed &&
+                onSelectDataSource(isSelected ? null : plugin)
               }
               className={`flex items-start gap-3 p-2 transition-colors ${
                 plugin.installed
@@ -170,17 +171,19 @@ export function PluginList({
                       </div>
                     ) : plugin.installed ? (
                       <Button
+                        type="button"
                         variant={isSelected ? 'secondary' : 'outline'}
                         size="sm"
                         className="h-0 rounded-sm p-2 text-xs"
                         onClick={() => {
-                          onSelectPlugin(isSelected ? null : plugin)
+                          onSelectDataSource(isSelected ? null : plugin)
                         }}
                       >
                         {isSelected ? 'Selecionado' : 'Selecionar'}
                       </Button>
                     ) : (
                       <Button
+                        type="button"
                         variant="outline"
                         size="sm"
                         className="h-0 rounded-sm p-2 text-xs"

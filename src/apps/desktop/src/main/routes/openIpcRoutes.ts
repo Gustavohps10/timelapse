@@ -4,7 +4,7 @@ import RedmineConnector from '@trackalize/redmine-plugin'
 import { IpcHandler } from '@/main/adapters/IpcHandler'
 import { handleDiscordLogin } from '@/main/auth/discord-handler'
 import {
-  AuthHandler,
+  ConnectionHandler,
   SessionHandler,
   TimeEntriesHandler,
   TokenHandler,
@@ -28,7 +28,27 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
     return workspacesHandler.listAll()
   })
 
-  IpcHandler.register('PLUGIN_GET_FIELDS', async () => RedmineConnector.configFields)
+  IpcHandler.register('WORKSPACES_LINK_DATASOURCE', (event, req) => {
+    const workspacesHandler = serviceProvider.resolve<WorkspacesHandler>('workspacesHandler')
+    return workspacesHandler.linkDataSource(event, req)
+  })
+
+  IpcHandler.register('WORKSPACES_UNLINK_DATASOURCE', (event, req) => {
+    const workspacesHandler = serviceProvider.resolve<WorkspacesHandler>('workspacesHandler')
+    return workspacesHandler.unlinkDataSource(event, req)
+  })
+
+  IpcHandler.register('WORKSPACES_CONNECT_DATASOURCE', [injectConnector], (event, req) => {
+    const connectionHandler = serviceProvider.resolve<ConnectionHandler>('connectionHandler')
+    return connectionHandler.connectDataSource(event, req)
+  })
+
+  IpcHandler.register('WORKSPACES_DISCONNECT_DATASOURCE', [injectConnector], (event, req) => {
+    const connectionHandler = serviceProvider.resolve<ConnectionHandler>('connectionHandler')
+    return connectionHandler.disconnectDataSource(event, req)
+  })
+
+  IpcHandler.register('DATA_SOURCE_GET_FIELDS', async () => RedmineConnector.configFields)
 
   IpcHandler.register('DISCORD_LOGIN', () => handleDiscordLogin())
 
@@ -50,11 +70,6 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
   IpcHandler.register('GET_CURRENT_USER', [ensureAuthenticated, injectConnector], (event, req) => {
     const sessionHandler = serviceProvider.resolve<SessionHandler>('sessionHandler')
     return sessionHandler.listTimeEntries(event, req)
-  })
-
-  IpcHandler.register('LOGIN', [injectConnector], (event, req) => {
-    const authHandler = serviceProvider.resolve<AuthHandler>('authHandler')
-    return authHandler.login(event, req)
   })
 
   IpcHandler.register('LIST_TIME_ENTRIES', [ensureAuthenticated, injectConnector], (event, req) => {

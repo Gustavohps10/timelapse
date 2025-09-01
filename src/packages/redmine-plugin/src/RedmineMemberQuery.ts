@@ -1,7 +1,5 @@
 import {
-  AppError,
   Context,
-  Either,
   IMemberQuery,
   MemberDTO,
   PagedResultDTO,
@@ -89,12 +87,5 @@ export class RedmineMemberQuery extends RedmineBase implements IMemberQuery {
     }
 
     return member
-  }
-
-  findMeByCredentials(
-    login: string,
-    password: string,
-  ): Promise<Either<AppError, MemberDTO>> {
-    throw new Error('Método "findMeByCredentials" não implementado.')
   }
 }

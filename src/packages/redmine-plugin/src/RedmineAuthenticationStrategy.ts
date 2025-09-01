@@ -7,11 +7,20 @@ import {
 } from '@trackalize/connector-sdk'
 import axios, { AxiosInstance } from 'axios'
 
-interface RedmineCredentials {
+export interface RedmineConfiguration {
   apiUrl: string
+}
+
+export interface RedmineCredentials {
   login?: string
   password?: string
   apiKey?: string
+}
+
+// Novo tipo que unifica a entrada
+export interface RedmineAuthInput {
+  configuration: RedmineConfiguration
+  credentials: RedmineCredentials
 }
 
 interface RedmineUserAPIResponse {
@@ -36,17 +45,19 @@ interface RedmineUserResponse {
 }
 
 export class RedmineAuthenticationStrategy
-  implements IAuthenticationStrategy<RedmineCredentials>
+  implements IAuthenticationStrategy<RedmineAuthInput>
 {
   private getApiClient(apiUrl: string): AxiosInstance {
     return axios.create({ baseURL: apiUrl })
   }
 
   async authenticate(
-    credentials: RedmineCredentials,
+    input: RedmineAuthInput,
   ): Promise<Either<AppError, AuthenticationResult>> {
     try {
-      const apiClient = this.getApiClient(credentials.apiUrl)
+      const { configuration, credentials } = input
+
+      const apiClient = this.getApiClient(configuration.apiUrl)
 
       const authHeaders = credentials.apiKey
         ? { 'X-Redmine-API-Key': credentials.apiKey }

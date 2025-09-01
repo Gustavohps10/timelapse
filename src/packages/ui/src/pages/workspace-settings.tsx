@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { FieldGroup } from '@/client'
-import { Plugin, PluginList } from '@/components/plugins-list'
+import { DataSource, DataSourceList } from '@/components/plugins-list'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,46 +41,47 @@ import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks'
 import { useClient } from '@/hooks/use-client'
 
-const workspaceSettingsSchema = z.object({
+const baseWorkspaceSettingsSchema = z.object({
   name: z.string().min(1, 'O nome é obrigatório.'),
   description: z.string().optional(),
   defaultHourlyRate: z.coerce.number().optional(),
   currency: z.string().optional(),
   weeklyHourGoal: z.coerce.number().optional(),
-  plugin: z.custom<Plugin>().nullable().optional(),
-  pluginConfig: z.record(z.string()).optional(),
+  dataSource: z.custom<DataSource>().nullable().optional(),
 })
 
-type WorkspaceSettingsSchema = z.infer<typeof workspaceSettingsSchema>
+function buildDataSourceSchemas(dynamicFields: {
+  credentials: FieldGroup[]
+  configuration: FieldGroup[]
+}) {
+  const createShapeFromGroups = (groups: FieldGroup[]) => {
+    const shape: Record<string, z.ZodTypeAny> = {}
+    if (!groups) return z.object(shape)
 
-export function buildPluginConfigSchema(groups: FieldGroup[]) {
-  const shape: Record<string, z.ZodTypeAny> = {}
+    for (const group of groups) {
+      for (const field of group.fields) {
+        let fieldSchema: z.ZodString = z.string()
 
-  for (const group of groups) {
-    for (const field of group.fields) {
-      let baseSchema = z.string()
+        if (field.type === 'url') {
+          fieldSchema = fieldSchema.url('URL inválida')
+        }
 
-      switch (field.type) {
-        case 'url':
-          baseSchema = baseSchema.url('URL inválida')
-          break
-        case 'password':
-        case 'text':
-        default:
-          break
-      }
-
-      if (field.required) {
-        baseSchema = baseSchema.min(1, 'Campo obrigatório')
-        shape[field.id] = baseSchema
-      } else {
-        shape[field.id] = baseSchema.optional()
+        if (field.required) {
+          shape[field.id] = fieldSchema.min(1, `${field.label} é obrigatório.`)
+        } else {
+          shape[field.id] = fieldSchema.optional().nullable()
+        }
       }
     }
+    return z.object(shape)
   }
 
-  return z.object(shape)
+  const credentialsSchema = createShapeFromGroups(dynamicFields.credentials)
+  const configurationSchema = createShapeFromGroups(dynamicFields.configuration)
+
+  return { credentialsSchema, configurationSchema }
 }
+
 export function WorkspaceSettings() {
   const { login } = useAuth()
   const client = useClient()
@@ -89,7 +90,21 @@ export function WorkspaceSettings() {
     credentials: FieldGroup[]
     configuration: FieldGroup[]
   }>({ credentials: [], configuration: [] })
-  const [pluginToLink, setPluginToLink] = useState<Plugin | null>(null)
+  const [dataSourceToLink, setDataSourceToLink] = useState<DataSource | null>(
+    null,
+  )
+
+  const formSchema = useMemo(() => {
+    const { credentialsSchema, configurationSchema } =
+      buildDataSourceSchemas(dynamicFields)
+
+    return baseWorkspaceSettingsSchema.extend({
+      credentials: credentialsSchema,
+      configuration: configurationSchema,
+    })
+  }, [dynamicFields])
+
+  type WorkspaceSettingsSchema = z.infer<typeof formSchema>
 
   const {
     control,
@@ -97,99 +112,110 @@ export function WorkspaceSettings() {
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<WorkspaceSettingsSchema>({
-    resolver: zodResolver(workspaceSettingsSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: 'Meu Projeto',
       description: '',
       currency: 'BRL',
-      plugin: null,
+      dataSource: null,
+      credentials: {},
+      configuration: {},
     },
   })
 
-  const selectedPlugin = watch('plugin')
-
-  const pluginSchema = useMemo(() => {
-    const allFieldGroups = [
-      ...(dynamicFields.credentials || []),
-      ...(dynamicFields.configuration || []),
-    ]
-
-    const fieldsSchema = buildPluginConfigSchema(allFieldGroups)
-
-    return z.object({
-      pluginConfig: fieldsSchema,
-    })
-  }, [dynamicFields])
-
-  const {
-    register: registerPluginForm,
-    handleSubmit: handleSubmitPluginForm,
-    formState: {
-      errors: errorsPluginForm,
-      isSubmitting: isSubmittingPluginForm,
-    },
-  } = useForm<z.infer<typeof pluginSchema>>({
-    resolver: zodResolver(pluginSchema),
-  })
-
-  async function handleLinkConnector(data: z.infer<typeof pluginSchema>) {
-    const response = await client.services.auth.login({
-      body: {
-        workspaceId: workspaceId!,
-        credentials: data['pluginConfig'],
-      },
-    })
-
-    if (!response.isSuccess) {
-      toast(response.error)
-      return
-    }
-
-    login(response.data?.member!, response.data?.token!)
-    toast(
-      response.data?.member.firstname +
-        ' ' +
-        response.data?.member.lastname +
-        ' , sua sessão foi iniciada com sucesso',
-    )
-  }
+  const selectedDataSource = watch('dataSource')
 
   useEffect(() => {
-    if (!selectedPlugin) {
-      setDynamicFields({ credentials: [], configuration: [] })
-      return
-    }
+    const loadDataSourceFields = async () => {
+      if (!selectedDataSource) {
+        setDynamicFields({ credentials: [], configuration: [] })
+        reset((formValues) => ({
+          ...formValues,
+          credentials: {},
+          configuration: {},
+        }))
+        return
+      }
 
-    const loadPluginFields = async () => {
-      const response = await client.workspaces.getPluginFields()
+      const response = await client.services.workspaces.getDataSourceFields()
       setDynamicFields(response)
     }
 
-    loadPluginFields()
-  }, [selectedPlugin])
+    loadDataSourceFields()
+  }, [selectedDataSource, client, reset])
+
   const onSubmit = async (data: WorkspaceSettingsSchema) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    toast.success('Alterações salvas com sucesso!')
-  }
-
-  const handleDisconnect = () => {
-    setValue('plugin', null)
-    setValue('pluginConfig', {})
-    toast.info('Workspace desvinculado. Os dados locais foram resetados.')
-  }
-
-  const handleConfirmLink = () => {
-    if (pluginToLink) {
-      setValue('plugin', pluginToLink)
-      toast.success(`Workspace vinculado com ${pluginToLink.name}!`)
+    if (!workspaceId) {
+      toast.error('ID do Workspace não encontrado.')
+      return
     }
-    setPluginToLink(null)
+
+    if (data.dataSource) {
+      const response = await client.services.workspaces.connectDataSource({
+        body: {
+          workspaceId,
+          credentials: data.credentials,
+          configuration: data.configuration,
+        },
+      })
+
+      if (!response.isSuccess) {
+        toast.error(response.error ?? 'Falha ao conectar a fonte de dados.')
+        return
+      }
+
+      toast.success(
+        `Fonte de dados "${data.dataSource.name}" conectada com sucesso!`,
+      )
+      if (response.data?.member && response.data?.token) {
+        login(response.data.member, response.data.token)
+      }
+    } else {
+      toast.success('Alterações salvas com sucesso!')
+    }
+  }
+
+  const handleDisconnect = async () => {
+    const result = await client.services.workspaces.unlinkDataSource({
+      body: {
+        workspaceId: workspaceId!,
+      },
+    })
+
+    if (!result.isSuccess) {
+      toast.error(result.error ?? 'Falha ao desvincular a fonte de dados.')
+      return
+    }
+
+    setValue('dataSource', null)
+    toast.info('Fonte de dados desvinculada.')
+  }
+
+  const handleConfirmDataSourceLink = async () => {
+    if (dataSourceToLink) {
+      const result = await client.services.workspaces.linkDataSource({
+        body: {
+          workspaceId: workspaceId!,
+          dataSource: dataSourceToLink.id,
+        },
+      })
+
+      if (!result.isSuccess) {
+        toast.error(result.error ?? 'Falha ao vincular a fonte de dados.')
+        return
+      }
+
+      setValue('dataSource', dataSourceToLink, { shouldValidate: true })
+      toast.success(`Configurando a fonte de dados: ${dataSourceToLink.name}!`)
+    }
+    setDataSourceToLink(null)
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-12">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">
           Configurações do Workspace
@@ -265,13 +291,6 @@ export function WorkspaceSettings() {
                 {...register('weeklyHourGoal')}
               />
             </div>
-            <Button
-              type="button"
-              onClick={handleSubmit(onSubmit)}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
-            </Button>
           </CardContent>
         </Card>
 
@@ -283,14 +302,18 @@ export function WorkspaceSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!selectedPlugin ? (
+            {!selectedDataSource ? (
               <>
-                <PluginList
-                  onSelectPlugin={(plugin) => setPluginToLink(plugin)}
+                <DataSourceList
+                  onSelectDataSource={(dataSource) =>
+                    setDataSourceToLink(dataSource)
+                  }
                 />
                 <AlertDialog
-                  open={!!pluginToLink}
-                  onOpenChange={(isOpen) => !isOpen && setPluginToLink(null)}
+                  open={!!dataSourceToLink}
+                  onOpenChange={(isOpen) =>
+                    !isOpen && setDataSourceToLink(null)
+                  }
                 >
                   <AlertDialogContent>
                     <AlertDialogHeader>
@@ -298,16 +321,16 @@ export function WorkspaceSettings() {
                       <AlertDialogDescription>
                         <div className="flex items-center gap-3">
                           <img
-                            src={pluginToLink?.logo}
-                            alt={pluginToLink?.name}
+                            src={dataSourceToLink?.logo}
+                            alt={dataSourceToLink?.name}
                             className="h-10 w-10 rounded-lg border bg-white object-contain p-1"
                           />
                           <div>
                             <p className="font-semibold">
-                              {pluginToLink?.name}
+                              {dataSourceToLink?.name}
                             </p>
                             <p className="text-muted-foreground text-sm">
-                              por {pluginToLink?.creator}
+                              por {dataSourceToLink?.creator}
                             </p>
                           </div>
                         </div>
@@ -317,10 +340,16 @@ export function WorkspaceSettings() {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel onClick={() => setPluginToLink(null)}>
+                      <AlertDialogCancel
+                        type="button"
+                        onClick={() => setDataSourceToLink(null)}
+                      >
                         Cancelar
                       </AlertDialogCancel>
-                      <AlertDialogAction onClick={handleConfirmLink}>
+                      <AlertDialogAction
+                        type="button"
+                        onClick={handleConfirmDataSourceLink}
+                      >
                         Sim, vincular
                       </AlertDialogAction>
                     </AlertDialogFooter>
@@ -333,20 +362,20 @@ export function WorkspaceSettings() {
                   <div className="flex flex-col gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <img
-                        src={selectedPlugin.logo}
-                        alt={selectedPlugin.name}
+                        src={selectedDataSource.logo}
+                        alt={selectedDataSource.name}
                         className="h-10 w-10 rounded-lg border bg-white object-contain p-1"
                       />
                       <div>
                         <p className="leading-4 font-semibold">
-                          {selectedPlugin.name}
+                          {selectedDataSource.name}
                         </p>
                         <p className="text-muted-foreground text-sm leading-4">
-                          por {selectedPlugin.creator}
+                          por {selectedDataSource.creator}
                         </p>
                       </div>
                     </div>
-                    <Badge className="flex items-center gap-1 rounded-md border-green-600 bg-green-100 px-2 py-1 text-green-600 dark:border-green-400 dark:bg-transparent dark:text-green-400">
+                    <Badge className="flex w-fit items-center gap-1 rounded-md border-green-600 bg-green-100 px-2 py-1 text-green-600 dark:border-green-400 dark:bg-transparent dark:text-green-400">
                       <CheckCircle2 size={16} className="stroke-[3]" />
                       Vinculado
                     </Badge>
@@ -354,7 +383,7 @@ export function WorkspaceSettings() {
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm">
+                      <Button variant="destructive" size="sm" type="button">
                         Desvincular
                       </Button>
                     </AlertDialogTrigger>
@@ -363,7 +392,7 @@ export function WorkspaceSettings() {
                         <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                         <AlertDialogDescription>
                           Esta ação é irreversível. Desvincular este workspace
-                          irá
+                          irá{' '}
                           <strong>
                             apagar permanentemente todos os dados locais
                           </strong>{' '}
@@ -372,8 +401,13 @@ export function WorkspaceSettings() {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDisconnect}>
+                        <AlertDialogCancel type="button">
+                          Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          type="button"
+                          onClick={handleDisconnect}
+                        >
                           Sim, desvincular e apagar dados
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -383,7 +417,7 @@ export function WorkspaceSettings() {
                 <div className="mt-4 space-y-8 border-t pt-4">
                   <div>
                     <h3 className="text-lg font-semibold">
-                      Conectar com {selectedPlugin.name}
+                      Conectar com {selectedDataSource.name}
                     </h3>
                     <p className="text-muted-foreground mt-1 text-sm">
                       Preencha as configurações e suas credenciais de acesso
@@ -391,7 +425,6 @@ export function WorkspaceSettings() {
                     </p>
                   </div>
 
-                  {/* Seção de Configurações */}
                   {dynamicFields.configuration.map((group) => (
                     <div key={group.id} className="space-y-4">
                       <div>
@@ -410,15 +443,13 @@ export function WorkspaceSettings() {
                             id={field.id}
                             type={field.type}
                             placeholder={field.placeholder}
-                            {...registerPluginForm(
-                              `pluginConfig.${field.id}` as const,
-                            )}
+                            {...register(`configuration.${field.id}` as const)}
                             required={field.required}
                           />
-                          {errorsPluginForm?.pluginConfig?.[field.id] && (
+                          {errors.configuration?.[field.id] && (
                             <p className="text-sm text-red-500">
                               {
-                                errorsPluginForm.pluginConfig[field.id]
+                                errors.configuration[field.id]
                                   ?.message as string
                               }
                             </p>
@@ -428,7 +459,6 @@ export function WorkspaceSettings() {
                     </div>
                   ))}
 
-                  {/* Seção de Credenciais */}
                   {dynamicFields.credentials.map((group) => (
                     <div key={group.id} className="space-y-4">
                       <div>
@@ -447,38 +477,36 @@ export function WorkspaceSettings() {
                             id={field.id}
                             type={field.type}
                             placeholder={field.placeholder}
-                            {...registerPluginForm(
-                              `pluginConfig.${field.id}` as const,
-                            )}
+                            {...register(`credentials.${field.id}` as const)}
                             required={field.required}
                           />
-                          {errorsPluginForm?.pluginConfig?.[field.id] && (
+                          {errors.credentials?.[field.id] && (
                             <p className="text-sm text-red-500">
-                              {
-                                errorsPluginForm.pluginConfig[field.id]
-                                  ?.message as string
-                              }
+                              {errors.credentials[field.id]?.message as string}
                             </p>
                           )}
                         </div>
                       ))}
                     </div>
                   ))}
-
-                  <Button
-                    onClick={handleSubmitPluginForm(handleLinkConnector)}
-                    disabled={isSubmittingPluginForm}
-                  >
-                    {isSubmittingPluginForm
-                      ? 'Conectando...'
-                      : 'Conectar e Salvar'}
-                  </Button>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
-    </div>
+
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full sm:w-auto"
+      >
+        {isSubmitting
+          ? 'Salvando...'
+          : selectedDataSource
+            ? 'Salvar e Conectar'
+            : 'Salvar Alterações'}
+      </Button>
+    </form>
   )
 }

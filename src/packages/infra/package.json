@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup --format esm,cjs --dts",
-     "clean": "rimraf dist .turbo"
+    "clean": "rimraf dist .turbo"
   },
   "exports": {
     "./auth": {

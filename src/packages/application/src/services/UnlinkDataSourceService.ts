@@ -1,27 +1,28 @@
 import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 
-import { IWorkspacesRepository } from '@/contracts'
 import {
-  ILinkDataSourceUseCase,
-  LinkDataSourceInput,
-} from '@/contracts/use-cases/ILinkDataSourceUseCase'
+  IUnlinkDataSourceUseCase,
+  IWorkspacesRepository,
+  UnlinkDataSourceInput,
+} from '@/contracts'
 import { WorkspaceDTO } from '@/dtos'
 
-export class LinkDataSourceService implements ILinkDataSourceUseCase {
+export class UnlinkDataSourceService implements IUnlinkDataSourceUseCase {
   constructor(private readonly workspacesRepository: IWorkspacesRepository) {}
 
   public async execute(
-    input: LinkDataSourceInput,
+    input: UnlinkDataSourceInput,
   ): Promise<Either<AppError, WorkspaceDTO>> {
     try {
       const workspace = await this.workspacesRepository.findById(
         input.workspaceId,
       )
+      if (!workspace) {
+        return Either.failure(new AppError('Workspace não encontrado'))
+      }
 
-      if (workspace == null)
-        return Either.failure(new AppError('WORKSPACE_NAO_ENCONTRADO', '', 404))
-
-      workspace.linkDataSource(input.dataSource)
+      const result = workspace.unlinkDataSource()
+      if (result.isFailure()) return result.forwardFailure()
 
       await this.workspacesRepository.update(workspace)
 

@@ -25,7 +25,7 @@ export function AppSidebar({ content, footer }: AppSidebarProps) {
 
   const { data: workspacesResponse } = useQuery({
     queryKey: ['workspaces'],
-    queryFn: () => client.workspaces.listAll(),
+    queryFn: () => client.services.workspaces.listAll(),
   })
 
   const [workspaceDialogIsOpen, setWorkspaceDialogIsOpen] = useState(false)

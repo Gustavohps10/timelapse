@@ -9,7 +9,7 @@ import { app, BrowserWindow, Menu, screen, shell, Tray } from 'electron'
 import { join } from 'path'
 
 import {
-  AuthHandler,
+  ConnectionHandler,
   SessionHandler,
   TaskHandler,
   TimeEntriesHandler,
@@ -56,7 +56,7 @@ const createWindow = () => {
 }
 
 export type IHandlersScope = {
-  authHandler: typeof AuthHandler
+  connectionHandler: typeof ConnectionHandler
   sessionHandler: typeof SessionHandler
   taskHandler: typeof TaskHandler
   timeEntriesHandler: typeof TimeEntriesHandler
@@ -150,7 +150,7 @@ app.whenReady().then(async () => {
     .addApplicationServices()
     // .addFromPath('out/main/handlers')
     .addScoped<IHandlersScope>({
-      authHandler: AuthHandler,
+      connectionHandler: ConnectionHandler,
       sessionHandler: SessionHandler,
       taskHandler: TaskHandler,
       timeEntriesHandler: TimeEntriesHandler,
