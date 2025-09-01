@@ -23,6 +23,11 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
     return workspacesHandler.create(event, req)
   })
 
+   IpcHandler.register('WORKSPACES_GET_BY_ID', (event, req) => {
+    const workspacesHandler = serviceProvider.resolve<WorkspacesHandler>('workspacesHandler')
+    return workspacesHandler.getById(event, req)
+  })
+
   IpcHandler.register('WORKSPACES_GET_ALL', () => {
     const workspacesHandler = serviceProvider.resolve<WorkspacesHandler>('workspacesHandler')
     return workspacesHandler.listAll()

@@ -31,6 +31,10 @@ export interface IWorkspacesClient {
     }>,
   ): Promise<ViewModel<WorkspaceViewModel>>
 
+  getById(
+    input: IRequest<{ workspaceId: string }>,
+  ): Promise<ViewModel<WorkspaceViewModel>>
+
   listAll(): Promise<PaginatedViewModel<WorkspaceViewModel[]>>
 
   getDataSourceFields(): Promise<{

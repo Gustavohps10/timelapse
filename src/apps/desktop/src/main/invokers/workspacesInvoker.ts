@@ -20,6 +20,14 @@ export const workspacesInvoker: IWorkspacesInvoker = {
       ViewModel<WorkspaceViewModel>
     >('WORKSPACES_CREATE', request),
 
+  getById: (
+    request: IRequest<{ workspaceId: string }>,
+  ): Promise<ViewModel<WorkspaceViewModel>> =>
+    IpcInvoker.invoke<
+      IRequest<{ workspaceId: string }>,
+      ViewModel<WorkspaceViewModel>
+    >('WORKSPACES_GET_BY_ID', request),
+
   listAll: (): Promise<PaginatedViewModel<WorkspaceViewModel[]>> =>
     IpcInvoker.invoke<never, PaginatedViewModel<WorkspaceViewModel[]>>(
       'WORKSPACES_GET_ALL',

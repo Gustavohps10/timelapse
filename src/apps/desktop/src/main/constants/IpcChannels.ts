@@ -14,9 +14,10 @@ export const IpcChannels = {
 
   DISCORD_LOGIN: 'login:discord',
 
-  WORKSPACES_CREATE: 'workspaces:select',
+  WORKSPACES_CREATE: 'workspaces:create',
+  WORKSPACES_GET_ALL: 'workspaces:get-all',
+  WORKSPACES_GET_BY_ID: 'workspaces:get-by-id',
   WORKSPACES_GET_CONFIG_FIELDS: 'workspaces:fields',
-  WORKSPACES_GET_ALL: 'workspaces:getall',
 
   WORKSPACES_LINK_DATASOURCE: 'workspaces:link-datasource',
   WORKSPACES_UNLINK_DATASOURCE: 'workspaces:unlink-datasource',

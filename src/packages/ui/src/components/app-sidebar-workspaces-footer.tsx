@@ -1,27 +1,13 @@
-import { LogOut, User } from 'lucide-react'
+import { User } from 'lucide-react'
 import { FaDiscord } from 'react-icons/fa'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks'
 import { useClient } from '@/hooks/use-client'
 
 export function AppSidebarWorkspacesFooter() {
   const client = useClient()
-  const { logout, user, changeAvatar } = useAuth()
-  const handleLogout = () => {
-    logout()
-  }
+  const { user, changeAvatar } = useAuth()
 
   async function handleDiscordLogin() {
     const discordData = await client.integrations.discord.login()
@@ -53,26 +39,6 @@ export function AppSidebarWorkspacesFooter() {
       >
         <FaDiscord />
       </Button>
-
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button size="icon" variant="outline" className="ml-auto h-7 w-7">
-            <LogOut />
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Voce tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Voce será desconectado.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLogout}>Sair</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

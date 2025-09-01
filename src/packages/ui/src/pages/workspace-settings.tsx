@@ -1,5 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CheckCircle2 } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  CheckCircle2,
+  DatabaseZapIcon,
+  UnlinkIcon,
+  UnplugIcon,
+  UserCogIcon,
+} from 'lucide-react'
 import React, { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
@@ -25,6 +32,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -54,18 +62,16 @@ function buildDataSourceSchemas(dynamicFields: {
   credentials: FieldGroup[]
   configuration: FieldGroup[]
 }) {
-  const createShapeFromGroups = (groups: FieldGroup[]) => {
+  const createShapeFromGroups = (groups: FieldGroup[]): z.ZodObject<any> => {
     const shape: Record<string, z.ZodTypeAny> = {}
     if (!groups) return z.object(shape)
 
     for (const group of groups) {
       for (const field of group.fields) {
         let fieldSchema: z.ZodString = z.string()
-
         if (field.type === 'url') {
           fieldSchema = fieldSchema.url('URL inválida')
         }
-
         if (field.required) {
           shape[field.id] = fieldSchema.min(1, `${field.label} é obrigatório.`)
         } else {
@@ -76,16 +82,32 @@ function buildDataSourceSchemas(dynamicFields: {
     return z.object(shape)
   }
 
-  const credentialsSchema = createShapeFromGroups(dynamicFields.credentials)
-  const configurationSchema = createShapeFromGroups(dynamicFields.configuration)
-
-  return { credentialsSchema, configurationSchema }
+  return {
+    credentialsSchema: createShapeFromGroups(dynamicFields.credentials),
+    configurationSchema: createShapeFromGroups(dynamicFields.configuration),
+  }
 }
 
 export function WorkspaceSettings() {
-  const { login } = useAuth()
+  const { login, logout, isAuthenticated, user } = useAuth()
   const client = useClient()
+  const queryClient = useQueryClient()
   const { workspaceId } = useParams<{ workspaceId: string }>()
+
+  const workspaceQueryKey = ['workspace', workspaceId]
+
+  const { data: workspace, isLoading } = useQuery({
+    queryKey: workspaceQueryKey,
+    queryFn: async () => {
+      if (!workspaceId) return null
+      const response = await client.services.workspaces.getById({
+        body: { workspaceId },
+      })
+      return response.data
+    },
+    enabled: !!workspaceId,
+  })
+
   const [dynamicFields, setDynamicFields] = useState<{
     credentials: FieldGroup[]
     configuration: FieldGroup[]
@@ -97,7 +119,6 @@ export function WorkspaceSettings() {
   const formSchema = useMemo(() => {
     const { credentialsSchema, configurationSchema } =
       buildDataSourceSchemas(dynamicFields)
-
     return baseWorkspaceSettingsSchema.extend({
       credentials: credentialsSchema,
       configuration: configurationSchema,
@@ -113,109 +134,116 @@ export function WorkspaceSettings() {
     setValue,
     watch,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting: isFormSubmitting },
   } = useForm<WorkspaceSettingsSchema>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: 'Meu Projeto',
-      description: '',
-      currency: 'BRL',
-      dataSource: null,
-      credentials: {},
-      configuration: {},
-    },
+    defaultValues: { name: '', description: '', currency: '' },
   })
+
+  useEffect(() => {
+    if (!workspace) return
+    reset({
+      name: workspace.name,
+      description: '',
+      currency: '',
+      defaultHourlyRate: undefined,
+      weeklyHourGoal: undefined,
+      dataSource: undefined,
+      configuration: workspace.dataSourceConfiguration,
+      credentials: {},
+    })
+  }, [workspace, reset])
 
   const selectedDataSource = watch('dataSource')
 
   useEffect(() => {
     const loadDataSourceFields = async () => {
-      if (!selectedDataSource) {
-        setDynamicFields({ credentials: [], configuration: [] })
-        reset((formValues) => ({
-          ...formValues,
-          credentials: {},
-          configuration: {},
-        }))
-        return
-      }
-
       const response = await client.services.workspaces.getDataSourceFields()
       setDynamicFields(response)
     }
-
     loadDataSourceFields()
-  }, [selectedDataSource, client, reset])
+  }, [selectedDataSource, client])
 
-  const onSubmit = async (data: WorkspaceSettingsSchema) => {
-    if (!workspaceId) {
-      toast.error('ID do Workspace não encontrado.')
-      return
-    }
+  const linkMutation = useMutation({
+    mutationFn: (dataSource: DataSource) => {
+      return client.services.workspaces.linkDataSource({
+        body: { workspaceId: workspaceId!, dataSource: dataSource.id },
+      })
+    },
+    onSuccess: (_, dataSource) => {
+      queryClient.invalidateQueries({ queryKey: workspaceQueryKey })
+      toast.success(`Fonte de dados "${dataSource.name}" vinculada!`)
+      setDataSourceToLink(null)
+    },
+    onError: (error) => {
+      toast.error(error.message)
+      setDataSourceToLink(null)
+    },
+  })
 
-    if (data.dataSource) {
-      const response = await client.services.workspaces.connectDataSource({
+  const unlinkMutation = useMutation({
+    mutationFn: () => {
+      return client.services.workspaces.unlinkDataSource({
+        body: { workspaceId: workspaceId! },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workspaceQueryKey })
+      toast.info('Fonte de dados desvinculada.')
+      logout()
+    },
+    onError: (error) => toast.error(error.message),
+  })
+
+  const connectMutation = useMutation({
+    mutationFn: (data: WorkspaceSettingsSchema) => {
+      return client.services.workspaces.connectDataSource({
         body: {
-          workspaceId,
+          workspaceId: workspaceId!,
           credentials: data.credentials,
           configuration: data.configuration,
         },
       })
-
+    },
+    onSuccess: (response, variables) => {
       if (!response.isSuccess) {
-        toast.error(response.error ?? 'Falha ao conectar a fonte de dados.')
+        toast.error(response.error ?? 'Falha ao conectar.')
         return
       }
-
+      queryClient.invalidateQueries({ queryKey: workspaceQueryKey })
       toast.success(
-        `Fonte de dados "${data.dataSource.name}" conectada com sucesso!`,
+        `Conectado com "${variables.dataSource?.name}" com sucesso!`,
       )
       if (response.data?.member && response.data?.token) {
         login(response.data.member, response.data.token)
       }
-    } else {
-      toast.success('Alterações salvas com sucesso!')
-    }
-  }
+    },
+    onError: (error) => toast.error(error.message),
+  })
 
-  const handleDisconnect = async () => {
-    const result = await client.services.workspaces.unlinkDataSource({
-      body: {
-        workspaceId: workspaceId!,
-      },
-    })
-
-    if (!result.isSuccess) {
-      toast.error(result.error ?? 'Falha ao desvincular a fonte de dados.')
-      return
-    }
-
-    setValue('dataSource', null)
-    toast.info('Fonte de dados desvinculada.')
-  }
-
-  const handleConfirmDataSourceLink = async () => {
-    if (dataSourceToLink) {
-      const result = await client.services.workspaces.linkDataSource({
-        body: {
-          workspaceId: workspaceId!,
-          dataSource: dataSourceToLink.id,
-        },
+  const disconnectMutation = useMutation({
+    mutationFn: () => {
+      return client.services.workspaces.disconnectDataSource({
+        body: { workspaceId: workspaceId! },
       })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workspaceQueryKey })
+      toast.info('Desconectado com sucesso.')
+      logout()
+    },
+    onError: (error) => toast.error(error.message),
+  })
 
-      if (!result.isSuccess) {
-        toast.error(result.error ?? 'Falha ao vincular a fonte de dados.')
-        return
-      }
-
-      setValue('dataSource', dataSourceToLink, { shouldValidate: true })
-      toast.success(`Configurando a fonte de dados: ${dataSourceToLink.name}!`)
-    }
-    setDataSourceToLink(null)
+  if (isLoading) {
+    return <div>Carregando workspace...</div>
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-12">
+    <form
+      onSubmit={handleSubmit((data) => connectMutation.mutate(data))}
+      className="space-y-6 pb-12"
+    >
       <div>
         <h2 className="text-2xl font-bold tracking-tight">
           Configurações do Workspace
@@ -292,221 +320,275 @@ export function WorkspaceSettings() {
               />
             </div>
           </CardContent>
+          <CardFooter>
+            <Button type="button" onClick={() => {}}>
+              Salvar Alterações
+            </Button>
+          </CardFooter>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Integração</CardTitle>
+            <CardTitle className="flex items-center gap-1">
+              <DatabaseZapIcon size={20} /> Provedor de dados
+            </CardTitle>
             <CardDescription>
               Vincule a um serviço externo para sincronizar os dados.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!selectedDataSource ? (
-              <>
-                <DataSourceList
-                  onSelectDataSource={(dataSource) =>
-                    setDataSourceToLink(dataSource)
-                  }
-                />
-                <AlertDialog
-                  open={!!dataSourceToLink}
-                  onOpenChange={(isOpen) =>
-                    !isOpen && setDataSourceToLink(null)
-                  }
-                >
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmar vinculação</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={dataSourceToLink?.logo}
-                            alt={dataSourceToLink?.name}
-                            className="h-10 w-10 rounded-lg border bg-white object-contain p-1"
-                          />
-                          <div>
-                            <p className="font-semibold">
-                              {dataSourceToLink?.name}
-                            </p>
-                            <p className="text-muted-foreground text-sm">
-                              por {dataSourceToLink?.creator}
-                            </p>
+            {!workspace?.dataSource ||
+              (workspace?.dataSource == 'local' && (
+                <>
+                  <DataSourceList
+                    onSelectDataSource={(ds) => setDataSourceToLink(ds)}
+                  />
+                  <AlertDialog
+                    open={!!dataSourceToLink}
+                    onOpenChange={(isOpen) =>
+                      !isOpen && setDataSourceToLink(null)
+                    }
+                  >
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Confirmar vinculação
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={dataSourceToLink?.logo}
+                              alt={dataSourceToLink?.name}
+                              className="h-10 w-10 rounded-lg border bg-white object-contain p-1"
+                            />
+                            <div>
+                              <p className="font-semibold">
+                                {dataSourceToLink?.name}
+                              </p>
+                              <p className="text-muted-foreground text-sm">
+                                por {dataSourceToLink?.creator}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        <br />
-                        Você está prestes a vincular este workspace a um
-                        conector externo.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel
-                        type="button"
-                        onClick={() => setDataSourceToLink(null)}
-                      >
-                        Cancelar
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        type="button"
-                        onClick={handleConfirmDataSourceLink}
-                      >
-                        Sim, vincular
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </>
-            ) : (
+                          <br />
+                          Você está prestes a vincular este workspace a um
+                          conector.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          disabled={linkMutation.isPending}
+                          onClick={() =>
+                            dataSourceToLink &&
+                            linkMutation.mutate(dataSourceToLink)
+                          }
+                        >
+                          {linkMutation.isPending
+                            ? 'Vinculando...'
+                            : 'Sim, vincular'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              ))}
+
+            {workspace?.dataSource && workspace?.dataSource != 'local' && (
               <div>
                 <div className="flex items-center justify-between rounded-md border p-4">
                   <div className="flex flex-col gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <img
-                        src={selectedDataSource.logo}
-                        alt={selectedDataSource.name}
+                        src={selectedDataSource?.logo}
+                        alt={selectedDataSource?.name}
                         className="h-10 w-10 rounded-lg border bg-white object-contain p-1"
                       />
                       <div>
                         <p className="leading-4 font-semibold">
-                          {selectedDataSource.name}
-                        </p>
-                        <p className="text-muted-foreground text-sm leading-4">
-                          por {selectedDataSource.creator}
+                          {workspace.dataSource}
                         </p>
                       </div>
                     </div>
-                    <Badge className="flex w-fit items-center gap-1 rounded-md border-green-600 bg-green-100 px-2 py-1 text-green-600 dark:border-green-400 dark:bg-transparent dark:text-green-400">
+                    <Badge className="flex w-fit items-center gap-1 rounded-md border-green-600 bg-green-100 px-2 py-1 text-green-600 dark:bg-transparent">
                       <CheckCircle2 size={16} className="stroke-[3]" />
                       Vinculado
                     </Badge>
                   </div>
-
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" size="sm" type="button">
-                        Desvincular
+                        Desvincular <UnlinkIcon />
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Esta ação é irreversível. Desvincular este workspace
-                          irá{' '}
-                          <strong>
-                            apagar permanentemente todos os dados locais
-                          </strong>{' '}
-                          (apontamentos, tarefas, etc.) associados a ele. O
-                          workspace voltará ao estado "local-only".
+                          Esta ação é irreversível e irá desvincular sua fonte
+                          de dados.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel type="button">
-                          Cancelar
-                        </AlertDialogCancel>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
-                          type="button"
-                          onClick={handleDisconnect}
+                          disabled={unlinkMutation.isPending}
+                          onClick={() => unlinkMutation.mutate()}
                         >
-                          Sim, desvincular e apagar dados
+                          Sim, desvincular
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
                 </div>
-                <div className="mt-4 space-y-8 border-t pt-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">
-                      Conectar com {selectedDataSource.name}
-                    </h3>
-                    <p className="text-muted-foreground mt-1 text-sm">
-                      Preencha as configurações e suas credenciais de acesso
-                      para vincular este workspace.
-                    </p>
+
+                {isAuthenticated && (
+                  <div className="mt-4 space-y-4 border-t pt-4">
+                    {workspace?.dataSourceConfiguration &&
+                      dynamicFields.configuration.length > 0 && (
+                        <div className="rounded-md border p-4">
+                          <h4 className="mb-2 flex items-center gap-1 font-semibold tracking-tighter">
+                            <UserCogIcon size={20} /> Sessão Ativa
+                          </h4>
+                          <ul className="list-none space-y-1 pl-5 text-sm">
+                            {dynamicFields.configuration
+                              .flatMap((group) => group.fields)
+                              .map((field) => {
+                                const value =
+                                  workspace?.dataSourceConfiguration?.[field.id]
+
+                                if (!value) return null
+
+                                return (
+                                  <li key={field.id}>
+                                    <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
+                                      {field.label}:
+                                    </strong>{' '}
+                                    <span className="font-mono tracking-tight">{`${String(value)}`}</span>
+                                  </li>
+                                )
+                              })}
+                            <li>
+                              <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
+                                ID:
+                              </strong>{' '}
+                              <span className="font-mono tracking-tight">
+                                {user?.id}
+                              </span>
+                            </li>
+                            <li>
+                              <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
+                                Nome:
+                              </strong>{' '}
+                              <span className="font-mono tracking-tight">
+                                {user?.firstname} {user?.lastname}
+                              </span>
+                            </li>
+                            <li>
+                              <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
+                                Login:
+                              </strong>{' '}
+                              <span className="font-mono tracking-tight">
+                                {user?.login}
+                              </span>
+                            </li>
+                          </ul>
+                        </div>
+                      )}
+
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      onClick={() => disconnectMutation.mutate()}
+                      disabled={disconnectMutation.isPending}
+                      className="ml-auto"
+                    >
+                      {disconnectMutation.isPending
+                        ? 'Desconectando...'
+                        : 'Desconectar'}
+                      <UnplugIcon />
+                    </Button>
                   </div>
+                )}
 
-                  {dynamicFields.configuration.map((group) => (
-                    <div key={group.id} className="space-y-4">
-                      <div>
-                        <h4 className="font-medium">{group.label}</h4>
-                        {group.description && (
-                          <p className="text-muted-foreground text-sm">
-                            {group.description}
-                          </p>
-                        )}
-                      </div>
-
-                      {group.fields.map((field) => (
-                        <div key={field.id} className="space-y-2">
-                          <Label htmlFor={field.id}>{field.label}</Label>
-                          <Input
-                            id={field.id}
-                            type={field.type}
-                            placeholder={field.placeholder}
-                            {...register(`configuration.${field.id}` as const)}
-                            required={field.required}
-                          />
-                          {errors.configuration?.[field.id] && (
-                            <p className="text-sm text-red-500">
-                              {
-                                errors.configuration[field.id]
-                                  ?.message as string
-                              }
-                            </p>
-                          )}
-                        </div>
-                      ))}
+                {!isAuthenticated && (
+                  <div className="mt-4 space-y-8 border-t pt-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">
+                        Conectar com {workspace.dataSource}
+                      </h3>
+                      <p className="text-muted-foreground mt-1 text-sm">
+                        Preencha suas credenciais para sincronizar os dados.
+                      </p>
                     </div>
-                  ))}
 
-                  {dynamicFields.credentials.map((group) => (
-                    <div key={group.id} className="space-y-4">
-                      <div>
+                    {dynamicFields.configuration.map((group) => (
+                      <div key={group.id} className="space-y-4">
                         <h4 className="font-medium">{group.label}</h4>
-                        {group.description && (
-                          <p className="text-muted-foreground text-sm">
-                            {group.description}
-                          </p>
-                        )}
+                        {group.fields.map((field) => (
+                          <div key={field.id} className="space-y-2">
+                            <Label htmlFor={field.id}>{field.label}</Label>
+                            <Input
+                              id={field.id}
+                              type={field.type}
+                              placeholder={field.placeholder}
+                              {...register(
+                                `configuration.${field.id}` as const,
+                              )}
+                              required={field.required}
+                            />
+                            {errors.configuration?.[field.id] && (
+                              <p className="text-sm text-red-500">
+                                {
+                                  errors.configuration[field.id]
+                                    ?.message as string
+                                }
+                              </p>
+                            )}
+                          </div>
+                        ))}
                       </div>
+                    ))}
 
-                      {group.fields.map((field) => (
-                        <div key={field.id} className="space-y-2">
-                          <Label htmlFor={field.id}>{field.label}</Label>
-                          <Input
-                            id={field.id}
-                            type={field.type}
-                            placeholder={field.placeholder}
-                            {...register(`credentials.${field.id}` as const)}
-                            required={field.required}
-                          />
-                          {errors.credentials?.[field.id] && (
-                            <p className="text-sm text-red-500">
-                              {errors.credentials[field.id]?.message as string}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
+                    {dynamicFields.credentials.map((group) => (
+                      <div key={group.id} className="space-y-4">
+                        <h4 className="font-medium">{group.label}</h4>
+                        {group.fields.map((field) => (
+                          <div key={field.id} className="space-y-2">
+                            <Label htmlFor={field.id}>{field.label}</Label>
+                            <Input
+                              id={field.id}
+                              type={field.type}
+                              placeholder={field.placeholder}
+                              {...register(`credentials.${field.id}` as const)}
+                              required={field.required}
+                            />
+                            {errors.credentials?.[field.id] && (
+                              <p className="text-sm text-red-500">
+                                {
+                                  errors.credentials[field.id]
+                                    ?.message as string
+                                }
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                    <Button
+                      type="submit"
+                      disabled={connectMutation.isPending || isFormSubmitting}
+                    >
+                      {connectMutation.isPending ? 'Conectando...' : 'Conectar'}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
         </Card>
       </div>
-
-      <Button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full sm:w-auto"
-      >
-        {isSubmitting
-          ? 'Salvando...'
-          : selectedDataSource
-            ? 'Salvar e Conectar'
-            : 'Salvar Alterações'}
-      </Button>
     </form>
   )
 }
