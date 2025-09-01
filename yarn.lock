@@ -3104,6 +3104,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@trackalize/domain@workspace:src/packages/domain"
   dependencies:
+    "@trackalize/cross-cutting": "workspace:*"
     tsup: "npm:^8.2.3"
     typescript: "npm:^5.8.3"
     zod: "npm:^3.24.2"

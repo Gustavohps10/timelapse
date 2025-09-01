@@ -1,3 +1,4 @@
+import { AppError, Either } from '@trackalize/cross-cutting/helpers'
 import { randomUUID } from 'crypto'
 
 import { Entity } from '@/entities/Entity'
@@ -75,10 +76,54 @@ export class Workspace extends Entity {
     this._updatedAt = value
   }
 
-  setDataSource(dataSource: string) {
+  isLinked(): boolean {
+    return this._dataSource !== 'local'
+  }
+
+  isConfigured(): boolean {
+    return this._dataSourceConfiguration !== undefined
+  }
+
+  isConnected(): boolean {
+    return this.isLinked() && this.isConfigured()
+  }
+
+  linkDataSource(dataSource: string): Either<AppError, void> {
+    if (dataSource === 'local') {
+      return Either.failure(
+        new AppError('Não é possível vincular o DataSource local'),
+      )
+    }
+
     this._dataSource = dataSource
     this._dataSourceConfiguration = undefined
     this.touch()
+    return Either.success(undefined)
+  }
+
+  unlinkDataSource(): Either<AppError, void> {
+    this._dataSource = 'local'
+    this._dataSourceConfiguration = undefined
+    this.touch()
+    return Either.success(undefined)
+  }
+
+  connectDataSource(config: Record<string, unknown>): Either<AppError, void> {
+    if (this._dataSource === 'local') {
+      return Either.failure(
+        new AppError('Não é possível conectar o DataSource local'),
+      )
+    }
+
+    this._dataSourceConfiguration = config
+    this.touch()
+    return Either.success(undefined)
+  }
+
+  disconnectDataSource(): Either<AppError, void> {
+    this._dataSourceConfiguration = undefined
+    this.touch()
+    return Either.success(undefined)
   }
 
   updateName(newName: string) {

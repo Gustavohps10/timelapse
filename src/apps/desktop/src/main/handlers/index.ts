@@ -1,4 +1,4 @@
-export * from './AuthHandler'
+export * from './ConnectionHandler'
 export * from './SessionHandler'
 export * from './TaskHandler'
 export * from './TimeEntriesHandler'

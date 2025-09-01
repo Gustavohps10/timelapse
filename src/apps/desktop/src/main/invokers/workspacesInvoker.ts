@@ -1,6 +1,7 @@
 import { FieldGroup } from '@trackalize/connector-sdk'
 import { IRequest } from '@trackalize/cross-cutting/transport'
 import {
+  AuthenticationViewModel,
   PaginatedViewModel,
   ViewModel,
   WorkspaceViewModel,
@@ -24,6 +25,48 @@ export const workspacesInvoker: IWorkspacesInvoker = {
       'WORKSPACES_GET_ALL',
     ),
 
-  getPluginFields: (): Promise<FieldGroup[]> =>
-    IpcInvoker.invoke<never, FieldGroup[]>('PLUGIN_GET_FIELDS'),
+  getDataSourceFields: (): Promise<{
+    credentials: FieldGroup[]
+    configuration: FieldGroup[]
+  }> =>
+    IpcInvoker.invoke<
+      never,
+      { credentials: FieldGroup[]; configuration: FieldGroup[] }
+    >('DATA_SOURCE_GET_FIELDS'),
+
+  linkDataSource: (
+    request: IRequest<{ workspaceId: string; dataSource: string }>,
+  ): Promise<ViewModel<WorkspaceViewModel>> =>
+    IpcInvoker.invoke<
+      IRequest<{ workspaceId: string; dataSource: string }>,
+      ViewModel<WorkspaceViewModel>
+    >('WORKSPACES_LINK_DATASOURCE', request),
+
+  unlinkDataSource: (
+    request: IRequest<{ workspaceId: string }>,
+  ): Promise<ViewModel<WorkspaceViewModel>> =>
+    IpcInvoker.invoke<
+      IRequest<{ workspaceId: string }>,
+      ViewModel<WorkspaceViewModel>
+    >('WORKSPACES_UNLINK_DATASOURCE', request),
+
+  connectDataSource: (
+    request: IRequest<{
+      workspaceId: string
+      credentials: Record<string, unknown>
+      configuration: Record<string, unknown>
+    }>,
+  ): Promise<ViewModel<AuthenticationViewModel>> =>
+    IpcInvoker.invoke<
+      IRequest<{ workspaceId: string; credentials: Record<string, unknown> }>,
+      ViewModel<AuthenticationViewModel>
+    >('WORKSPACES_CONNECT_DATASOURCE', request),
+
+  disconnectDataSource: (
+    request: IRequest<{ workspaceId: string }>,
+  ): Promise<ViewModel<WorkspaceViewModel>> =>
+    IpcInvoker.invoke<
+      IRequest<{ workspaceId: string }>,
+      ViewModel<WorkspaceViewModel>
+    >('WORKSPACES_DISCONNECT_DATASOURCE', request),
 }

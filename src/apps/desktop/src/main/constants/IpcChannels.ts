@@ -1,5 +1,4 @@
 export const IpcChannels = {
-  LOGIN: 'auth:login',
   TASKS_LIST: 'tasks:list',
 
   GET_TOKEN: 'token',
@@ -19,7 +18,12 @@ export const IpcChannels = {
   WORKSPACES_GET_CONFIG_FIELDS: 'workspaces:fields',
   WORKSPACES_GET_ALL: 'workspaces:getall',
 
-  PLUGIN_GET_FIELDS: 'plugin:get-fields',
+  WORKSPACES_LINK_DATASOURCE: 'workspaces:link-datasource',
+  WORKSPACES_UNLINK_DATASOURCE: 'workspaces:unlink-datasource',
+  WORKSPACES_CONNECT_DATASOURCE: 'workspaces:connect-datasource',
+  WORKSPACES_DISCONNECT_DATASOURCE: 'workspaces:disconnect-datasource',
+
+  DATA_SOURCE_GET_FIELDS: 'datasource:get-fields',
 } as const
 
 export type IpcChannelType = keyof typeof IpcChannels

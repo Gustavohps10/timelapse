@@ -67,7 +67,7 @@ export function NewWorkspaceDialog({
 
   const { mutate } = useMutation({
     mutationFn: (data: CreateWorkspaceFormData) =>
-      client.workspaces.create({ body: data }),
+      client.services.workspaces.create({ body: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspaces'] })
       toast.success('Workspace criado com sucesso.')

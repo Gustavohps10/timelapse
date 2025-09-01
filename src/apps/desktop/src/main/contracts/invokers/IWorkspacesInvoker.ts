@@ -1,21 +1,40 @@
 import { FieldGroup } from '@trackalize/connector-sdk'
 import { IRequest } from '@trackalize/cross-cutting/transport'
 import {
+  AuthenticationViewModel,
   PaginatedViewModel,
   ViewModel,
   WorkspaceViewModel,
 } from '@trackalize/presentation/view-models'
 
-export interface CreateWorkspaceRequest {
-  name: string
-  pluginId?: string
-  pluginConfig?: Record<string, unknown>
-}
-
 export interface IWorkspacesInvoker {
   create(
-    request: IRequest<CreateWorkspaceRequest>,
+    request: IRequest<{ name: string }>,
   ): Promise<ViewModel<WorkspaceViewModel>>
+
   listAll(): Promise<PaginatedViewModel<WorkspaceViewModel[]>>
-  getPluginFields(): Promise<FieldGroup[]>
+
+  getDataSourceFields(): Promise<{
+    credentials: FieldGroup[]
+    configuration: FieldGroup[]
+  }>
+
+  linkDataSource(
+    request: IRequest<{ workspaceId: string; dataSource: string }>,
+  ): Promise<ViewModel<WorkspaceViewModel>>
+
+  unlinkDataSource(
+    request: IRequest<{ workspaceId: string }>,
+  ): Promise<ViewModel<WorkspaceViewModel>>
+
+  connectDataSource(
+    request: IRequest<{
+      workspaceId: string
+      credentials: Record<string, unknown>
+    }>,
+  ): Promise<ViewModel<AuthenticationViewModel>>
+
+  disconnectDataSource(
+    request: IRequest<{ workspaceId: string }>,
+  ): Promise<ViewModel<WorkspaceViewModel>>
 }

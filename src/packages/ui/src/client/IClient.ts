@@ -33,10 +33,37 @@ export interface IWorkspacesClient {
 
   listAll(): Promise<PaginatedViewModel<WorkspaceViewModel[]>>
 
-  getPluginFields(): Promise<{
+  getDataSourceFields(): Promise<{
     credentials: FieldGroup[]
     configuration: FieldGroup[]
   }>
+
+  linkDataSource(
+    input: IRequest<{
+      workspaceId: string
+      dataSource: string
+    }>,
+  ): Promise<ViewModel<WorkspaceViewModel>>
+
+  unlinkDataSource(
+    input: IRequest<{
+      workspaceId: string
+    }>,
+  ): Promise<ViewModel<WorkspaceViewModel>>
+
+  connectDataSource(
+    input: IRequest<{
+      workspaceId: string
+      configuration: Record<string, unknown>
+      credentials: Record<string, unknown>
+    }>,
+  ): Promise<ViewModel<AuthenticationViewModel>>
+
+  disconnectDataSource(
+    input: IRequest<{
+      workspaceId: string
+    }>,
+  ): Promise<ViewModel<WorkspaceViewModel>>
 }
 
 export interface ISessionClient {
@@ -45,17 +72,6 @@ export interface ISessionClient {
       workspaceId: string
     }>,
   ): Promise<ViewModel<MemberViewModel>>
-}
-
-interface LoginRequest<AuthCredentials> {
-  workspaceId: string
-  credentials: AuthCredentials
-}
-
-export interface IAuthClient {
-  login: <T>(
-    payload: IRequest<LoginRequest<T>>,
-  ) => Promise<ViewModel<AuthenticationViewModel>>
 }
 
 export interface ITaskClient {
@@ -113,10 +129,9 @@ export interface IDiscordClient {
 }
 
 export interface IClient {
-  workspaces: IWorkspacesClient
   services: {
+    workspaces: IWorkspacesClient
     session: ISessionClient
-    auth: IAuthClient
     tasks: ITaskClient
     timeEntries: ITimeEntriesClient
   }
