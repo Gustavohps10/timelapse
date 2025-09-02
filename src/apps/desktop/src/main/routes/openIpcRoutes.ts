@@ -9,6 +9,7 @@ import {
   TimeEntriesHandler,
   TokenHandler,
 } from '@/main/handlers'
+import { AddonsHandler } from '@/main/handlers/AddonsHandler'
 import { WorkspacesHandler } from '@/main/handlers/WorkspacesHandler'
 import { createAuthMiddleware } from '@/main/middlewares/ensureAuthenticated'
 import { createInjectConnectorMiddleware } from '@/main/middlewares/injectConnector'
@@ -81,5 +82,22 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
     const timeEntriesHandler = serviceProvider.resolve<TimeEntriesHandler>('timeEntriesHandler')
     return timeEntriesHandler.listTimeEntries(event, req)
   })
+
+  IpcHandler.register('ADDONS_LIST', () => {
+    const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
+    return addonsHandler.list()
+  })
+
+  IpcHandler.register('ADDONS_GET_BY_ID', (event, req) => {
+    const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
+    return addonsHandler.getById(event, { body: { addonId: req.body.addonId } })
+  })
+
+  IpcHandler.register('ADDONS_UPDATE_LOCAL', (event, req) => {
+    const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
+    return addonsHandler.updateLocal(event, { body: req.body })
+  })
+
+
   /* eslint-enable prettier/prettier */
 }
