@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "@timelapse/desktop",
   "version": "1.0.0",
   "description": "Timelapse Desktop App.",
