@@ -15,6 +15,7 @@ import {
   TimeEntriesHandler,
   TokenHandler,
 } from '@/main/handlers'
+import { AddonsHandler } from '@/main/handlers/AddonsHandler'
 import { WorkspacesHandler } from '@/main/handlers/WorkspacesHandler'
 import { openIpcRoutes } from '@/main/routes/openIpcRoutes'
 
@@ -62,6 +63,7 @@ export type IHandlersScope = {
   timeEntriesHandler: typeof TimeEntriesHandler
   tokenHandler: typeof TokenHandler
   workspacesHandler: typeof WorkspacesHandler
+  addonsHandler: typeof AddonsHandler
 }
 
 const createSecondaryWindow = () => {
@@ -156,6 +158,7 @@ app.whenReady().then(async () => {
       timeEntriesHandler: TimeEntriesHandler,
       tokenHandler: TokenHandler,
       workspacesHandler: WorkspacesHandler,
+      addonsHandler: AddonsHandler,
     })
     .build()
 

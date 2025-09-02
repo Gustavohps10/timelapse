@@ -1,9 +1,9 @@
 AddonId: Timelapse_RedminePlugin
-Type: Generic
+Type: Data Source
 IconUrl: https://raw.githubusercontent.com/Gustavohps10/timelapse/main/src/packages/ui/src/assets/temp-plugins-icons/redmine.png
 Name: Redmine Plugin
 ShortDescription: Adds integration with Redmine, allowing task and issue tracking directly from the app.
-Author: Gustavo Henrique Pereira dos Santos
+Author: Gustavo Henrique
 SourceUrl: https://github.com/Gustavohps10/redmine-plugin
 Links:
     GitHub (Source code): https://github.com/Gustavohps10/redmine-plugin
