@@ -1,10 +1,10 @@
 import {
   ICredentialsStorage,
   IWorkspacesRepository,
-} from '@trackalize/application'
-import { IServiceProvider } from '@trackalize/container'
-import { IRequest } from '@trackalize/cross-cutting/transport'
-import RedmineConnector from '@trackalize/redmine-plugin'
+} from '@timelapse/application'
+import { IServiceProvider } from '@timelapse/container'
+import { IRequest } from '@timelapse/cross-cutting/transport'
+import RedmineConnector from '@timelapse/redmine-plugin'
 import { IpcMainInvokeEvent } from 'electron'
 
 export function createInjectConnectorMiddleware(
@@ -26,7 +26,7 @@ export function createInjectConnectorMiddleware(
     const workspace = await workspacesRepository.findById(workspaceId)
 
     const credentialsSerialized = await credentialsStorage.getToken(
-      'trackalize',
+      'timelapse',
       `workspace-session-${workspace!.id}`,
     )
 

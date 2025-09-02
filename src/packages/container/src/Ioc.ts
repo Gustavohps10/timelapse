@@ -18,10 +18,10 @@ import {
   ListWorkspacesService,
   SessionManager,
   UnlinkDataSourceService,
-} from '@trackalize/application'
-import { JwtService } from '@trackalize/infra/auth'
-import { HttpClient } from '@trackalize/infra/http'
-import { UnitOfWork } from '@trackalize/infra/workflow'
+} from '@timelapse/application'
+import { JwtService } from '@timelapse/infra/auth'
+import { HttpClient } from '@timelapse/infra/http'
+import { UnitOfWork } from '@timelapse/infra/workflow'
 import {
   asClass,
   asValue,

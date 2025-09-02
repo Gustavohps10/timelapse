@@ -1,11 +1,8 @@
-import { IGetCurrentUserUseCase } from '@trackalize/application'
-import { MemberDTO } from '@trackalize/application'
-import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-import { IRequest } from '@trackalize/cross-cutting/transport'
-import {
-  MemberViewModel,
-  ViewModel,
-} from '@trackalize/presentation/view-models'
+import { IGetCurrentUserUseCase } from '@timelapse/application'
+import { MemberDTO } from '@timelapse/application'
+import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import { IRequest } from '@timelapse/cross-cutting/transport'
+import { MemberViewModel, ViewModel } from '@timelapse/presentation/view-models'
 
 export class SessionHandler {
   constructor(private readonly getCurrentUserService: IGetCurrentUserUseCase) {}

@@ -1,5 +1,5 @@
-import { IRequest } from '@trackalize/cross-cutting/transport'
-import { ViewModel } from '@trackalize/presentation/view-models'
+import { IRequest } from '@timelapse/cross-cutting/transport'
+import { ViewModel } from '@timelapse/presentation/view-models'
 
 import { IpcInvoker } from '@/main/adapters/IpcInvoker'
 import { ITokenStorageInvoker } from '@/main/contracts/invokers'

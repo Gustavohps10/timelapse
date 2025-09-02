@@ -1,4 +1,4 @@
-import { Entity } from '@trackalize/domain'
+import { Entity } from '@timelapse/domain'
 
 import { IQueryBase } from '@/contracts/data'
 import { IRepositoryBase } from '@/contracts/data'

@@ -1,11 +1,11 @@
-import { FieldGroup } from '@trackalize/connector-sdk'
-import { IRequest } from '@trackalize/cross-cutting/transport'
+import { FieldGroup } from '@timelapse/connector-sdk'
+import { IRequest } from '@timelapse/cross-cutting/transport'
 import {
   AuthenticationViewModel,
   PaginatedViewModel,
   ViewModel,
   WorkspaceViewModel,
-} from '@trackalize/presentation/view-models'
+} from '@timelapse/presentation/view-models'
 
 export interface IWorkspacesInvoker {
   create(

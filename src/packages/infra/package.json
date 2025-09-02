@@ -1,8 +1,8 @@
 {
-  "name": "@trackalize/infra",
+  "name": "@timelapse/infra",
   "version": "1.0.0",
   "private": true,
-  "description": "Pacote de infraestrutura consolidado para o Trackalize, contendo implementações concretas de recursos externos",
+  "description": "Pacote de infraestrutura consolidado para o Timelapse, contendo implementações concretas de recursos externos",
   "type": "module",
   "scripts": {
     "build": "tsup --format esm,cjs --dts",
@@ -35,9 +35,9 @@
     }
   },
   "dependencies": {
-    "@trackalize/application": "workspace:*",
-    "@trackalize/cross-cutting": "workspace:*",
-    "@trackalize/domain": "workspace:*",
+    "@timelapse/application": "workspace:*",
+    "@timelapse/cross-cutting": "workspace:*",
+    "@timelapse/domain": "workspace:*",
     "axios": "^1.7.9",
     "jsonwebtoken": "^9.0.2",
     "keytar": "^7.9.0"

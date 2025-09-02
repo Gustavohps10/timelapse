@@ -4,7 +4,7 @@ import {
   ITaskQuery,
   ITaskRepository,
   ITimeEntryQuery,
-} from '@trackalize/application'
+} from '@timelapse/application'
 
 export interface ConfigField {
   id: string

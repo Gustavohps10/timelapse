@@ -1,8 +1,8 @@
 {
-  "name": "@trackalize/redmine-plugin",
+  "name": "@timelapse/redmine-plugin",
   "version": "1.0.0",
   "private": true,
-  "description": "Conector oficial do Trackalize para integração com o Redmine.",
+  "description": "Conector oficial do Timelapse para integração com o Redmine.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,7 +17,7 @@
     "clean": "rimraf dist .turbo"
   },
   "dependencies": {
-    "@trackalize/connector-sdk": "workspace:*",
+    "@timelapse/connector-sdk": "workspace:*",
     "axios": "^1.7.9"
   },
   "devDependencies": {

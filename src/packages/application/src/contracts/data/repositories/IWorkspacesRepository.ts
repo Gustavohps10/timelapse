@@ -1,4 +1,4 @@
-import { Workspace } from '@trackalize/domain'
+import { Workspace } from '@timelapse/domain'
 
 import { IRepositoryBase } from '@/contracts/data/repositories'
 

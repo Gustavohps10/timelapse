@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const login = useCallback(
     async (user: User, token: string) => {
       await client.modules.tokenStorage.saveToken({
-        body: { service: 'trackalize', account: `jwt-${workspaceId}`, token },
+        body: { service: 'timelapse', account: `jwt-${workspaceId}`, token },
       })
       client.modules.headers.setDefaultHeaders({
         authorization: `Bearer ${token}`,
@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
   const logout = useCallback(async () => {
     await client.modules.tokenStorage.deleteToken({
-      body: { service: 'trackalize', account: `jwt-${workspaceId}` },
+      body: { service: 'timelapse', account: `jwt-${workspaceId}` },
     })
     setIsAuthenticated(false)
     setUser(null)
@@ -67,7 +67,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       console.log(workspaceId + 'AUTO LOGIN')
       try {
         const res = await client.modules.tokenStorage.getToken({
-          body: { service: 'trackalize', account: `jwt-${workspaceId}` },
+          body: { service: 'timelapse', account: `jwt-${workspaceId}` },
         })
 
         if (!res.isSuccess || !res.data) {

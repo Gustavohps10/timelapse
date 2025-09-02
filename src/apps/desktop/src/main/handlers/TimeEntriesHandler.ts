@@ -1,11 +1,11 @@
-import { IListTimeEntriesUseCase } from '@trackalize/application'
-import { TimeEntryDTO } from '@trackalize/application'
-import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-import { IRequest } from '@trackalize/cross-cutting/transport'
+import { IListTimeEntriesUseCase } from '@timelapse/application'
+import { TimeEntryDTO } from '@timelapse/application'
+import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import { IRequest } from '@timelapse/cross-cutting/transport'
 import {
   PaginatedViewModel,
   TimeEntryViewModel,
-} from '@trackalize/presentation/view-models'
+} from '@timelapse/presentation/view-models'
 
 export interface ListTimeEntriesRequest {
   memberId: string

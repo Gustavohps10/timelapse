@@ -1,8 +1,8 @@
 {
-  "name": "@trackalize/presentation",
+  "name": "@timelapse/presentation",
   "version": "1.0.0",
   "private": true,
-  "description": "Contém os serviços e casos de uso (use cases) da aplicação Trackalize.",
+  "description": "Contém os serviços e casos de uso (use cases) da aplicação Timelapse.",
   "type": "module",
   "exports": {
     "./view-models": {

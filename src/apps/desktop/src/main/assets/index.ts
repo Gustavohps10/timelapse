@@ -1,4 +1,4 @@
-import logoTrackalize from './logo-trackalize.png'
+import logoTimelapse from './logo-timelapse.png'
 import timerIcon from './timer-icon.png'
 
-export { logoTrackalize, timerIcon }
+export { logoTimelapse, timerIcon }

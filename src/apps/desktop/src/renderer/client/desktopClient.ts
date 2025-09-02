@@ -1,4 +1,4 @@
-import { IClient } from '@trackalize/ui'
+import { IClient } from '@timelapse/ui'
 
 export const desktopClient: IClient = {
   services: window.api.services,

@@ -96,7 +96,7 @@ export function AppSidebar({ content, footer }: AppSidebarProps) {
             />
             <div className="flex flex-col">
               <h1 className="scroll-m-20 text-sm font-bold tracking-tighter">
-                Trackalize
+                Timelapse
               </h1>
               <h2 className="text-muted-foreground font scroll-m-20 text-sm leading-none tracking-tight">
                 Manager

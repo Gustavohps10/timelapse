@@ -1,4 +1,4 @@
-import { ViewModel } from '@trackalize/presentation/view-models'
+import { ViewModel } from '@timelapse/presentation/view-models'
 import axios from 'axios'
 import { BrowserWindow } from 'electron'
 import http from 'http'

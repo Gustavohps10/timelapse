@@ -1,10 +1,10 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { ContainerBuilder, PlatformDependencies } from '@trackalize/container'
+import { ContainerBuilder, PlatformDependencies } from '@timelapse/container'
 import {
   JSONWorkspacesQuery,
   JSONWorkspacesRepository,
-} from '@trackalize/infra/data'
-import { KeytarTokenStorage } from '@trackalize/infra/storage'
+} from '@timelapse/infra/data'
+import { KeytarTokenStorage } from '@timelapse/infra/storage'
 import { app, BrowserWindow, Menu, screen, shell, Tray } from 'electron'
 import { join } from 'path'
 
@@ -124,7 +124,7 @@ const createTray = () => {
       { label: 'Sair', role: 'quit' },
     ])
 
-  tray.setToolTip('Trackalize')
+  tray.setToolTip('Timelapse')
 
   tray.on('click', () => {
     const menu = buildContextMenu()

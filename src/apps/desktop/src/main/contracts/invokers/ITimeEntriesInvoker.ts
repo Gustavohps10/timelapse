@@ -1,8 +1,8 @@
-import { IRequest } from '@trackalize/cross-cutting/transport'
+import { IRequest } from '@timelapse/cross-cutting/transport'
 import {
   PaginatedViewModel,
   TimeEntryViewModel,
-} from '@trackalize/presentation/view-models'
+} from '@timelapse/presentation/view-models'
 
 export interface ITimeEntriesInvoker {
   findByMemberId: (

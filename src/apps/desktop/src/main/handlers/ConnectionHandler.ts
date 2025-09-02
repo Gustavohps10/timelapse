@@ -1,12 +1,12 @@
 import {
   IConnectDataSourceUseCase,
   IDisconnectDataSourceUseCase,
-} from '@trackalize/application'
-import { IRequest } from '@trackalize/cross-cutting/transport'
+} from '@timelapse/application'
+import { IRequest } from '@timelapse/cross-cutting/transport'
 import {
   AuthenticationViewModel,
   ViewModel,
-} from '@trackalize/presentation/view-models'
+} from '@timelapse/presentation/view-models'
 import { IpcMainInvokeEvent } from 'electron'
 
 export interface ConnectDataSourceRequest {

@@ -6,8 +6,8 @@ import {
   TimeEntries,
   TimerWidget,
   WorkspaceSettings,
-} from '@trackalize/ui'
-import { HomeLayout, WorkspaceLayout } from '@trackalize/ui'
+} from '@timelapse/ui'
+import { HomeLayout, WorkspaceLayout } from '@timelapse/ui'
 import { createHashRouter } from 'react-router-dom'
 
 export const router = createHashRouter([

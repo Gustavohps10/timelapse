@@ -3,7 +3,7 @@ import {
   PagedResultDTO,
   PaginationOptionsDTO,
   TimeEntryDTO,
-} from '@trackalize/connector-sdk'
+} from '@timelapse/connector-sdk'
 
 import { RedmineBase } from './RedmineBase'
 

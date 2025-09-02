@@ -1,5 +1,5 @@
-import { IServiceProvider } from '@trackalize/container'
-import RedmineConnector from '@trackalize/redmine-plugin'
+import { IServiceProvider } from '@timelapse/container'
+import RedmineConnector from '@timelapse/redmine-plugin'
 
 import { IpcHandler } from '@/main/adapters/IpcHandler'
 import { handleDiscordLogin } from '@/main/auth/discord-handler'

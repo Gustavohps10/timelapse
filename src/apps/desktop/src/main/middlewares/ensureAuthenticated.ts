@@ -1,8 +1,8 @@
-import { IJWTService, ISessionManager } from '@trackalize/application'
-import { IServiceProvider } from '@trackalize/container'
-import { Either } from '@trackalize/cross-cutting/helpers'
-import { IRequest } from '@trackalize/cross-cutting/transport'
-import { ViewModel } from '@trackalize/presentation/view-models'
+import { IJWTService, ISessionManager } from '@timelapse/application'
+import { IServiceProvider } from '@timelapse/container'
+import { Either } from '@timelapse/cross-cutting/helpers'
+import { IRequest } from '@timelapse/cross-cutting/transport'
+import { ViewModel } from '@timelapse/presentation/view-models'
 
 type NextFunction<TRes> = () => Promise<Either<any, TRes>>
 

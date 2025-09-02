@@ -13,8 +13,8 @@ export type {
   TaskDTO,
   TimeEntryDTO,
   WorkspaceDTO,
-} from '@trackalize/application'
-export { AppError, Either } from '@trackalize/cross-cutting/helpers'
-export type { IHeaders, IRequest } from '@trackalize/cross-cutting/transport'
-export { Member, Task, TimeEntry, Workspace } from '@trackalize/domain'
-export * from '@trackalize/presentation/view-models'
+} from '@timelapse/application'
+export { AppError, Either } from '@timelapse/cross-cutting/helpers'
+export type { IHeaders, IRequest } from '@timelapse/cross-cutting/transport'
+export { Member, Task, TimeEntry, Workspace } from '@timelapse/domain'
+export * from '@timelapse/presentation/view-models'

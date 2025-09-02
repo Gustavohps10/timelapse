@@ -1,4 +1,4 @@
-import { Entity } from '@trackalize/domain'
+import { Entity } from '@timelapse/domain'
 
 export interface IRepositoryBase<T extends Entity> {
   create(entity: T): Promise<void>

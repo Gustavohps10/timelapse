@@ -1,4 +1,4 @@
-import { IHeaders, IRequest } from '@trackalize/cross-cutting/transport'
+import { IHeaders, IRequest } from '@timelapse/cross-cutting/transport'
 import {
   AuthenticationViewModel,
   MemberViewModel,
@@ -7,7 +7,7 @@ import {
   TimeEntryViewModel,
   ViewModel,
   WorkspaceViewModel,
-} from '@trackalize/presentation/view-models'
+} from '@timelapse/presentation/view-models'
 
 export interface ConfigField {
   id: string
