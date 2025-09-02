@@ -25,6 +25,10 @@ export const IpcChannels = {
   WORKSPACES_DISCONNECT_DATASOURCE: 'workspaces:disconnect-datasource',
 
   DATA_SOURCE_GET_FIELDS: 'datasource:get-fields',
+
+  ADDONS_LIST: 'addons:list',
+  ADDONS_GET_BY_ID: 'addons:get-by-id',
+  ADDONS_UPDATE_LOCAL: 'addons:update-local',
 } as const
 
 export type IpcChannelType = keyof typeof IpcChannels
