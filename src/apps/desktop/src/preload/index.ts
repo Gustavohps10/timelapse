@@ -10,6 +10,7 @@ import {
   tokenStorageInvoker,
   workspacesInvoker,
 } from '@/main/invokers'
+import { addonsInvoker } from '@/main/invokers/addonsInvoker'
 
 const api: IWindowAPIInvoker = {
   services: {
@@ -24,6 +25,7 @@ const api: IWindowAPIInvoker = {
   },
   integrations: {
     discord: discordInvoker,
+    addons: addonsInvoker,
   },
 }
 
