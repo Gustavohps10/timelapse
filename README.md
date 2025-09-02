@@ -37,10 +37,10 @@ Utilize o Visual Studio Code ou outra IDE com compatibilidade com os plugins:
 - [X] Iniciar SDK para astrai e possibilitar criação de difetentes fontes de dados / plugins
 - [X] Separar plugin do Redmine e campos que serão utilizados para autenticação 
 - [X] Iniciar fluxo inicial de criação de Workspaces (Selecionar um plugin (por enquanto fixo hard-coded o plugin do Redmine), configurar URLs, entre outras configs daquele espaço de trabalho)
-- [ ] Em Progresso ⏳; Iniciar fluxo de envio de credenciais dinamicas para o redmine e armazenamento seguro de informacoes com Keytar
-- [ ] Versionamento com Changesets
-- [ ] Separar plugin do Redmine em outro Repositório e publicar no NPM
-- [ ] Fazer Download e Injetar plugins dinamicamente em tempo de execução com Container De Ioc
+- [X]  Iniciar fluxo de envio de credenciais dinamicas para o redmine e armazenamento seguro de informacoes com Keytar
+- [X] Versionamento com Changesets
+- [X] Separar plugin do Redmine em outro Repositório e publicar no NPM
+- [ ] Em Progresso ⏳;Fazer Download e Injetar plugins dinamicamente em tempo de execução com Container De Ioc
 - [ ] Integrar com RxDB para funcionar local first e offline first
 - [ ] Estudar possibilidades para fazer menu de busca de plugins semelhante a Extensões do VS Code
 
