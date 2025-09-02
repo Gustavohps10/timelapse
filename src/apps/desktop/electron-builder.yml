@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: trackalize
+productName: timelapse
 directories:
   buildResources: build
 files:
@@ -12,11 +12,11 @@ files:
 asarUnpack:
   - resources/**
 protocols:
-  name: Trackalize Auth Protocol
+  name: Timelapse Auth Protocol
   schemes:
-    - trackalize
+    - timelapse
 win:
-  executableName: trackalize
+  executableName: timelapse
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

@@ -1,8 +1,8 @@
 {
-  "name": "@trackalize/container",
+  "name": "@timelapse/container",
   "version": "1.0.0",
   "private": true,
-  "description": "Construtor de container de Injeção de Dependência para o ecossistema Trackalize.",
+  "description": "Construtor de container de Injeção de Dependência para o ecossistema Timelapse.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,8 +17,8 @@
     "clean": "rimraf dist .turbo"
   },
   "dependencies": {
-    "@trackalize/application": "workspace:*",
-    "@trackalize/infra": "workspace:*",
+    "@timelapse/application": "workspace:*",
+    "@timelapse/infra": "workspace:*",
     "awilix": "^12.0.5"
   }
 }

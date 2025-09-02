@@ -1,9 +1,10 @@
 {
-  "name": "trackalize-monorepo",
+  "name": "timelapse-monorepo",
   "private": true,
   "version": "1.0.0",
   "author": "Gustavo Henrique",
   "type": "module",
+  "changeset": "changeset",
   "lint-staged": {
     "*.{ts,tsx}": [
       "eslint --ext .ts,.tsx --ignore-pattern '**/*.d.ts' --ignore-pattern 'node_modules' --ignore-pattern 'dist' --ignore-pattern 'out'"
@@ -14,11 +15,11 @@
     "src/packages/*"
   ],
   "scripts": {
-    "dev:desktop": "turbo run dev --parallel --filter=@trackalize/desktop",
+    "dev:desktop": "turbo run dev --parallel --filter=@timelapse/desktop",
     "build": "turbo build",
     "dev": "turbo run dev --parallel",
-    "lint": "turbo lint",
-    "lint:fix": "turbo lint -- --fix",
+    "lint": "eslint --ext .ts,.tsx --ignore-pattern '**/*.d.ts' --ignore-pattern 'node_modules' --ignore-pattern 'dist' --ignore-pattern 'out'",
+    "lint:fix": "eslint --ext .ts,.tsx --ignore-pattern '**/*.d.ts' --ignore-pattern 'node_modules' --ignore-pattern 'dist' --ignore-pattern 'out' --fix",
     "clean": "turbo run clean",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "prepare": "husky install",
@@ -26,6 +27,7 @@
     "shadcn": "yarn --cwd src/packages/ui dlx shadcn@canary "
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.6",
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
     "@eslint/js": "^9.25.0",
@@ -33,6 +35,7 @@
     "@swc/helpers": "^0.5.17",
     "@typescript-eslint/eslint-plugin": "^8.30.1",
     "@typescript-eslint/parser": "^8.30.1",
+    "changeset": "^0.2.6",
     "eslint": "^9.25.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-import": "^2.31.0",

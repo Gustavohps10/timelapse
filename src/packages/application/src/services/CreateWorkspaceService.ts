@@ -1,5 +1,5 @@
-import { AppError, Either } from '@trackalize/cross-cutting/helpers'
-import { Workspace } from '@trackalize/domain'
+import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import { Workspace } from '@timelapse/domain'
 
 import {
   CreateWorkspaceInput,

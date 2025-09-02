@@ -11,7 +11,11 @@
       "dependsOn": ["^build"]
     },
     "lint": {
-      "dependsOn": ["^build"]
+      "outputs": []
+    },
+    "lint:fix": {
+      "cache": false,
+      "outputs": []
     },
     "dev": {
       "dependsOn": ["^dev"],

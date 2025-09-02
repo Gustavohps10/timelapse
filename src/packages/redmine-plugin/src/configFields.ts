@@ -1,4 +1,4 @@
-import { FieldGroup } from '@trackalize/connector-sdk'
+import { FieldGroup } from '@timelapse/connector-sdk'
 
 export const credentialFieldGroups: FieldGroup[] = [
   {

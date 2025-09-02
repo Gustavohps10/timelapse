@@ -1,4 +1,4 @@
-import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { AppError, Either } from '@timelapse/cross-cutting/helpers'
 
 import {
   ConnectDataSourceInput,
@@ -45,7 +45,7 @@ export class ConnectDataSourceService implements IConnectDataSourceUseCase {
 
     try {
       await this.credentialsStorage.saveToken(
-        'trackalize',
+        'timelapse',
         storageKey,
         serializedCredentials,
       )
@@ -66,7 +66,7 @@ export class ConnectDataSourceService implements IConnectDataSourceUseCase {
 
       return Either.success<AuthenticationDTO>({ member, token })
     } catch (error) {
-      await this.credentialsStorage.deleteToken('trackalize', storageKey)
+      await this.credentialsStorage.deleteToken('timelapse', storageKey)
       const errorMessage =
         error instanceof Error
           ? error.message

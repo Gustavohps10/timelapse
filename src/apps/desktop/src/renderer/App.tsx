@@ -2,14 +2,13 @@ import '@/renderer/index.css'
 
 import { QueryClientProvider } from '@tanstack/react-query'
 import {
-  AuthProvider,
   ClientProvider,
   queryClient,
   SidebarProvider,
   ThemeProvider,
   TimeEntriesContextProvider,
   TooltipProvider,
-} from '@trackalize/ui'
+} from '@timelapse/ui'
 import { RouterProvider } from 'react-router-dom'
 
 import { desktopClient } from '@/renderer/client'
@@ -22,11 +21,9 @@ export function AppDesktop() {
         <TooltipProvider>
           <TimeEntriesContextProvider>
             <SidebarProvider>
-              <AuthProvider>
-                <QueryClientProvider client={queryClient}>
-                  <RouterProvider router={router} />
-                </QueryClientProvider>
-              </AuthProvider>
+              <QueryClientProvider client={queryClient}>
+                <RouterProvider router={router} />
+              </QueryClientProvider>
             </SidebarProvider>
           </TimeEntriesContextProvider>
         </TooltipProvider>

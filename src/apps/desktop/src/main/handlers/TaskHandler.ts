@@ -1,10 +1,10 @@
-import { IListTasksUseCase } from '@trackalize/application'
-import { TaskDTO } from '@trackalize/application'
-import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { IListTasksUseCase } from '@timelapse/application'
+import { TaskDTO } from '@timelapse/application'
+import { AppError, Either } from '@timelapse/cross-cutting/helpers'
 import {
   PaginatedViewModel,
   TaskViewModel,
-} from '@trackalize/presentation/view-models'
+} from '@timelapse/presentation/view-models'
 
 export class TaskHandler {
   constructor(private readonly listTasksService: IListTasksUseCase) {}

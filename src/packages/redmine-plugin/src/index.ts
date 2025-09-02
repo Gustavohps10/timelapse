@@ -1,4 +1,4 @@
-import { Context, IConnector } from '@trackalize/connector-sdk'
+import { Context, IConnector } from '@timelapse/connector-sdk'
 
 import { configurationFieldGroups, credentialFieldGroups } from '@/configFields'
 import { RedmineAuthenticationStrategy } from '@/RedmineAuthenticationStrategy'
@@ -8,7 +8,7 @@ import { RedmineTaskRepository } from '@/RedmineTaskRepository'
 import { RedmineTimeEntryQuery } from '@/RedmineTimeEntryQuery'
 
 const RedmineConnector: IConnector = {
-  id: '@trackalize/redmine-plugin',
+  id: '@timelapse/redmine-plugin',
   dataSourceType: 'redmine',
   displayName: 'Redmine (Oficial)',
   configFields: {

@@ -1,5 +1,5 @@
-import { IWorkspacesRepository } from '@trackalize/application'
-import { Workspace } from '@trackalize/domain'
+import { IWorkspacesRepository } from '@timelapse/application'
+import { Workspace } from '@timelapse/domain'
 import { promises as fs } from 'fs'
 import path from 'path'
 

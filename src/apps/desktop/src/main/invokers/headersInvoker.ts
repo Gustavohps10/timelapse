@@ -1,4 +1,4 @@
-import { IHeaders } from '@trackalize/cross-cutting/transport'
+import { IHeaders } from '@timelapse/cross-cutting/transport'
 
 import { IpcInvoker } from '@/main/adapters/IpcInvoker'
 import { IHeadersInvoker } from '@/main/contracts/invokers'

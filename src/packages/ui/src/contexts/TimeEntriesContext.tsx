@@ -50,7 +50,7 @@ export function TimeEntriesContextProvider({
     },
     (initialState) => {
       const storageStateAsJSON = localStorage.getItem(
-        '@trackalize:time-entries-state-1.0.0',
+        '@timelapse:time-entries-state-1.0.0',
       )
 
       if (storageStateAsJSON) {
@@ -78,7 +78,7 @@ export function TimeEntriesContextProvider({
 
   useEffect(() => {
     const stateJSON = JSON.stringify(TimeEntriesState)
-    localStorage.setItem('@trackalize:time-entries-state-1.0.0', stateJSON)
+    localStorage.setItem('@timelapse:time-entries-state-1.0.0', stateJSON)
   }, [TimeEntriesState])
 
   function setSecondsPassed(seconds: number) {

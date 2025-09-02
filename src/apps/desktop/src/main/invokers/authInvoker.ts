@@ -1,8 +1,8 @@
-import { IRequest } from '@trackalize/cross-cutting/transport'
+import { IRequest } from '@timelapse/cross-cutting/transport'
 import {
   AuthenticationViewModel,
   ViewModel,
-} from '@trackalize/presentation/view-models'
+} from '@timelapse/presentation/view-models'
 
 import { IpcInvoker } from '@/main/adapters/IpcInvoker'
 import { IAuthenticationInvoker } from '@/main/contracts/invokers'

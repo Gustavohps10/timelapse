@@ -1,4 +1,4 @@
-import { ITaskRepository, Task } from '@trackalize/connector-sdk'
+import { ITaskRepository, Task } from '@timelapse/connector-sdk'
 
 export class RedmineTaskRepository implements ITaskRepository {
   create(entity: Task): Promise<void> {

@@ -1,4 +1,4 @@
-import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { AppError, Either } from '@timelapse/cross-cutting/helpers'
 
 import { PagedResultDTO, WorkspaceDTO } from '@/dtos'
 

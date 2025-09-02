@@ -1,9 +1,9 @@
-import { IUnitOfWork, IWorkspacesRepository } from '@trackalize/application'
+import { IUnitOfWork, IWorkspacesRepository } from '@timelapse/application'
 import {
   IMemberQuery,
   ITaskQuery,
   ITimeEntryQuery,
-} from '@trackalize/application'
+} from '@timelapse/application'
 
 export class UnitOfWork implements IUnitOfWork {
   public inTransaction: boolean = false

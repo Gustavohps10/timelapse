@@ -1,4 +1,4 @@
-import { IJWTService, Payload } from '@trackalize/application'
+import { IJWTService, Payload } from '@timelapse/application'
 import jwt from 'jsonwebtoken'
 
 export class JwtService implements IJWTService {

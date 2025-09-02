@@ -4,12 +4,12 @@ import {
   ILinkDataSourceUseCase,
   IListWorkspacesUseCase,
   IUnlinkDataSourceUseCase,
-} from '@trackalize/application'
-import { IRequest } from '@trackalize/cross-cutting/transport'
+} from '@timelapse/application'
+import { IRequest } from '@timelapse/cross-cutting/transport'
 import {
   ViewModel,
   WorkspaceViewModel,
-} from '@trackalize/presentation/view-models'
+} from '@timelapse/presentation/view-models'
 import { IpcMainInvokeEvent } from 'electron'
 
 export interface CreateWorkspaceRequest {

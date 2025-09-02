@@ -1,4 +1,4 @@
-import { AppError, Either } from '@trackalize/cross-cutting/helpers'
+import { AppError, Either } from '@timelapse/cross-cutting/helpers'
 
 import { IWorkspacesQuery } from '@/contracts/data/queries'
 import { IListWorkspacesUseCase } from '@/contracts/use-cases/IListWorkspacesUseCase'

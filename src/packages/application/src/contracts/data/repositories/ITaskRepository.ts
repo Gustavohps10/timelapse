@@ -1,4 +1,4 @@
-import { Task } from '@trackalize/domain'
+import { Task } from '@timelapse/domain'
 
 import { IRepositoryBase } from '@/contracts/data'
 

@@ -1,8 +1,8 @@
 {
-  "name": "@trackalize/connector-sdk",
+  "name": "@timelapse/connector-sdk",
   "version": "1.0.0",
   "private": true,
-  "description": "Define os contratos e interfaces (SDK) para a criação de conectores no ecossistema trackalize.",
+  "description": "Define os contratos e interfaces (SDK) para a criação de conectores no ecossistema timelapse.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -16,13 +16,11 @@
     "build": "tsup --format esm,cjs --dts",
     "clean": "rimraf dist .turbo"
   },
-  "dependencies": {
-    "@trackalize/application": "workspace:*",
-    "@trackalize/cross-cutting": "workspace:*",
-    "@trackalize/domain": "workspace:*",
-    "@trackalize/presentation": "workspace:*"
-  },
   "devDependencies": {
+    "@timelapse/application": "workspace:*",
+    "@timelapse/cross-cutting": "workspace:*",
+    "@timelapse/domain": "workspace:*",
+    "@timelapse/presentation": "workspace:*",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
   }

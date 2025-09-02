@@ -9,7 +9,7 @@ const uiSubpaths = readdirSync(resolve(__dirname, '../../packages/ui/src'), {
   withFileTypes: true,
 })
   .filter((dirent) => dirent.isDirectory())
-  .map((dirent) => `@trackalize/ui/${dirent.name}`)
+  .map((dirent) => `@timelapse/ui/${dirent.name}`)
 
 export default defineConfig({
   main: {
@@ -47,7 +47,7 @@ export default defineConfig({
       dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom'],
     },
     optimizeDeps: {
-      exclude: ['@trackalize/ui', ...uiSubpaths],
+      exclude: ['@timelapse/ui', ...uiSubpaths],
     },
     plugins: [react(), tailwindcss(), image()],
     build: {

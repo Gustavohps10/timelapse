@@ -3,7 +3,7 @@ import {
   PagedResultDTO,
   PaginationOptionsDTO,
   WorkspaceDTO,
-} from '@trackalize/application'
+} from '@timelapse/application'
 import { promises as fs } from 'fs'
 import path from 'path'
 
