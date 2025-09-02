@@ -3018,7 +3018,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@timelapse/connector-sdk@workspace:*, @timelapse/connector-sdk@workspace:src/packages/connector-sdk":
+"@timelapse/connector-sdk@npm:^2.0.0, @timelapse/connector-sdk@workspace:src/packages/connector-sdk":
   version: 0.0.0-use.local
   resolution: "@timelapse/connector-sdk@workspace:src/packages/connector-sdk"
   dependencies:
@@ -3064,7 +3064,7 @@ __metadata:
     "@timelapse/cross-cutting": "workspace:*"
     "@timelapse/infra": "workspace:*"
     "@timelapse/presentation": "workspace:*"
-    "@timelapse/redmine-plugin": "workspace:*"
+    "@timelapse/redmine-plugin": "npm:^1.0.0"
     "@timelapse/ui": "workspace:*"
     "@types/node": "npm:^20.17.18"
     "@types/react": "npm:^19.1.0"
@@ -3118,16 +3118,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@timelapse/redmine-plugin@workspace:*, @timelapse/redmine-plugin@workspace:src/packages/redmine-plugin":
-  version: 0.0.0-use.local
-  resolution: "@timelapse/redmine-plugin@workspace:src/packages/redmine-plugin"
+"@timelapse/redmine-plugin@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@timelapse/redmine-plugin@npm:1.0.0"
   dependencies:
-    "@timelapse/connector-sdk": "workspace:*"
+    "@timelapse/connector-sdk": "npm:^2.0.0"
     axios: "npm:^1.7.9"
-    tsup: "npm:^8.5.0"
-    typescript: "npm:^5.8.3"
-  languageName: unknown
-  linkType: soft
+  checksum: 10c0/73b2bb200255f46ee293498663561b32c0d24d9e8a7aeb0f922c5587ff3b95edc951da223c520f80dad15f6baaae3e85a7acb1cc052279a3cae3486ec0540736
+  languageName: node
+  linkType: hard
 
 "@timelapse/ui@workspace:*, @timelapse/ui@workspace:src/packages/ui":
   version: 0.0.0-use.local
