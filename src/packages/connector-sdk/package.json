@@ -1,7 +1,7 @@
 {
   "name": "@timelapse/connector-sdk",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "description": "Define os contratos e interfaces (SDK) para a criação de conectores no ecossistema timelapse.",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,6 +11,12 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsup --format esm,cjs --dts",
