@@ -1,0 +1,14 @@
+AddonId: Timelapse_RedminePlugin
+Type: Generic
+IconUrl: https://raw.githubusercontent.com/Gustavohps10/timelapse/main/src/packages/ui/src/assets/temp-plugins-icons/redmine.png
+Name: Redmine Plugin
+ShortDescription: Adds integration with Redmine, allowing task and issue tracking directly from the app.
+Author: Gustavo Henrique Pereira dos Santos
+SourceUrl: https://github.com/Gustavohps10/redmine-plugin
+Links:
+    GitHub (Source code): https://github.com/Gustavohps10/redmine-plugin
+    Wiki (Introduction and Help): https://github.com/Gustavohps10/redmine-plugin/wiki
+    Issues (Feature requests and Bugs): https://github.com/Gustavohps10/redmine-plugin/issues
+InstallerManifestUrl: https://raw.githubusercontent.com/Gustavohps10/redmine-plugin/main/Manifests/PackageInstaller/Timelapse_RedminePlugin.yaml
+Description: This plugin integrates Redmine with the app, allowing users to manage tasks, track issues, and streamline project management from within the interface.
+Tags: ["Redmine", "Plugin", "Timelapse", "Integration", "Tasks", "Issues", "ProjectManagement"]
