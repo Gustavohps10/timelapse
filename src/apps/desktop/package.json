@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@timelapse/desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Timelapse Desktop App.",
   "main": "./out/main/index.js",
   "type": "module",
@@ -21,7 +21,7 @@
     "@timelapse/cross-cutting": "workspace:*",
     "@timelapse/infra": "workspace:*",
     "@timelapse/presentation": "workspace:*",
-    "@timelapse/redmine-plugin": "workspace:*",
+    "@timelapse/redmine-plugin": "^1.0.0",
     "@timelapse/ui": "workspace:*",
     "electron-updater": "^6.1.7",
     "keytar": "^7.9.0",

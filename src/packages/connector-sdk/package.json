@@ -1,7 +1,6 @@
 {
   "name": "@timelapse/connector-sdk",
-  "version": "1.0.0",
-  "private": false,
+  "version": "2.0.0",
   "description": "Define os contratos e interfaces (SDK) para a criação de conectores no ecossistema timelapse.",
   "type": "module",
   "main": "./dist/index.js",
