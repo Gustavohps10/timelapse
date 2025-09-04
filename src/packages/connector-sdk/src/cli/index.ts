@@ -50,6 +50,7 @@ program
       defaultSourceUrl: configDefaults.SourceUrl || pkg.repository?.url || '',
       defaultIconUrl: configDefaults.IconUrl || '',
       defaultAddonId: configDefaults.AddonId || pkg.name,
+      defaultInstallerUrl: configDefaults.InstallerUrl || '',
     })
   })
 
