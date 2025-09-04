@@ -1,7 +1,7 @@
 # @timelapse/connector-sdk
 
-## 2.0.0
+## 1.2.0
 
-### Major Changes
+### Minor Changes
 
-- 391ab9c: Initial release
+- add new CLI to package addons
