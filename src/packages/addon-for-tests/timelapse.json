@@ -8,5 +8,6 @@
   "Tags": ["exemplo", "teste", "addon"],
   "SourceUrl": "https://github.com/meuusuario/meu-addon-exemplo",
   "IconUrl": "https://meusite.com/icon.png",
-  "downloadUrl": "https://meusite.com/meu-addon-exemplo.tladdon"
+  "DownloadUrl": "https://meusite.com/meu-addon-exemplo.tladdon",
+  "InstallerUrl": "https://meusite.com/meu-addon-exemplo-installer.yaml"
 }
