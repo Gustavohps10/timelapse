@@ -1,3 +1,4 @@
+export * from './AddonConfig'
 export { Context, FieldGroup, IConnector } from './Connector'
 export type {
   AuthenticationDTO,
