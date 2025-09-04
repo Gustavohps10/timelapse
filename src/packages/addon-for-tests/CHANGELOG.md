@@ -1,5 +1,12 @@
 # @timelapse/redmine-plugin
 
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @timelapse/connector-sdk@1.2.1
+
 ## 1.0.1
 
 ### Patch Changes
