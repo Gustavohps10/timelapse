@@ -11,3 +11,4 @@ Tags:
   - addon
 SourceUrl: https://github.com/meuusuario/meu-addon-exemplo
 IconUrl: https://meusite.com/icon.png
+InstallerUrl: https://meusite.com/meu-addon-exemplo-installer.yaml
