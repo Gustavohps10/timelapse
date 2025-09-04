@@ -72,6 +72,12 @@ export async function runManifestWizard(addonDir: string, options: any) {
       message: 'Icon URL (optional):',
       default: options.defaultIconUrl || '',
     },
+    {
+      type: 'input',
+      name: 'InstallerUrl',
+      message: 'Installer remote URL (optional):',
+      default: options.defaultInstallerUrl || '',
+    },
   ])
 
   const manifestPath = path.join(addonDir, 'manifest.yaml')
