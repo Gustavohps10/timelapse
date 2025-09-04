@@ -3256,7 +3256,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@timelapse/connector-sdk@npm:^2.0.0, @timelapse/connector-sdk@workspace:*, @timelapse/connector-sdk@workspace:src/packages/connector-sdk":
+"@timelapse/connector-sdk@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@timelapse/connector-sdk@npm:2.0.0"
+  checksum: 10c0/27c37fd02195e39df19f2cec609fa9f0e200b30b85c379688f8ca731fe7d62edef6246afb8e05c07c3756ac59a961e67a18e30e6242a4865a9b67fc0034cb4f7
+  languageName: node
+  linkType: hard
+
+"@timelapse/connector-sdk@workspace:*, @timelapse/connector-sdk@workspace:src/packages/connector-sdk":
   version: 0.0.0-use.local
   resolution: "@timelapse/connector-sdk@workspace:src/packages/connector-sdk"
   dependencies:

@@ -38,17 +38,6 @@ export function buildAddon(
   const outFile = sanitizeFileName(
     `${manifest.AddonId}-${manifest.Version}.tladdon`,
   )
-  const filesToInclude: string[] = []
-
-  fs.readdirSync(distDir).forEach((file) =>
-    filesToInclude.push(path.join(distDir, file)),
-  )
-  ;[manifestPath, installerPath, packageJsonPath].forEach((file) =>
-    fs.existsSync(file) ? filesToInclude.push(file) : null,
-  )
-
-  packageAddon(filesToInclude, outFile)
-  console.log(`📦 Addon packaged in: ${outFile}`)
 
   let installer: InstallerManifest = fs.existsSync(installerPath)
     ? (readYaml(installerPath) as InstallerManifest)
@@ -68,5 +57,21 @@ export function buildAddon(
   installer.Packages.unshift(newPackage)
 
   writeYaml(installerPath, installer)
+
+  const filesToInclude: string[] = []
+
+  fs.readdirSync(distDir).forEach((file) =>
+    filesToInclude.push(path.join(distDir, file)),
+  )
+  ;[manifestPath, installerPath, packageJsonPath].forEach((file) =>
+    fs.existsSync(file)
+      ? filesToInclude.push(file)
+      : () => {
+          throw new Error(`File not found: ${distDir}`)
+        },
+  )
+  packageAddon(filesToInclude, outFile)
+
+  console.log(`📦 Addon packaged in: ${outFile}`)
   console.log(`✅ Installer manifest updated: ${installerPath}`)
 }
