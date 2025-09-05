@@ -1,4 +1,3 @@
-import { FieldGroup } from '@timelapse/connector-sdk'
 import { IRequest } from '@timelapse/cross-cutting/transport'
 import {
   AuthenticationViewModel,
@@ -6,6 +5,7 @@ import {
   ViewModel,
   WorkspaceViewModel,
 } from '@timelapse/presentation/view-models'
+import { FieldGroup } from '@timelapse/sdk'
 
 export interface IWorkspacesInvoker {
   create(
