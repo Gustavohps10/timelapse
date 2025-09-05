@@ -5,6 +5,7 @@ import {
   DatabaseZapIcon,
   UnlinkIcon,
   UnplugIcon,
+  UploadIcon,
   UserCogIcon,
 } from 'lucide-react'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -14,6 +15,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { FieldGroup } from '@/client'
+import { FileUploadButton } from '@/components'
 import { DataSource, DataSourceList } from '@/components/plugins-list'
 import {
   AlertDialog,
@@ -235,6 +237,10 @@ export function WorkspaceSettings() {
     onError: (error) => toast.error(error.message),
   })
 
+  function handleDataSourceImport(files: FileList) {
+    console.log(files)
+  }
+
   if (isLoading) {
     return <div>Carregando workspace...</div>
   }
@@ -340,6 +346,16 @@ export function WorkspaceSettings() {
             {!workspace?.dataSource ||
               (workspace?.dataSource == 'local' && (
                 <>
+                  <FileUploadButton
+                    size="sm"
+                    accept=".tladdon"
+                    onFileSelect={(files) => {
+                      handleDataSourceImport(files)
+                    }}
+                  >
+                    <UploadIcon />
+                    Importar
+                  </FileUploadButton>
                   <DataSourceList
                     onSelectDataSource={(ds) => setDataSourceToLink(ds)}
                   />

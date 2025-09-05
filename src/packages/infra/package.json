@@ -38,12 +38,16 @@
     "@timelapse/application": "workspace:*",
     "@timelapse/cross-cutting": "workspace:*",
     "@timelapse/domain": "workspace:*",
+    "archiver": "^7.0.1",
     "axios": "^1.7.9",
     "jsonwebtoken": "^9.0.2",
-    "keytar": "^7.9.0"
+    "keytar": "^7.9.0",
+    "unzipper": "^0.12.3"
   },
   "devDependencies": {
+    "@types/archiver": "^6.0.3",
     "@types/jsonwebtoken": "^9.0.6",
+    "@types/unzipper": "^0",
     "typescript": "^5.8.3"
   }
 }

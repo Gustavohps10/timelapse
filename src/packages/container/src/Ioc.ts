@@ -21,6 +21,7 @@ import {
 } from '@timelapse/application'
 import { JwtService } from '@timelapse/infra/auth'
 import { HttpClient } from '@timelapse/infra/http'
+import { FileManager } from '@timelapse/infra/storage'
 import { UnitOfWork } from '@timelapse/infra/workflow'
 import {
   asClass,
@@ -115,6 +116,7 @@ export class ContainerBuilder {
       httpClient: asClass(HttpClient).transient(),
       jwtService: asClass(JwtService).scoped(),
       unitOfWork: asClass(UnitOfWork).scoped(),
+      fileManager: asClass(FileManager).scoped(),
     })
     return this
   }
