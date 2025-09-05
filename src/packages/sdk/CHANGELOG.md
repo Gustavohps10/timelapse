@@ -1,4 +1,10 @@
-# @timelapse/connector-sdk
+# @timelapse/sdk
+
+## 1.1.0
+
+### Minor Changes
+
+- Initial version
 
 ## 1.2.1
 

@@ -12,7 +12,8 @@
   },
   "workspaces": [
     "src/apps/*",
-    "src/packages/*"
+    "src/packages/*",
+    "src/tests/*"
   ],
   "scripts": {
     "dev:desktop": "turbo run dev --parallel --filter=@timelapse/desktop",

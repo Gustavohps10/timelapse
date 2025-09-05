@@ -1,7 +1,7 @@
 {
   "name": "@timelapse/addon-for-tests",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Addon for tests.",
   "author": "Gustavo gustavoh.santos735@gmail.com>",
   "license": "MIT",
@@ -24,7 +24,7 @@
     "pkg": "timelapse pkg ./dist --config ./timelapse.json"
   },
   "dependencies": {
-    "@timelapse/connector-sdk": "workspace:*",
+    "@timelapse/sdk": "workspace:*",
     "axios": "^1.7.9"
   },
   "devDependencies": {
