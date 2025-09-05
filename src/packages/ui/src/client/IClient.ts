@@ -147,10 +147,16 @@ export interface AddonManifest {
   tags?: string[]
 }
 
+export type FileData =
+  | Buffer
+  | NodeJS.ReadableStream
+  | ReadableStream<Uint8Array>
+
 export interface IAddonsClient {
   list(): Promise<AddonManifest[]>
   getById(addonId: string): Promise<AddonManifest>
   updateLocal?(addon: AddonManifest): Promise<void>
+  import(addon: FileData): Promise<ViewModel>
 }
 
 export interface IClient {

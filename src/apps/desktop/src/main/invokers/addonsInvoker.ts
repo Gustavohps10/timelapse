@@ -1,3 +1,5 @@
+import { FileData } from '@timelapse/infra/contracts'
+
 import { IpcInvoker } from '@/main/adapters/IpcInvoker'
 import {
   AddonManifest,
@@ -12,4 +14,7 @@ export const addonsInvoker: IAddonsInvoker = {
 
   updateLocal: (addon: AddonManifest) =>
     IpcInvoker.invoke('ADDONS_UPDATE_LOCAL', { body: addon }),
+
+  import: (file: FileData) =>
+    IpcInvoker.invoke('ADDONS_IMPORT', { body: file }),
 }

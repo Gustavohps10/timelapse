@@ -2,6 +2,7 @@ import { contextBridge } from 'electron'
 
 import { IWindowAPIInvoker } from '@/main/contracts/invokers'
 import {
+  addonsInvoker,
   discordInvoker,
   headersInvoker,
   sessionInvoker,
@@ -10,7 +11,6 @@ import {
   tokenStorageInvoker,
   workspacesInvoker,
 } from '@/main/invokers'
-import { addonsInvoker } from '@/main/invokers/addonsInvoker'
 
 const api: IWindowAPIInvoker = {
   services: {

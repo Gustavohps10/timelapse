@@ -1,4 +1,7 @@
+import { IImportAddonUseCase } from '@timelapse/application'
 import { IRequest } from '@timelapse/cross-cutting/transport'
+import { FileData } from '@timelapse/infra/contracts'
+import { ViewModel } from '@timelapse/presentation/view-models'
 import axios from 'axios'
 import { IpcMainInvokeEvent } from 'electron'
 import yaml from 'js-yaml'
@@ -9,6 +12,7 @@ const GITHUB_REPO = 'Gustavohps10/timelapse'
 const GITHUB_PATH = 'src/packages/addonDatabase/dataSource'
 
 export class AddonsHandler {
+  constructor(private readonly importAddonService: IImportAddonUseCase) {}
   public async list(
     _event?: IpcMainInvokeEvent,
     _req?: IRequest,
@@ -82,5 +86,24 @@ export class AddonsHandler {
     { body }: IRequest<AddonManifest>,
   ): Promise<void> {
     console.log('Atualizar localmente:', body)
+  }
+
+  public async import(
+    _event: IpcMainInvokeEvent,
+    { body }: IRequest<FileData>,
+  ): Promise<ViewModel> {
+    const result = await this.importAddonService.execute(body)
+
+    if (result.failure) {
+      return {
+        isSuccess: false,
+        error: result.failure.messageKey,
+        statusCode: result.failure.statusCode,
+      }
+    }
+    return {
+      isSuccess: true,
+      statusCode: 200,
+    }
   }
 }

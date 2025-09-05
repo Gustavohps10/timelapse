@@ -1,3 +1,6 @@
+import { FileData } from '@timelapse/infra/contracts'
+import { ViewModel } from '@timelapse/presentation/view-models'
+
 export interface AddonManifest {
   id: string
   name: string
@@ -16,5 +19,6 @@ export interface AddonManifest {
 export interface IAddonsInvoker {
   list(): Promise<AddonManifest[]>
   getById(addonId: string): Promise<AddonManifest>
-  updateLocal?(addon: AddonManifest): Promise<void>
+  updateLocal(addon: AddonManifest): Promise<void>
+  import(file: FileData): Promise<ViewModel>
 }

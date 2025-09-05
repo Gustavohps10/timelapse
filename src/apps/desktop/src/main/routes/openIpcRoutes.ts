@@ -90,14 +90,18 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
 
   IpcHandler.register('ADDONS_GET_BY_ID', (event, req) => {
     const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
-    return addonsHandler.getById(event, { body: { addonId: req.body.addonId } })
+    return addonsHandler.getById(event, req)
   })
 
   IpcHandler.register('ADDONS_UPDATE_LOCAL', (event, req) => {
     const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
-    return addonsHandler.updateLocal(event, { body: req.body })
+    return addonsHandler.updateLocal(event, req)
   })
 
+  IpcHandler.register('ADDONS_IMPORT', (event, req) => {
+    const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
+    return addonsHandler.import(event, req)
+  })
 
   /* eslint-enable prettier/prettier */
 }

@@ -237,8 +237,13 @@ export function WorkspaceSettings() {
     onError: (error) => toast.error(error.message),
   })
 
-  function handleDataSourceImport(files: FileList) {
-    console.log(files)
+  async function handleDataSourceImport(files: FileList) {
+    const file = files[0]
+
+    const stream = file.stream()
+
+    const response = await client.integrations.addons.import(stream)
+    console.log(response)
   }
 
   if (isLoading) {

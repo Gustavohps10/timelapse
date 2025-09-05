@@ -7,6 +7,7 @@ import {
   IAuthenticationStrategy,
   ICredentialsStorage,
   IMemberQuery,
+  ImportAddonService,
   ITaskQuery,
   ITaskRepository,
   ITimeEntryQuery,
@@ -103,7 +104,8 @@ export class ContainerBuilder {
       disconnectDataSourceService: asClass(
         DisconnectDataSourceService,
       ).scoped(),
-      getWorkspaceService: asClass(GetWorkspaceService),
+      getWorkspaceService: asClass(GetWorkspaceService).scoped(),
+      importAddonService: asClass(ImportAddonService).scoped(),
     })
     return this
   }
