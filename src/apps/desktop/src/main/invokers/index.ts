@@ -1,3 +1,4 @@
+export * from './addonsInvoker'
 export * from './authInvoker'
 export * from './discordInvoker'
 export * from './headersInvoker'

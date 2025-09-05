@@ -124,7 +124,7 @@ export function TimeEntries() {
   const client = useClient()
   const { workspaceId } = useParams<{ workspaceId: string }>()
   const [manualMinutes, setManualMinutes] = useState(60)
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
   const [timeEntryType, setTimeEntryType] =
     useState<TimeEntryReducer['type']>('increasing')
@@ -155,7 +155,7 @@ export function TimeEntries() {
       client.services.timeEntries.findByMemberId({
         body: {
           workspaceId: workspaceId!,
-          memberId: '230',
+          memberId: user?.id.toString()!,
           startDate: date ?? new Date(),
           endDate: date ?? new Date(),
         },

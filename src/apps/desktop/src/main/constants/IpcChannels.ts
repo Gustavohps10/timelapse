@@ -29,6 +29,7 @@ export const IpcChannels = {
   ADDONS_LIST: 'addons:list',
   ADDONS_GET_BY_ID: 'addons:get-by-id',
   ADDONS_UPDATE_LOCAL: 'addons:update-local',
+  ADDONS_IMPORT: 'addons:import',
 } as const
 
 export type IpcChannelType = keyof typeof IpcChannels

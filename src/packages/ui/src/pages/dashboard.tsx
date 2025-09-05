@@ -1,5 +1,6 @@
 import { Calendar1, CalendarDays } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useParams } from 'react-router'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 
 import {
@@ -42,6 +43,7 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function Dashboard() {
+  const { workspaceId } = useParams<{ workspaceId: string }>()
   const client = useClient()
   const [chartData, setChartData] = useState<ChartData[]>([])
   const { user } = useAuth()
@@ -100,7 +102,7 @@ export function Dashboard() {
     client.services.timeEntries
       .findByMemberId({
         body: {
-          workspaceId: 'ws-temp-uuid',
+          workspaceId: workspaceId!,
           memberId: user.id.toString(),
           startDate: monday,
           endDate: friday,
