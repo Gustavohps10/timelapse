@@ -8,8 +8,8 @@ import {
 } from '@/main/contracts/invokers/IAddonsInvoker'
 
 export const addonsInvoker: IAddonsInvoker = {
-  getById: (addonId: string) =>
-    IpcInvoker.invoke('ADDONS_GET_BY_ID', { body: { addonId } }), // ERRADO ALTERAR PAYLOAD
+  getInstalledById: (payload: IRequest<{ addonId: string }>) =>
+    IpcInvoker.invoke('ADDONS_GETINSTALLED_BY_ID', payload),
 
   list: () => IpcInvoker.invoke('ADDONS_LIST'),
 

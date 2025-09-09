@@ -64,7 +64,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
   useEffect(() => {
     const autoLogin = async () => {
-      console.log(workspaceId + 'AUTO LOGIN')
       try {
         const res = await client.modules.tokenStorage.getToken({
           body: { service: 'timelapse', account: `jwt-${workspaceId}` },

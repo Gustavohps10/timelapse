@@ -14,9 +14,6 @@ export class SessionHandler {
   ): Promise<ViewModel<MemberViewModel>> {
     const result: Either<AppError, MemberDTO> =
       await this.getCurrentUserService.execute()
-    console.log('BACKEND')
-    console.log(result)
-
     if (result.isFailure()) {
       return {
         statusCode: 500,

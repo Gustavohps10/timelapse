@@ -50,34 +50,37 @@ export class AddonsHandler {
     }))
   }
 
-  public async getById(
+  public async getInstalledById(
     _event: IpcMainInvokeEvent,
     { body }: IRequest<{ addonId: string }>,
-  ): Promise<AddonManifest | null> {
-    const result = await this.addonsFacade.getById(body.addonId)
+  ): Promise<ViewModel<AddonManifest>> {
+    const result = await this.addonsFacade.getInstalledById(body.addonId)
     if (result.isFailure()) {
-      return null
+      return {
+        isSuccess: false,
+        statusCode: result.failure.statusCode,
+        error: result.failure.messageKey,
+      }
     }
-
-    const installedResult = await this.addonsFacade.listInstalled()
-    const installedIds: string[] = installedResult.isSuccess()
-      ? installedResult.success.map((i) => i.id)
-      : []
 
     const a = result.success
     return {
-      id: a.id,
-      version: a.version,
-      name: a.name,
-      creator: a.creator,
-      description: a.description,
-      path: a.path || '',
-      logo: a.logo,
-      downloads: a.downloads ?? 0,
-      stars: a.stars ?? 0,
-      installed: installedIds.includes(a.id),
-      sourceUrl: a.sourceUrl,
-      tags: a.tags,
+      isSuccess: true,
+      statusCode: 200,
+      data: {
+        id: a.id,
+        version: a.version,
+        name: a.name,
+        creator: a.creator,
+        description: a.description,
+        path: a.path || '',
+        logo: a.logo,
+        downloads: a.downloads ?? 0,
+        stars: a.stars ?? 0,
+        installed: true,
+        sourceUrl: a.sourceUrl,
+        tags: a.tags,
+      },
     }
   }
 
@@ -101,8 +104,6 @@ export class AddonsHandler {
     if (!body?.id) {
       throw new Error('INVALID_ADDON_MANIFEST')
     }
-
-    console.log('Update local addon info:', body)
   }
 
   public async import(

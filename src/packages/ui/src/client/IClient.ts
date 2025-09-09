@@ -167,7 +167,11 @@ export interface AddonInstaller {
 
 export interface IAddonsClient {
   list(): Promise<AddonManifest[]>
-  getById(addonId: string): Promise<AddonManifest>
+  getInstalledById(
+    payload: IRequest<{
+      addonId: string
+    }>,
+  ): Promise<ViewModel<AddonManifest>>
   updateLocal?(addon: AddonManifest): Promise<void>
   import(
     payload: IRequest<{

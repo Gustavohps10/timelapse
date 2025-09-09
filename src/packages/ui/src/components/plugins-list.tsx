@@ -243,7 +243,7 @@ export function DataSourceList({
                         plugin.installed &&
                         onSelectDataSource(isSelected ? null : plugin)
                       }
-                      className={`flex items-start gap-3 p-2 transition-colors ${
+                      className={`flex w-full items-start gap-3 p-2 transition-colors ${
                         plugin.installed
                           ? 'cursor-pointer'
                           : 'cursor-not-allowed opacity-80'
@@ -262,10 +262,16 @@ export function DataSourceList({
                       />
                       <div className="flex-1 space-y-0.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-bold">
-                            {plugin.name} {plugin.version}
-                          </span>
-                          <div className="text-muted-foreground flex items-center gap-3 text-xs">
+                          <div className="flex items-center space-x-2">
+                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                              {plugin.name}
+                            </p>
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                              v{plugin.version}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                             <div className="flex items-center gap-1">
                               <Download className="h-3 w-3" />
                               {formatDownloads(plugin.downloads)}
@@ -276,12 +282,14 @@ export function DataSourceList({
                             </div>
                           </div>
                         </div>
+
                         <p className="text-muted-foreground line-clamp-2 text-xs leading-tight">
                           {plugin.description}
                         </p>
+
                         <div className="flex items-end justify-between pt-1">
                           <div className="flex flex-col leading-tight">
-                            <span className="text-xs font-semibold">
+                            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                               <span className="font-normal">by</span>{' '}
                               {plugin.creator}
                             </span>
@@ -300,6 +308,7 @@ export function DataSourceList({
                               </div>
                             </span>
                           </div>
+
                           <div className="w-24 text-right">
                             {isInstalling ? (
                               <div className="flex flex-col items-center gap-0.5">
@@ -341,7 +350,7 @@ export function DataSourceList({
                   return (
                     <Card
                       key={plugin.id}
-                      className="hover:bg-muted flex cursor-pointer items-start gap-3 p-2 transition-colors"
+                      className="hover:bg-muted flex w-full cursor-pointer items-start gap-3 p-2 transition-colors"
                     >
                       <img
                         src={plugin.logo}
@@ -350,10 +359,16 @@ export function DataSourceList({
                       />
                       <div className="flex-1 space-y-0.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-bold">
-                            {plugin.name} {plugin.version}
-                          </span>
-                          <div className="text-muted-foreground flex items-center gap-3 text-xs">
+                          <div className="flex items-center space-x-2">
+                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                              {plugin.name}
+                            </p>
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                              v{plugin.version}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                             <div className="flex items-center gap-1">
                               <Download className="h-3 w-3" />
                               {formatDownloads(plugin.downloads)}
@@ -364,12 +379,14 @@ export function DataSourceList({
                             </div>
                           </div>
                         </div>
+
                         <p className="text-muted-foreground line-clamp-2 text-xs leading-tight">
                           {plugin.description}
                         </p>
+
                         <div className="flex items-end justify-between pt-1">
                           <div className="flex flex-col leading-tight">
-                            <span className="text-xs font-semibold">
+                            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                               <span className="font-normal">by</span>{' '}
                               {plugin.creator}
                             </span>
@@ -388,6 +405,7 @@ export function DataSourceList({
                               </div>
                             </span>
                           </div>
+
                           <div className="w-24 text-right">
                             {isInstalling ? (
                               <div className="flex flex-col items-center gap-0.5">

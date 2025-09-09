@@ -28,7 +28,7 @@ export const IpcChannels = {
   DATA_SOURCE_GET_FIELDS: 'datasource:get-fields',
 
   ADDONS_LIST: 'addons:list',
-  ADDONS_GET_BY_ID: 'addons:get-by-id',
+  ADDONS_GETINSTALLED_BY_ID: 'addons:getinstalled-by-id',
   ADDONS_GET_INSTALLER: 'addons:get-installer',
   ADDONS_UPDATE_LOCAL: 'addons:update-local',
   ADDONS_IMPORT: 'addons:import',
