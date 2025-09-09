@@ -1,6 +1,4 @@
 import { IListTimeEntriesUseCase } from '@timelapse/application'
-import { TimeEntryDTO } from '@timelapse/application'
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
 import { IRequest } from '@timelapse/cross-cutting/transport'
 import {
   PaginatedViewModel,
@@ -24,8 +22,11 @@ export class TimeEntriesHandler {
       body: { memberId, startDate, endDate },
     }: IRequest<ListTimeEntriesRequest>,
   ): Promise<PaginatedViewModel<TimeEntryViewModel[]>> {
-    const result: Either<AppError, TimeEntryDTO[]> =
-      await this.listTimeEntriesService.execute(memberId, startDate, endDate)
+    const result = await this.listTimeEntriesService.execute(
+      memberId,
+      startDate,
+      endDate,
+    )
     if (result.isFailure()) {
       return {
         statusCode: 500,
@@ -38,13 +39,14 @@ export class TimeEntriesHandler {
       }
     }
 
-    const timeEntries: TimeEntryViewModel[] = result.success
+    const timeEntries = result.success
 
+    const timeEntriesViewModel = timeEntries.items
     return {
       statusCode: 200,
       isSuccess: true,
-      data: timeEntries,
-      totalItems: timeEntries.length,
+      data: timeEntriesViewModel,
+      totalItems: timeEntries.total,
       totalPages: 1,
       currentPage: 1,
     }
