@@ -1,5 +1,6 @@
 import { IServiceProvider } from '@timelapse/container'
 import RedmineConnector from '@timelapse/redmine-plugin'
+import { app } from 'electron'
 
 import { IpcHandler } from '@/main/adapters/IpcHandler'
 import { handleDiscordLogin } from '@/main/auth/discord-handler'
@@ -19,6 +20,10 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
   const injectConnector = createInjectConnectorMiddleware(serviceProvider)
 
   /* eslint-disable prettier/prettier */
+  IpcHandler.register('SYSTEM_VERSION', () => {
+    return Promise.resolve(app.getVersion())
+  })
+  
   IpcHandler.register('WORKSPACES_CREATE', (event, req) => {
     const workspacesHandler = serviceProvider.resolve<WorkspacesHandler>('workspacesHandler')
     return workspacesHandler.create(event, req)
@@ -87,6 +92,7 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
     const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
     return addonsHandler.list()
   })
+  
 
   IpcHandler.register('ADDONS_GET_BY_ID', (event, req) => {
     const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
@@ -101,6 +107,16 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
   IpcHandler.register('ADDONS_IMPORT', (event, req) => {
     const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
     return addonsHandler.import(event, req)
+  })
+
+  IpcHandler.register('ADDONS_GET_INSTALLER', (event, req) => {
+    const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
+    return addonsHandler.getInstaller(event, req)
+  })
+
+   IpcHandler.register('ADDONS_INSTALL', (event, req) => {
+    const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
+    return addonsHandler.install(event, req)
   })
 
   /* eslint-enable prettier/prettier */

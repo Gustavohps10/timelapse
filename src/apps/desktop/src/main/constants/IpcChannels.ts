@@ -1,4 +1,5 @@
 export const IpcChannels = {
+  SYSTEM_VERSION: 'system:version',
   TASKS_LIST: 'tasks:list',
 
   GET_TOKEN: 'token',
@@ -28,8 +29,10 @@ export const IpcChannels = {
 
   ADDONS_LIST: 'addons:list',
   ADDONS_GET_BY_ID: 'addons:get-by-id',
+  ADDONS_GET_INSTALLER: 'addons:get-installer',
   ADDONS_UPDATE_LOCAL: 'addons:update-local',
   ADDONS_IMPORT: 'addons:import',
+  ADDONS_INSTALL: 'addons:install',
 } as const
 
 export type IpcChannelType = keyof typeof IpcChannels

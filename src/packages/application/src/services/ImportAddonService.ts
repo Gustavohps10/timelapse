@@ -1,33 +1,66 @@
 import { AppError, Either } from '@timelapse/cross-cutting/helpers'
 
 import { FileData, IFileManager } from '@/contracts'
+import { IAddonsFacade } from '@/contracts/facades'
 import { IImportAddonUseCase } from '@/contracts/use-cases'
 
 export class ImportAddonService implements IImportAddonUseCase {
-  constructor(private fileManager: IFileManager) {}
+  constructor(
+    private fileManager: IFileManager,
+    private addonsFacade: IAddonsFacade,
+  ) {}
 
   async execute(fileData: FileData): Promise<Either<AppError, void>> {
-    try {
-      // const tempPath = `./temp/${Date.now()}-${fileName}`
-      const tempPath = `./temp/${Date.now()}-teste-fixo`
+    const tempDir = `./temp/${Date.now()}-addon`
+    const tempPath = `${tempDir}/addon.zip`
 
-      await this.fileManager.writeFile(tempPath, fileData)
+    const writeResult = await this.fileManager
+      .writeFile(tempPath, fileData)
+      .then(() => Either.success(undefined))
+      .catch(() => Either.failure(new AppError('NAO_FOI_POSSIVEL_SALVAR_TEMP')))
+    if (writeResult.isFailure()) return writeResult
 
-      const extractedFiles = await this.fileManager.unzipInMemory(
-        await this.fileManager.readFile(tempPath),
+    const readResult = await this.fileManager
+      .readFile(tempPath)
+      .then((data) => Either.success(data))
+      .catch(() => Either.failure(new AppError('NAO_FOI_POSSIVEL_LER_TEMP')))
+    if (readResult.isFailure()) return readResult.forwardFailure()
+    const zipData = readResult.success
+
+    const unzipResult = await this.fileManager
+      .unzipInMemory(zipData)
+      .then((files) => Either.success(files))
+      .catch(() =>
+        Either.failure(new AppError('NAO_FOI_POSSIVEL_DESCOMPACTAR')),
       )
+    if (unzipResult.isFailure()) return unzipResult.forwardFailure()
+    const extractedFiles = unzipResult.success
 
-      for (const file of extractedFiles) {
-        const finalPath = `./addons/${file.name}`
+    const manifestFile = extractedFiles.find((e) => e.name === 'manifest.yaml')
+    if (!manifestFile)
+      return Either.failure(new AppError('MANIFEST_NAO_ENCONTRADO'))
 
-        console.log(finalPath)
-        await this.fileManager.writeFile(finalPath, file.content)
-      }
+    const manifestContentResult = await this.addonsFacade.parseManifest(
+      manifestFile.content,
+    )
+    if (manifestContentResult.isFailure())
+      return manifestContentResult.forwardFailure()
+    const addonId = manifestContentResult.success.id
+    if (!addonId) return Either.failure(new AppError('ADDONID_NAO_ENCONTRADO'))
 
-      await this.fileManager.delete(tempPath)
-      return Either.success(undefined)
-    } catch {
-      return Either.failure(new AppError('NAO_FOI_POSSIVEL_IMPORTAR'))
+    for (const file of extractedFiles) {
+      const finalPath = `./addons/datasource/${addonId}/${file.name}`
+      const saveResult = await this.fileManager
+        .writeFile(finalPath, file.content)
+        .then(() => Either.success(undefined))
+        .catch(() =>
+          Either.failure(new AppError('NAO_FOI_POSSIVEL_SALVAR_ARQUIVO')),
+        )
+      if (saveResult.isFailure()) return saveResult
     }
+
+    await this.fileManager.delete(tempPath).catch(() => {})
+
+    return Either.success(undefined)
   }
 }

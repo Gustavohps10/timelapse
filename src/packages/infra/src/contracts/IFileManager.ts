@@ -1,4 +1,5 @@
 export type FileData =
+  | Uint8Array
   | Buffer
   | NodeJS.ReadableStream
   | ReadableStream<Uint8Array>

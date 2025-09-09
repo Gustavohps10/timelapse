@@ -25,6 +25,10 @@
       "import": "./dist/storage/index.js",
       "types": "./dist/storage/index.d.ts"
     },
+    "./facades": {
+      "import": "./dist/facades/index.js",
+      "types": "./dist/facades/index.d.ts"
+    },
     "./workflow": {
       "import": "./dist/workflow/index.js",
       "types": "./dist/workflow/index.d.ts"
@@ -48,6 +52,7 @@
     "@types/archiver": "^6.0.3",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/unzipper": "^0",
+    "js-yaml": "^4.1.0",
     "typescript": "^5.8.3"
   }
 }

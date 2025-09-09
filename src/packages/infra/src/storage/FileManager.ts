@@ -1,5 +1,6 @@
 import archiver from 'archiver'
 import fs from 'fs'
+import { dirname } from 'path'
 import unzipper from 'unzipper'
 
 import { FileData, IFileManager } from '@/contracts'
@@ -10,15 +11,18 @@ export class FileManager implements IFileManager {
   }
 
   async writeFile(filePath: string, data: FileData): Promise<void> {
+    await fs.promises.mkdir(dirname(filePath), { recursive: true })
     const writeStream = fs.createWriteStream(filePath)
 
-    const handlers = [
+    const handler = [
       Buffer.isBuffer(data) && (() => writeStream.end(data)),
+      data instanceof Uint8Array && (() => writeStream.end(Buffer.from(data))),
       'pipe' in data &&
         (() => (data as NodeJS.ReadableStream).pipe(writeStream)),
-    ].filter(Boolean) as (() => void)[]
+    ].find(Boolean) as (() => void) | undefined
 
-    handlers.forEach((fn) => fn())
+    if (!handler) throw new Error('Tipo de FileData não suportado para escrita')
+    handler()
 
     await new Promise<void>((resolve, reject) => {
       writeStream.on('finish', resolve)
@@ -40,6 +44,7 @@ export class FileManager implements IFileManager {
 
   private async toBuffer(content: FileData): Promise<Buffer> {
     if (Buffer.isBuffer(content)) return content
+    if (content instanceof Uint8Array) return Buffer.from(content)
     if ('pipe' in content) {
       const chunks: Buffer[] = []
       return new Promise((resolve, reject) => {
@@ -99,7 +104,10 @@ export class FileManager implements IFileManager {
     await finalizePromise
 
     const zipBuffer = Buffer.concat(chunks)
-    if (destinationPath) await fs.promises.writeFile(destinationPath, zipBuffer)
+    if (destinationPath) {
+      await fs.promises.mkdir(dirname(destinationPath), { recursive: true })
+      await fs.promises.writeFile(destinationPath, zipBuffer)
+    }
     return zipBuffer
   }
 }

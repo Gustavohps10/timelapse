@@ -1,3 +1,5 @@
+export * from './AddonInstallerDTO'
+export * from './AddonManifestDTO'
 export * from './AuthenticationDTO'
 export * from './MemberDTO'
 export * from './pagination'

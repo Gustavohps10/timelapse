@@ -7,6 +7,7 @@ export default defineConfig({
     'src/http/index.ts',
     'src/storage/index.ts',
     'src/data/index.ts',
+    'src/facades/index.ts',
     'src/workflow/index.ts',
   ],
   format: ['esm'],

@@ -4,8 +4,10 @@ import {
 } from '@timelapse/application'
 import { IServiceProvider } from '@timelapse/container'
 import { IRequest } from '@timelapse/cross-cutting/transport'
-import RedmineConnector from '@timelapse/redmine-plugin'
 import { IpcMainInvokeEvent } from 'electron'
+import { existsSync } from 'fs'
+import { resolve } from 'path'
+import { pathToFileURL } from 'url'
 
 export function createInjectConnectorMiddleware(
   serviceProvider: IServiceProvider,
@@ -29,23 +31,32 @@ export function createInjectConnectorMiddleware(
       'timelapse',
       `workspace-session-${workspace!.id}`,
     )
-
     const credentialsJSON = credentialsSerialized
       ? JSON.parse(credentialsSerialized)
       : undefined
 
     const context = {
-      config: workspace?.dataSourceConfiguration,
+      config: workspace?.dataSourceConfiguration, // se ainda precisar alguma config
       credentials: credentialsJSON,
     }
 
+    // caminho do addon baseado no workspace.dataSource
+    const addonPath = resolve(
+      `./addons/datasource/${workspace?.dataSource}/index.js`,
+    )
+    if (!existsSync(addonPath))
+      throw new Error(`Datasource não encontrado em ${addonPath}`)
+
+    const addonURL = pathToFileURL(addonPath).href
+    const datasourceModule = await import(addonURL)
+    const connector = datasourceModule.default
+
     const connectorDeps = {
-      authenticationStrategy:
-        RedmineConnector.getAuthenticationStrategy(context),
-      taskQuery: RedmineConnector.getTaskQuery(context),
-      memberQuery: RedmineConnector.getMemberQuery(context),
-      timeEntryQuery: RedmineConnector.getTimeEntryQuery(context),
-      taskRepository: RedmineConnector.getTaskRepository(context),
+      authenticationStrategy: connector.getAuthenticationStrategy(context),
+      taskQuery: connector.getTaskQuery(context),
+      memberQuery: connector.getMemberQuery(context),
+      timeEntryQuery: connector.getTimeEntryQuery(context),
+      taskRepository: connector.getTaskRepository(context),
     }
 
     serviceProvider.include(connectorDeps)
