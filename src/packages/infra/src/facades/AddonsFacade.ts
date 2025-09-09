@@ -88,22 +88,30 @@ export class AddonsFacade implements IAddonsFacade {
     }
   }
 
-  public async getById(
+  public async getInstalledById(
     addonId: string,
   ): Promise<Either<AppError, AddonManifestDTO>> {
-    const installed = await this.listInstalled()
-    if (installed.isSuccess()) {
-      const addon = installed.success.find((a) => a.id === addonId)
-      if (addon) return Either.success(addon)
+    const result = await this.listInstalled()
+    if (result.isFailure()) return result.forwardFailure()
+
+    const localAddonsList = result.success
+    const addon = localAddonsList.find((a) => a.id === addonId)
+
+    if (!addon) return Either.failure(new AppError('LOCAL_ADDON_NOT_FOUND'))
+
+    const localIconPath = `${LOCAL_ADDONS_PATH}/${addonId}/icon.png`
+
+    try {
+      const file = await fs.readFile(localIconPath)
+      const base64 = `data:image/png;base64,${file.toString('base64')}`
+
+      return Either.success({
+        ...addon,
+        logo: base64,
+      })
+    } catch (err) {
+      return Either.failure(new AppError('LOCAL_ADDON_ICON_NOT_FOUND'))
     }
-
-    const available = await this.listAvailable()
-    if (available.isFailure()) return available.forwardFailure()
-
-    const addon = available.success.find((a) => a.id === addonId)
-    if (!addon) return Either.failure(new AppError('ADDON_NOT_FOUND'))
-
-    return Either.success(addon)
   }
 
   public async getInstaller(

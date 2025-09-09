@@ -26,9 +26,6 @@ export class TimeEntriesHandler {
   ): Promise<PaginatedViewModel<TimeEntryViewModel[]>> {
     const result: Either<AppError, TimeEntryDTO[]> =
       await this.listTimeEntriesService.execute(memberId, startDate, endDate)
-
-    console.log('RESULT LISTAGEM', result)
-
     if (result.isFailure()) {
       return {
         statusCode: 500,

@@ -69,8 +69,6 @@ export function Timer({ size, onTimeChange }: TimerProps) {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (activeTimeEntry) return
-
-    console.log(e)
     if (e.key >= '0' && e.key <= '9') {
       const newDigits = [...digits]
       newDigits[activeIndex] = e.key

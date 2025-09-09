@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   CheckCircle2,
   DatabaseZapIcon,
@@ -50,6 +50,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks'
 import { useClient } from '@/hooks/use-client'
+import { queryClient } from '@/lib'
 
 const baseWorkspaceSettingsSchema = z.object({
   name: z.string().min(1, 'O nome é obrigatório.'),
@@ -93,7 +94,6 @@ function buildDataSourceSchemas(dynamicFields: {
 export function WorkspaceSettings() {
   const { login, logout, isAuthenticated, user } = useAuth()
   const client = useClient()
-  const queryClient = useQueryClient()
   const { workspaceId } = useParams<{ workspaceId: string }>()
 
   const workspaceQueryKey = ['workspace', workspaceId]
@@ -105,10 +105,24 @@ export function WorkspaceSettings() {
       const response = await client.services.workspaces.getById({
         body: { workspaceId },
       })
-      return response.data
+      return response.data ?? null
     },
     enabled: !!workspaceId,
   })
+
+  const { data: localAddon, isLoading: localPluginIsLoading } = useQuery({
+    queryKey: ['local-addon', workspaceId, workspace?.dataSource],
+    queryFn: async () => {
+      if (!workspaceId || !workspace?.dataSource) return null
+      const response = await client.integrations.addons.getInstalledById({
+        body: { addonId: workspace.dataSource },
+      })
+      return response.data ?? null
+    },
+    enabled: !!workspaceId && !!workspace?.dataSource,
+  })
+
+  console.log(localAddon)
 
   const [dynamicFields, setDynamicFields] = useState<{
     credentials: FieldGroup[]
@@ -173,6 +187,9 @@ export function WorkspaceSettings() {
     },
     onSuccess: (_, dataSource) => {
       queryClient.invalidateQueries({ queryKey: workspaceQueryKey })
+      queryClient.invalidateQueries({
+        queryKey: ['local-addon', workspaceId, dataSource.id],
+      })
       toast.success(`Fonte de dados "${dataSource.name}" vinculada!`)
       setDataSourceToLink(null)
     },
@@ -190,12 +207,12 @@ export function WorkspaceSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workspaceQueryKey })
+      queryClient.invalidateQueries({ queryKey: ['local-addon', workspaceId] })
       toast.info('Fonte de dados desvinculada.')
       logout()
     },
     onError: (error) => toast.error(error.message),
   })
-
   const connectMutation = useMutation({
     mutationFn: (data: WorkspaceSettingsSchema) => {
       return client.services.workspaces.connectDataSource({
@@ -212,6 +229,9 @@ export function WorkspaceSettings() {
         return
       }
       queryClient.invalidateQueries({ queryKey: workspaceQueryKey })
+      queryClient.invalidateQueries({
+        queryKey: ['workspace-addon', workspaceId],
+      })
       toast.success(
         `Conectado com "${variables.dataSource?.name}" com sucesso!`,
       )
@@ -245,7 +265,12 @@ export function WorkspaceSettings() {
       body: { addon: uint8Array },
     })
 
-    console.log(response)
+    if (!response.isSuccess) {
+      toast.error('Falha ao importar: ' + response.error)
+      return
+    }
+
+    toast.success('Importado com sucesso.')
   }
 
   if (isLoading) {
@@ -389,13 +414,16 @@ export function WorkspaceSettings() {
                                 {dataSourceToLink?.name}
                               </p>
                               <p className="text-muted-foreground text-sm">
-                                por {dataSourceToLink?.creator}
+                                <span className="text-xs font-semibold">
+                                  <span className="font-normal">by</span>{' '}
+                                  {dataSourceToLink?.creator}
+                                </span>
                               </p>
                             </div>
                           </div>
                           <br />
                           Você está prestes a vincular este workspace a um
-                          conector.
+                          provedor de dados.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -423,15 +451,23 @@ export function WorkspaceSettings() {
                   <div className="flex flex-col gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <img
-                        src={selectedDataSource?.logo}
-                        alt={selectedDataSource?.name}
+                        src={localAddon?.logo}
+                        alt={localAddon?.name}
                         className="h-10 w-10 rounded-lg border bg-white object-contain p-1"
                       />
-                      <div>
-                        <p className="leading-4 font-semibold">
-                          {selectedDataSource?.name}{' '}
-                          {selectedDataSource?.version}
-                        </p>
+                      <div className="flex flex-col">
+                        <div className="flex items-center space-x-2">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                            {localAddon?.name}
+                          </p>
+                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                            v{localAddon?.version}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          <span className="font-normal">by</span>{' '}
+                          {localAddon?.creator}
+                        </span>
                       </div>
                     </div>
                     <Badge className="flex w-fit items-center gap-1 rounded-md border-green-600 bg-green-100 px-2 py-1 text-green-600 dark:bg-transparent">
@@ -449,8 +485,8 @@ export function WorkspaceSettings() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Esta ação é irreversível e irá desvincular sua fonte
-                          de dados.
+                          Esta ação é irreversível e irá desvincular seu
+                          provedor de dados
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -540,10 +576,10 @@ export function WorkspaceSettings() {
                   <div className="mt-4 space-y-8 border-t pt-4">
                     <div>
                       <h3 className="text-lg font-semibold">
-                        Conectar com {workspace.dataSource}
+                        Conectar com {localAddon?.name}
                       </h3>
                       <p className="text-muted-foreground mt-1 text-sm">
-                        Preencha suas credenciais para sincronizar os dados.
+                        Preencha suas credenciais.
                       </p>
                     </div>
 

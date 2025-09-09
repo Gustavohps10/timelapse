@@ -48,10 +48,6 @@ export class TokenHandler {
   ): Promise<ViewModel<string | null>> {
     try {
       const token = await this.credentialsStorage.getToken(service, account)
-
-      console.log(service, account)
-      console.log(token)
-
       return {
         statusCode: 200,
         isSuccess: true,

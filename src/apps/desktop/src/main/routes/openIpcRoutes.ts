@@ -94,9 +94,9 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
   })
   
 
-  IpcHandler.register('ADDONS_GET_BY_ID', (event, req) => {
+  IpcHandler.register('ADDONS_GETINSTALLED_BY_ID', (event, req) => {
     const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
-    return addonsHandler.getById(event, req)
+    return addonsHandler.getInstalledById(event, req)
   })
 
   IpcHandler.register('ADDONS_UPDATE_LOCAL', (event, req) => {

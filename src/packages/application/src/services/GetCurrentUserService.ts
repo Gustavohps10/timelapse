@@ -27,7 +27,6 @@ export class GetCurrentUserService implements IGetCurrentUserUseCase {
 
       return Either.success(user)
     } catch (erro: unknown) {
-      console.log(erro)
       return Either.failure(
         new AppError('NAO_FOI_POSSIVEL_OBTER_USUARIO', '', 422),
       )
