@@ -4,13 +4,8 @@ import {
   DisconnectDataSourceService,
   GetCurrentUserService,
   GetWorkspaceService,
-  IAuthenticationStrategy,
   ICredentialsStorage,
-  IMemberQuery,
   ImportAddonService,
-  ITaskQuery,
-  ITaskRepository,
-  ITimeEntryQuery,
   IWorkspacesQuery,
   IWorkspacesRepository,
   LinkDataSourceService,
@@ -21,6 +16,7 @@ import {
   UnlinkDataSourceService,
 } from '@timelapse/application'
 import { JwtService } from '@timelapse/infra/auth'
+import { AddonsFacade } from '@timelapse/infra/facades'
 import { HttpClient } from '@timelapse/infra/http'
 import { FileManager } from '@timelapse/infra/storage'
 import { UnitOfWork } from '@timelapse/infra/workflow'
@@ -46,19 +42,6 @@ export interface PlatformDependencies {
   credentialsStorage: ICredentialsStorage
   workspacesRepository: IWorkspacesRepository
   workspacesQuery: IWorkspacesQuery
-}
-
-/**
- * Representa o conjunto de dependências dinâmicas que um plugin fornece.
- * Será usado para registrar as implementações específicas de um plugin em um contêiner de escopo.
- * As propriedades são opcionais porque cada rota irá registrar apenas o que for necessário.
- */
-export interface ConnectorDependencies {
-  authenticationStrategy: IAuthenticationStrategy
-  taskQuery: ITaskQuery
-  memberQuery: IMemberQuery
-  timeEntryQuery: ITimeEntryQuery
-  taskRepository: ITaskRepository
 }
 
 /**
@@ -119,6 +102,8 @@ export class ContainerBuilder {
       jwtService: asClass(JwtService).scoped(),
       unitOfWork: asClass(UnitOfWork).scoped(),
       fileManager: asClass(FileManager).scoped(),
+
+      addonsFacade: asClass(AddonsFacade).scoped(),
     })
     return this
   }

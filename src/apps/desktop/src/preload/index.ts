@@ -6,6 +6,7 @@ import {
   discordInvoker,
   headersInvoker,
   sessionInvoker,
+  systemInvoker,
   tasksInvoker,
   timeEntriesInvoker,
   tokenStorageInvoker,
@@ -22,6 +23,7 @@ const api: IWindowAPIInvoker = {
   modules: {
     headers: headersInvoker,
     tokenStorage: tokenStorageInvoker,
+    system: systemInvoker,
   },
   integrations: {
     discord: discordInvoker,

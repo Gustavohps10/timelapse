@@ -1,4 +1,7 @@
 node_modules
+addons
+.temp
+temp
 dist
 out
 .DS_Store

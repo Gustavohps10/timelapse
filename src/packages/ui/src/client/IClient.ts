@@ -140,6 +140,7 @@ export interface AddonManifest {
   path: string
   logo: string
   downloads: number
+  version: string
   stars: number
   installed: boolean
   installerManifestUrl?: string
@@ -148,15 +149,43 @@ export interface AddonManifest {
 }
 
 export type FileData =
+  | Uint8Array
   | Buffer
   | NodeJS.ReadableStream
   | ReadableStream<Uint8Array>
+
+export interface AddonInstaller {
+  id: string
+  packages: {
+    version: string
+    requiredApiVersion: string
+    releaseDate: string
+    downloadUrl: string
+    changelog: string[]
+  }[]
+}
 
 export interface IAddonsClient {
   list(): Promise<AddonManifest[]>
   getById(addonId: string): Promise<AddonManifest>
   updateLocal?(addon: AddonManifest): Promise<void>
-  import(addon: FileData): Promise<ViewModel>
+  import(
+    payload: IRequest<{
+      addon: FileData
+    }>,
+  ): Promise<ViewModel>
+  getInstaller(
+    payload: IRequest<{ installerUrl: string }>,
+  ): Promise<AddonInstaller>
+  install(
+    payload: IRequest<
+      { downloadUrl: string } & { onProgress?: (progress: number) => void }
+    >,
+  ): Promise<ViewModel>
+}
+
+export interface ISystemClient {
+  getAppVersion(): Promise<string>
 }
 
 export interface IClient {
@@ -169,6 +198,7 @@ export interface IClient {
   modules: {
     headers: IHeadersClient
     tokenStorage: ITokenStorageClient
+    system: ISystemClient
   }
   integrations: {
     discord: IDiscordClient

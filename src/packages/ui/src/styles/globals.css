@@ -2,10 +2,10 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.9940 0 0);
-  --foreground: oklch(0 0 0);
-  --card: oklch(0.9940 0 0);
-  --card-foreground: oklch(0 0 0);
+  --background: oklch(0.9911 0 0);
+  --foreground: oklch(0.2046 0 0);
+  --card: oklch(0.9911 0 0);
+  --card-foreground: oklch(0.2046 0 0);
   --popover: oklch(0.9911 0 0);
   --popover-foreground: oklch(0 0 0);
   --primary: oklch(0.5393 0.2713 286.7462);

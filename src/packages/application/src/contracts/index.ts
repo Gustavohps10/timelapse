@@ -1,4 +1,5 @@
 export * from './data'
+export * from './facades'
 export * from './infra'
 export * from './strategies'
 export * from './use-cases'

@@ -62,8 +62,5 @@
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
-  "packageManager": "yarn@4.9.2",
-  "dependencies": {
-    "js-yaml": "^4.1.0"
-  }
+  "packageManager": "yarn@4.9.4"
 }

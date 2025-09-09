@@ -14,9 +14,9 @@ import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { FieldGroup } from '@/client'
+import { AddonManifest, FieldGroup } from '@/client'
 import { FileUploadButton } from '@/components'
-import { DataSource, DataSourceList } from '@/components/plugins-list'
+import { DataSourceList } from '@/components/plugins-list'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,7 +57,7 @@ const baseWorkspaceSettingsSchema = z.object({
   defaultHourlyRate: z.coerce.number().optional(),
   currency: z.string().optional(),
   weeklyHourGoal: z.coerce.number().optional(),
-  dataSource: z.custom<DataSource>().nullable().optional(),
+  dataSource: z.custom<AddonManifest>().nullable().optional(),
 })
 
 function buildDataSourceSchemas(dynamicFields: {
@@ -114,9 +114,8 @@ export function WorkspaceSettings() {
     credentials: FieldGroup[]
     configuration: FieldGroup[]
   }>({ credentials: [], configuration: [] })
-  const [dataSourceToLink, setDataSourceToLink] = useState<DataSource | null>(
-    null,
-  )
+  const [dataSourceToLink, setDataSourceToLink] =
+    useState<AddonManifest | null>(null)
 
   const formSchema = useMemo(() => {
     const { credentialsSchema, configurationSchema } =
@@ -167,7 +166,7 @@ export function WorkspaceSettings() {
   }, [selectedDataSource, client])
 
   const linkMutation = useMutation({
-    mutationFn: (dataSource: DataSource) => {
+    mutationFn: (dataSource: AddonManifest) => {
       return client.services.workspaces.linkDataSource({
         body: { workspaceId: workspaceId!, dataSource: dataSource.id },
       })
@@ -239,10 +238,13 @@ export function WorkspaceSettings() {
 
   async function handleDataSourceImport(files: FileList) {
     const file = files[0]
+    const arrayBuffer = await file.arrayBuffer()
+    const uint8Array = new Uint8Array(arrayBuffer)
 
-    const stream = file.stream()
+    const response = await client.integrations.addons.import({
+      body: { addon: uint8Array },
+    })
 
-    const response = await client.integrations.addons.import(stream)
     console.log(response)
   }
 
@@ -427,7 +429,8 @@ export function WorkspaceSettings() {
                       />
                       <div>
                         <p className="leading-4 font-semibold">
-                          {workspace.dataSource}
+                          {selectedDataSource?.name}{' '}
+                          {selectedDataSource?.version}
                         </p>
                       </div>
                     </div>
