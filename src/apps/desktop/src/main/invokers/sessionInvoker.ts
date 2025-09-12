@@ -1,11 +1,11 @@
+import { ISessionClient } from '@timelapse/application'
 import { IRequest } from '@timelapse/cross-cutting/transport'
 import { MemberViewModel, ViewModel } from '@timelapse/presentation/view-models'
 
 import { IpcInvoker } from '@/main/adapters/IpcInvoker'
-import { ISessionInvoker } from '@/main/contracts/invokers/ISessionInvoker'
 
 /* eslint-disable prettier/prettier */
-export const sessionInvoker: ISessionInvoker = {
+export const sessionInvoker: ISessionClient = {
   getCurrentUser: (
     input: IRequest<{
       workspaceId: string

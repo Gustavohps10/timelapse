@@ -6,6 +6,7 @@ export default defineConfig({
     'src/contracts/index.ts',
     'src/http/index.ts',
     'src/storage/index.ts',
+    'src/sync/index.ts',
     'src/data/index.ts',
     'src/facades/index.ts',
     'src/workflow/index.ts',

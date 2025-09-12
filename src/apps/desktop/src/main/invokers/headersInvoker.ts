@@ -1,10 +1,10 @@
+import { IHeadersClient } from '@timelapse/application'
 import { IHeaders } from '@timelapse/cross-cutting/transport'
 
 import { IpcInvoker } from '@/main/adapters/IpcInvoker'
-import { IHeadersInvoker } from '@/main/contracts/invokers'
 
 /* eslint-disable prettier/prettier */
-export const headersInvoker: IHeadersInvoker = {
+export const headersInvoker: IHeadersClient = {
   setDefaultHeaders: (headers: IHeaders): void => IpcInvoker.setDefaultHeaders(headers),
   getDefaultHeaders: ():  IHeaders => IpcInvoker.getDefaultHeaders()
 }

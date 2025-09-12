@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
+import { IApplicationClient } from '@timelapse/application'
 
-import { IClient } from '@/client'
 import { ThemeProvider } from '@/components/theme-provider'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -9,11 +9,14 @@ import { TimeEntriesContextProvider } from '@/contexts/TimeEntriesContext'
 import { queryClient } from '@/lib/query-client'
 
 interface AppProvidersProps {
-  client: IClient
+  client: IApplicationClient
   children: React.ReactNode
 }
 
-export function AppProviders({ client, children }: AppProvidersProps) {
+export function AppProviders({
+  client,
+  children,
+}: Readonly<AppProvidersProps>) {
   return (
     <ClientProvider client={client}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">

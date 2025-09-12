@@ -11,12 +11,12 @@ import {
 } from '@timelapse/ui'
 import { RouterProvider } from 'react-router-dom'
 
-import { desktopClient } from '@/renderer/client'
+import { desktopOfflineFirstClient } from '@/renderer/client'
 import { router } from '@/renderer/routes'
 
 export function AppDesktop() {
   return (
-    <ClientProvider client={desktopClient}>
+    <ClientProvider client={desktopOfflineFirstClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <TooltipProvider>
           <TimeEntriesContextProvider>

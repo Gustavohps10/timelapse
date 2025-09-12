@@ -1,6 +1,7 @@
-import { IpcInvoker } from '@/main/adapters/IpcInvoker'
-import { ISystemInvoker } from '@/main/contracts/invokers/ISystemInvoker'
+import { ISystemClient } from '@timelapse/application'
 
-export const systemInvoker: ISystemInvoker = {
+import { IpcInvoker } from '@/main/adapters/IpcInvoker'
+
+export const systemInvoker: ISystemClient = {
   getAppVersion: (): Promise<string> => IpcInvoker.invoke('SYSTEM_VERSION'),
 }

@@ -1,23 +1,30 @@
 {
-  "extends": "../../../tsconfig.base.json", 
+  "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"] 
+      "@/*": ["./src/*"],
+      "@timelapse/application/*": ["../../packages/application/src/*"],
+      "@timelapse/presentation/*": ["../../packages/presentation/src/*"],
+      "@timelapse/cross-cutting/*": ["../../packages/cross-cutting/src/*"],
+      "@timelapse/container/*": ["../../packages/container/src/*"],
+      "@timelapse/ui/*": ["../../packages/ui/src/*"]
     },
-    "types": ["electron-vite/node", "node"] 
+    "types": ["electron-vite/node", "node"]
   },
   "include": [
     "electron.vite.config.*",
     "src/main/**/*",
     "src/preload/**/*",
-    "src/renderer/**/*"
-, "src/renderer/@types"  ],
+    "src/renderer/**/*",
+    "src/renderer/@types"
+  ],
   "references": [
     { "path": "../../packages/application" },
     { "path": "../../packages/presentation" },
     { "path": "../../packages/cross-cutting" },
     { "path": "../../packages/container" },
-    { "path": "../../packages/ui" },
-  ],
+    { "path": "../../packages/ui" }
+  ]
 }
