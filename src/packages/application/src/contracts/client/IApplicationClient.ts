@@ -9,6 +9,8 @@ import {
   WorkspaceViewModel,
 } from '@timelapse/presentation/view-models'
 
+import { FileData } from '@/contracts/infra'
+
 export interface ConfigField {
   id: string
   label: string
@@ -148,12 +150,6 @@ export interface AddonManifest {
   tags?: string[]
 }
 
-export type FileData =
-  | Uint8Array
-  | Buffer
-  | NodeJS.ReadableStream
-  | ReadableStream<Uint8Array>
-
 export interface AddonInstaller {
   id: string
   packages: {
@@ -192,7 +188,7 @@ export interface ISystemClient {
   getAppVersion(): Promise<string>
 }
 
-export interface IClient {
+export interface IApplicationClient {
   services: {
     workspaces: IWorkspacesClient
     session: ISessionClient

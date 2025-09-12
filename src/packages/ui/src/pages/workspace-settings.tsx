@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { AddonManifest, FieldGroup } from '@timelapse/application'
 import {
   CheckCircle2,
   DatabaseZapIcon,
@@ -14,7 +15,6 @@ import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { AddonManifest, FieldGroup } from '@/client'
 import { FileUploadButton } from '@/components'
 import { DataSourceList } from '@/components/plugins-list'
 import {

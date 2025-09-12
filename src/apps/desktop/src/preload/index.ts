@@ -1,6 +1,6 @@
+import { IApplicationClient } from '@timelapse/application'
 import { contextBridge } from 'electron'
 
-import { IWindowAPIInvoker } from '@/main/contracts/invokers'
 import {
   addonsInvoker,
   discordInvoker,
@@ -13,7 +13,7 @@ import {
   workspacesInvoker,
 } from '@/main/invokers'
 
-const api: IWindowAPIInvoker = {
+const api: IApplicationClient = {
   services: {
     workspaces: workspacesInvoker,
     session: sessionInvoker,

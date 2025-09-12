@@ -1,3 +1,4 @@
+import { IWorkspacesClient } from '@timelapse/application'
 import { IRequest } from '@timelapse/cross-cutting/transport'
 import {
   AuthenticationViewModel,
@@ -8,10 +9,9 @@ import {
 import { FieldGroup } from '@timelapse/sdk'
 
 import { IpcInvoker } from '@/main/adapters/IpcInvoker'
-import { IWorkspacesInvoker } from '@/main/contracts/invokers/IWorkspacesInvoker'
 import { CreateWorkspaceRequest } from '@/main/handlers/WorkspacesHandler'
 
-export const workspacesInvoker: IWorkspacesInvoker = {
+export const workspacesInvoker: IWorkspacesClient = {
   create: (
     request: IRequest<CreateWorkspaceRequest>,
   ): Promise<ViewModel<WorkspaceViewModel>> =>
