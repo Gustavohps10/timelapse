@@ -40,8 +40,8 @@ Utilize o Visual Studio Code ou outra IDE com compatibilidade com os plugins:
 - [X]  Iniciar fluxo de envio de credenciais dinamicas para o redmine e armazenamento seguro de informacoes com Keytar
 - [X] Versionamento com Changesets
 - [X] Separar plugin do Redmine em outro Repositório e publicar no NPM
-- [ ] Em Progresso ⏳;Fazer Download e Injetar plugins dinamicamente em tempo de execução com Container De Ioc e estudar possibilidades para fazer menu de busca de plugins semelhante a Extensões do VS Code
-- [ ] Integrar com RxDB, implementar motor de sincronização com adaptador de fonte de dados
+- [X] Fazer Download e Injetar plugins dinamicamente em tempo de execução com Container De Ioc e estudar possibilidades para fazer menu de busca de plugins semelhante a Extensões do VS Code
+- [ ] Em Progresso ⏳; Implementar motor de sincronização com RxDB [replication-http](https://rxdb.info/replication-http.html) 
 
 # Arquitetura da Plataforma
 ## 1. Visão Geral
