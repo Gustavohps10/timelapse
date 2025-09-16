@@ -1,28 +1,6 @@
 import { RxJsonSchema } from 'rxdb'
 
-type TimeEntryDoc = {
-  id: string
-  project: {
-    id: number
-    name: string
-  }
-  issue: {
-    id: number
-  }
-  user: {
-    id: number
-    name: string
-  }
-  activity: {
-    id: number
-    name: string
-  }
-  hours: number
-  comments?: string
-  spentOn: string
-  createdAt: string
-  updatedAt: string
-}
+import { TimeEntryDoc } from '../types'
 
 export const timeEntrySchema: RxJsonSchema<TimeEntryDoc> = {
   title: 'time entry schema',
@@ -74,6 +52,7 @@ export const timeEntrySchema: RxJsonSchema<TimeEntryDoc> = {
     spentOn: { type: 'string', maxLength: 30 }, // sem format
     createdAt: { type: 'string', maxLength: 30 },
     updatedAt: { type: 'string', maxLength: 30 },
+    _deleted: { type: 'boolean' },
   },
 
   required: [

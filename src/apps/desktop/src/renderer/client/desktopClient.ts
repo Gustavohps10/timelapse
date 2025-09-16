@@ -7,5 +7,19 @@ const ipcClient: IApplicationClient = {
   integrations: window.api.integrations,
 }
 
-export const desktopOfflineFirstClient =
-  await createOfflineFirstClient(ipcClient)
+const offlineClientResult = await createOfflineFirstClient(ipcClient)
+
+let desktopOfflineFirstClient: IApplicationClient
+
+if (offlineClientResult.isFailure()) {
+  console.error(
+    'Erro ao criar cliente offline-first:',
+    offlineClientResult.failure,
+  )
+  // Fallback para o cliente IPC direto em caso de erro
+  desktopOfflineFirstClient = ipcClient
+} else {
+  desktopOfflineFirstClient = offlineClientResult.success
+}
+
+export { desktopOfflineFirstClient }
