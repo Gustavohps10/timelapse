@@ -151,15 +151,21 @@ export function TimeEntries() {
 
   const { data: timeEntriesResponse } = useQuery({
     queryKey: ['time-entries', dateKey],
-    queryFn: () =>
-      client.services.timeEntries.findByMemberId({
+    queryFn: () => {
+      // Buscar últimos 30 dias para manter dados atualizados
+      const endDate = date ?? new Date()
+      const startDate = new Date(endDate)
+      startDate.setDate(startDate.getDate() - 30)
+
+      return client.services.timeEntries.findByMemberId({
         body: {
           workspaceId: workspaceId!,
           memberId: user?.id.toString()!,
-          startDate: date ?? new Date(),
-          endDate: date ?? new Date(),
+          startDate,
+          endDate,
         },
-      }),
+      })
+    },
     staleTime,
   })
 

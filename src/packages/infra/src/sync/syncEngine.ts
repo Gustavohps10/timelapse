@@ -1,20 +1,12 @@
-import { IApplicationClient, TimeEntryDTO } from '@timelapse/application'
-import {
-  addRxPlugin,
-  createRxDatabase,
-  RxDatabase,
-  RxReplicationWriteToMasterRow,
-  WithDeleted,
-} from 'rxdb'
+import { IApplicationClient } from '@timelapse/application'
+import { addRxPlugin, createRxDatabase, RxDatabase } from 'rxdb'
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode'
-import { replicateRxCollection } from 'rxdb/plugins/replication'
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie'
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv'
 
 import { timeEntrySchema } from '@/sync/schemas/TimeEntrySchema'
 
 import { TimeEntryMapper } from './mappers'
-import { SyncCheckpoint, TimeEntryDoc } from './types'
 
 addRxPlugin(RxDBDevModePlugin)
 
@@ -37,121 +29,10 @@ async function _createDatabase(
     },
   })
 
-  replicateRxCollection({
-    collection: db.time_entries,
-    replicationIdentifier: `http-replication-time_entries`,
-    push: {
-      async handler(docs: RxReplicationWriteToMasterRow<TimeEntryDoc>[]) {
-        console.log(
-          'SyncEngine: Push handler chamado com',
-          docs.length,
-          'documentos.',
-        )
-
-        try {
-          const failedDocs: WithDeleted<TimeEntryDoc>[] = []
-
-          for (const doc of docs) {
-            try {
-              const timeEntryData = TimeEntryMapper.docToDto(
-                doc.newDocumentState,
-              )
-
-              console.log('Enviando TimeEntry para servidor:', timeEntryData.id)
-
-              // TODO: Implementar push quando API estiver disponível
-              // await _remoteClient.services.timeEntries.create(timeEntryData)
-            } catch (error) {
-              console.error(
-                'Erro ao enviar TimeEntry:',
-                doc.newDocumentState.id,
-                error,
-              )
-              failedDocs.push(doc.newDocumentState as WithDeleted<TimeEntryDoc>)
-            }
-          }
-
-          console.log(
-            `SyncEngine: Push concluído. ${docs.length - failedDocs.length} sucessos, ${failedDocs.length} falhas`,
-          )
-          return failedDocs
-        } catch (error) {
-          console.error('SyncEngine: Erro crítico no push:', error)
-          // Retornar todos os documentos para retry em caso de erro crítico
-          return docs.map(
-            (doc) => doc.newDocumentState as WithDeleted<TimeEntryDoc>,
-          )
-        }
-      },
-    },
-    pull: {
-      async handler(lastCheckpoint: unknown, batchSize: number) {
-        console.log(
-          'SyncEngine: Pull handler chamado com o checkpoint:',
-          lastCheckpoint,
-          'Batch size:',
-          batchSize,
-        )
-
-        try {
-          console.log('Buscando TimeEntries do servidor remoto...')
-
-          // TODO: Implementar pull com filtros específicos quando necessário
-          // Por enquanto, buscar dados de exemplo para demonstração
-          const serverData =
-            await _remoteClient.services.timeEntries.findByMemberId({
-              body: {
-                memberId: '1', // TODO: Obter do contexto
-                startDate: new Date('2024-01-01'),
-                endDate: new Date('2024-12-31'),
-                workspaceId: 'ws-123', // TODO: Obter do contexto
-              },
-            })
-
-          if (!serverData.isSuccess) {
-            console.log(
-              'SyncEngine: Erro ao buscar dados do servidor:',
-              serverData,
-            )
-            return {
-              documents: [],
-              checkpoint: lastCheckpoint as SyncCheckpoint,
-            }
-          }
-
-          const timeEntries = serverData.data || []
-          const documents = timeEntries.map((timeEntry: TimeEntryDTO) =>
-            TimeEntryMapper.dtoToDoc(timeEntry),
-          )
-
-          const newCheckpoint: SyncCheckpoint = {
-            id: `checkpoint-${Date.now()}`,
-            time: Date.now(),
-            lastSyncTime: new Date().toISOString(),
-          }
-
-          console.log(
-            `SyncEngine: Pull concluído. ${documents.length} documentos recebidos`,
-          )
-
-          return {
-            documents: documents.map(
-              (doc) =>
-                ({ ...doc, _deleted: false }) as WithDeleted<TimeEntryDoc>,
-            ),
-            checkpoint: newCheckpoint,
-          }
-        } catch (error) {
-          console.error('SyncEngine: Erro no pull:', error)
-          // Retornar checkpoint atual em caso de erro para não perder progresso
-          return {
-            documents: [],
-            checkpoint: lastCheckpoint as SyncCheckpoint,
-          }
-        }
-      },
-    },
-  })
+  // Removido replicateRxCollection automático para evitar pull inicial
+  // que traz 140k registros sem contexto de usuário
+  // O sync agora é controlado manualmente pelo IntelligentSyncService
+  // quando o usuário está logado e tem contexto adequado
 
   return db
 }

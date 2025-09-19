@@ -359,9 +359,7 @@ export function WorkspaceSettings() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="button" onClick={() => {}}>
-              Salvar Alterações
-            </Button>
+            <Button type="button">Salvar Alterações</Button>
           </CardFooter>
         </Card>
 

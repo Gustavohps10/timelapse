@@ -49,7 +49,7 @@ export const timeEntrySchema: RxJsonSchema<TimeEntryDoc> = {
 
     comments: { type: 'string', maxLength: 500 },
 
-    spentOn: { type: 'string', maxLength: 30 }, // sem format
+    spentOn: { type: 'string', maxLength: 30 },
     createdAt: { type: 'string', maxLength: 30 },
     updatedAt: { type: 'string', maxLength: 30 },
     _deleted: { type: 'boolean' },
