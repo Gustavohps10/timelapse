@@ -42,7 +42,7 @@ export class IntelligentSyncService {
   }
 
   /**
-   * Executa sincronização inicial com dados do último mês
+   * Executa sincronização inicial com dados dos últimos 30 dias
    */
   async performInitialSync(
     memberId: string,
@@ -50,15 +50,18 @@ export class IntelligentSyncService {
   ): Promise<Either<AppError, TimeEntryDTO[]>> {
     const endDate = new Date()
     const startDate = new Date()
-    startDate.setDate(startDate.getDate() - this.syncConfig.initialSyncDays)
+    startDate.setDate(startDate.getDate() - 30) // Sempre últimos 30 dias
 
-    console.log('🔄 IntelligentSync: Executando sync inicial...', {
-      memberId,
-      workspaceId,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      days: this.syncConfig.initialSyncDays,
-    })
+    console.log(
+      '🔄 IntelligentSync: Executando sync inicial (últimos 30 dias)...',
+      {
+        memberId,
+        workspaceId,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        days: 30,
+      },
+    )
 
     return this.syncTimeEntriesByMemberId(
       memberId,
@@ -114,6 +117,13 @@ export class IntelligentSyncService {
       })
 
       // Buscar dados reais do servidor remoto
+      console.log('🔍 IntelligentSync: Parâmetros enviados para API:', {
+        workspaceId,
+        memberId,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      })
+
       const remoteData =
         await this.remoteClient.services.timeEntries.findByMemberId({
           body: {
@@ -138,10 +148,29 @@ export class IntelligentSyncService {
         )
       }
 
-      const timeEntries = remoteData.data || []
+      let timeEntries = remoteData.data || []
       console.log(
-        `✅ IntelligentSync: ${timeEntries.length} TimeEntries recebidos do servidor`,
+        `✅ IntelligentSync: ${timeEntries.length} TimeEntries recebidos do servidor (antes do filtro)`,
       )
+
+      // Filtro de segurança: garantir que só retornamos dados do usuário correto
+      const originalCount = timeEntries.length
+      timeEntries = timeEntries.filter((entry) => {
+        const entryUserId = entry.user?.id?.toString()
+        const matchesUser = entryUserId === memberId
+        if (!matchesUser) {
+          console.warn(
+            `⚠️ IntelligentSync: TimeEntry ${entry.id} não pertence ao usuário ${memberId} (user.id: ${entryUserId})`,
+          )
+        }
+        return matchesUser
+      })
+
+      if (originalCount !== timeEntries.length) {
+        console.log(
+          `🔒 IntelligentSync: Filtro aplicado - ${originalCount} → ${timeEntries.length} TimeEntries (removidos ${originalCount - timeEntries.length} de outros usuários)`,
+        )
+      }
 
       // Salvar dados localmente
       const saveResult = await this.localService.saveTimeEntries(timeEntries)

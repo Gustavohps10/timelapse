@@ -8,7 +8,7 @@ export async function createOfflineFirstClient(
   baseClient: IApplicationClient,
 ): Promise<Either<AppError, IApplicationClient>> {
   try {
-    const db = await getDatabase(baseClient)
+    const _db = await getDatabase(baseClient)
     const intelligentSyncService = new IntelligentSyncService(baseClient)
 
     // Inicializar o serviço de sincronização
@@ -60,6 +60,26 @@ export async function createOfflineFirstClient(
             `[INFRA]: Encontrados ${localTimeEntries.length} TimeEntries no banco local`,
           )
 
+          // Verificar se tem contexto válido de usuário antes de sincronizar
+          if (
+            !memberId ||
+            !workspaceId ||
+            memberId === 'undefined' ||
+            workspaceId === 'undefined'
+          ) {
+            console.log(
+              '[INFRA]: Sem contexto de usuário válido - retornando apenas dados locais',
+            )
+            return {
+              data: localTimeEntries,
+              totalItems: localTimeEntries.length,
+              totalPages: 1,
+              currentPage: 1,
+              isSuccess: true,
+              statusCode: 200,
+            }
+          }
+
           // Verificar se precisa sincronizar
           const canSync = intelligentSyncService.canSync(memberId, workspaceId)
           const lastCheckpoint = intelligentSyncService.getLastCheckpoint(
@@ -68,9 +88,9 @@ export async function createOfflineFirstClient(
           )
 
           if (!lastCheckpoint) {
-            // Primeira vez - fazer sync inicial com último mês
+            // Primeira vez - fazer sync inicial com últimos 30 dias
             console.log(
-              '[INFRA]: Primeira sincronização - executando sync inicial...',
+              '[INFRA]: Primeira sincronização - executando sync inicial (últimos 30 dias)...',
             )
             const syncResult = await intelligentSyncService.performInitialSync(
               memberId,

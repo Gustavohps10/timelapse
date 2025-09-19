@@ -33,6 +33,13 @@ export class SyncService {
         workspaceId,
       })
 
+      console.log('🔍 SyncService: Parâmetros enviados para API:', {
+        workspaceId,
+        memberId,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      })
+
       const remoteData =
         await this.remoteClient.services.timeEntries.findByMemberId({
           body: {
@@ -53,10 +60,29 @@ export class SyncService {
         )
       }
 
-      const timeEntries = remoteData.data || []
+      let timeEntries = remoteData.data || []
       console.log(
-        `SyncService: ${timeEntries.length} TimeEntries recebidos do servidor`,
+        `SyncService: ${timeEntries.length} TimeEntries recebidos do servidor (antes do filtro)`,
       )
+
+      // Filtro de segurança: garantir que só retornamos dados do usuário correto
+      const originalCount = timeEntries.length
+      timeEntries = timeEntries.filter((entry) => {
+        const entryUserId = entry.user?.id?.toString()
+        const matchesUser = entryUserId === memberId
+        if (!matchesUser) {
+          console.warn(
+            `⚠️ SyncService: TimeEntry ${entry.id} não pertence ao usuário ${memberId} (user.id: ${entryUserId})`,
+          )
+        }
+        return matchesUser
+      })
+
+      if (originalCount !== timeEntries.length) {
+        console.log(
+          `🔒 SyncService: Filtro aplicado - ${originalCount} → ${timeEntries.length} TimeEntries (removidos ${originalCount - timeEntries.length} de outros usuários)`,
+        )
+      }
 
       const saveResult = await this.localService.saveTimeEntries(timeEntries)
       if (saveResult.isFailure()) {

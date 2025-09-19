@@ -50,14 +50,106 @@ export class LocalTimeEntryService {
         )
       }
 
-      await (
-        this.db as {
-          time_entries: { insert: (doc: TimeEntryDoc) => Promise<unknown> }
-        }
-      ).time_entries.insert(doc)
-      console.log(`LocalTimeEntryService: TimeEntry ${doc.id} salvo localmente`)
+      // Tentar inserir primeiro (caminho feliz, sem duplicidade)
+      try {
+        await (
+          this.db as {
+            time_entries: { insert: (doc: TimeEntryDoc) => Promise<unknown> }
+          }
+        ).time_entries.insert(doc)
+        console.log(
+          `LocalTimeEntryService: TimeEntry ${doc.id} inserido localmente`,
+        )
+        return Either.success(doc)
+      } catch (insertError) {
+        const message = insertError instanceof Error ? insertError.message : ''
+        const isConflict =
+          typeof message === 'string' &&
+          message.toLowerCase().includes('conflict')
 
-      return Either.success(doc)
+        if (!isConflict) {
+          return Either.failure(
+            new AppError(
+              'SAVE_ERROR',
+              insertError instanceof Error
+                ? insertError.message
+                : 'Erro ao salvar TimeEntry',
+              500,
+            ),
+          )
+        }
+
+        // Conflito de atualização: fazer upsert baseado em updatedAt
+        const collection = (
+          this.db as {
+            time_entries: {
+              findOne: (id: string) => { exec: () => Promise<unknown> }
+            }
+          }
+        ).time_entries
+
+        const existingDocObj = (await collection
+          .findOne(doc.id)
+          .exec()) as unknown
+
+        if (!existingDocObj) {
+          // Se não encontrar (raro), retornar erro original
+          return Either.failure(
+            new AppError(
+              'SAVE_ERROR',
+              insertError instanceof Error
+                ? insertError.message
+                : 'Erro ao salvar TimeEntry',
+              500,
+            ),
+          )
+        }
+
+        const existing = (
+          existingDocObj as { toJSON: () => TimeEntryDoc }
+        ).toJSON()
+        const incomingUpdatedAt = new Date(doc.updatedAt).getTime()
+        const existingUpdatedAt = new Date(existing.updatedAt).getTime()
+
+        if (
+          Number.isFinite(existingUpdatedAt) &&
+          existingUpdatedAt >= incomingUpdatedAt
+        ) {
+          // Mantém o registro existente, pois é igual/mais recente
+          console.log(
+            `LocalTimeEntryService: TimeEntry ${doc.id} ignorado (registro existente é mais recente ou igual)`,
+          )
+          return Either.success(existing)
+        }
+
+        // Atualiza somente campos necessários; preserva _deleted se existir
+        const updatePayload: Partial<TimeEntryDoc> = {
+          project: doc.project,
+          issue: doc.issue,
+          user: doc.user,
+          activity: doc.activity,
+          hours: doc.hours,
+          comments: doc.comments,
+          spentOn: doc.spentOn,
+          createdAt: existing.createdAt || doc.createdAt,
+          updatedAt: doc.updatedAt,
+          _deleted: existing._deleted,
+        }
+
+        await (
+          existingDocObj as {
+            update: (d: Partial<TimeEntryDoc>) => Promise<unknown>
+          }
+        ).update(updatePayload)
+        console.log(
+          `LocalTimeEntryService: TimeEntry ${doc.id} atualizado via upsert`,
+        )
+        return Either.success({
+          ...existing,
+          ...updatePayload,
+          id: existing.id,
+        })
+      }
     } catch (error) {
       return Either.failure(
         new AppError(
