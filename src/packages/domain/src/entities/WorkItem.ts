@@ -46,7 +46,7 @@ export class Task extends Entity {
   static createFallback(workspaceId: string): Task {
     return Task.create({
       title: 'General Task',
-      description: 'Fallback task for time entries without specific tasks',
+      description: 'Fallback work item for time entries without specific tasks',
       workspaceId,
       isFallback: true,
     })

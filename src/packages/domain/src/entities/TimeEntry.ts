@@ -5,6 +5,7 @@ import { Entity } from '@/entities/Entity'
 
 // Tipo para as propriedades, facilitando a manutenção
 export type TimeEntryProps = {
+  taskId: string // New relationship field
   project: { id: number; name: string }
   issue: { id: number }
   user: { id: number; name: string }
@@ -16,6 +17,7 @@ export type TimeEntryProps = {
 
 export class TimeEntry extends Entity {
   private _id: string
+  private _taskId: string // New relationship field
   private _project: { id: number; name: string }
   private _issue: { id: number }
   private _user: { id: number; name: string }
@@ -34,6 +36,7 @@ export class TimeEntry extends Entity {
   ) {
     super()
     this._id = id
+    this._taskId = props.taskId
     this._project = props.project
     this._issue = props.issue
     this._user = props.user
@@ -56,6 +59,13 @@ export class TimeEntry extends Entity {
   }
   private set id(value: string) {
     this._id = value
+  }
+
+  get taskId(): string {
+    return this._taskId
+  }
+  private set taskId(value: string) {
+    this._taskId = value
   }
 
   get project() {

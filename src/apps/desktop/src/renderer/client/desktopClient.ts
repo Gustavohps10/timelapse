@@ -16,10 +16,9 @@ if (offlineClientResult.isFailure()) {
     'Erro ao criar cliente offline-first:',
     offlineClientResult.failure,
   )
-  // Fallback para o cliente IPC direto em caso de erro
-  desktopOfflineFirstClient = ipcClient
 } else {
   desktopOfflineFirstClient = offlineClientResult.success
+  console.log('Sucesso ao criar cliente offline-first')
 }
 
 export { desktopOfflineFirstClient }

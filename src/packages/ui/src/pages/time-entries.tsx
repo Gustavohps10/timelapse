@@ -152,10 +152,19 @@ export function TimeEntries() {
   const { data: timeEntriesResponse } = useQuery({
     queryKey: ['time-entries', dateKey],
     queryFn: () => {
-      // Buscar últimos 30 dias para manter dados atualizados
-      const endDate = date ?? new Date()
-      const startDate = new Date(endDate)
-      startDate.setDate(startDate.getDate() - 30)
+      // Se o usuário selecionou uma data específica, filtrar apenas esse dia
+      let startDate: Date
+      let endDate: Date
+      if (date) {
+        // Filtrar apenas o dia selecionado
+        startDate = new Date(date)
+        endDate = new Date(date)
+      } else {
+        // Range padrão de 30 dias
+        endDate = new Date()
+        startDate = new Date(endDate)
+        startDate.setDate(startDate.getDate() - 30)
+      }
 
       return client.services.timeEntries.findByMemberId({
         body: {

@@ -1,5 +1,6 @@
 export interface TimeEntryViewModel {
   id?: number
+  taskId?: string // New relationship field
   project?: {
     id?: number
     name?: string
