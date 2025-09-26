@@ -86,7 +86,7 @@ export function AppSidebar({ content, footer }: AppSidebarProps) {
         </button>
       </nav>
 
-      <div className="mt-2 flex-1 rounded-l-lg border-t border-r border-l">
+      <div className="mt-2 flex flex-1 flex-col rounded-tl-lg border-t border-r border-l">
         <SidebarHeader className="z-40">
           <div className="flex items-center gap-2 rounded-md p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
             <img
@@ -108,7 +108,7 @@ export function AppSidebar({ content, footer }: AppSidebarProps) {
         <SidebarContent className="z-40">
           <ScrollArea className="h-full">{content}</ScrollArea>
         </SidebarContent>
-        <SidebarFooter>{footer}</SidebarFooter>
+        <SidebarFooter className="mb-2">{footer}</SidebarFooter>
       </div>
     </Sidebar>
   )
