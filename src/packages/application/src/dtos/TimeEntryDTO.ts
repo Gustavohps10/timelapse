@@ -1,5 +1,6 @@
 export interface TimeEntryDTO {
   id?: number
+  taskId?: string // New relationship field
   project?: {
     id?: number
     name?: string

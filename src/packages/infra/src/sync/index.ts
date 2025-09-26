@@ -1,8 +1,4 @@
+// Exporte apenas utilitários e inicialização/replicação centralizada
 export * from './createOfflineFirstClient'
-export * from './IntelligentSyncService'
-export * from './LocalTimeEntryService'
-export * from './mappers'
 export * from './schemas'
-export * from './syncEngine'
-export * from './SyncService'
 export * from './types'
