@@ -32,6 +32,7 @@ export function AppSidebarWorkspacesContent() {
                 <SidebarMenuButton asChild>
                   <NavLink
                     to={`/workspaces/${workspaceId}/${item.path}`}
+                    end={item.path === ''}
                     className="z-40 flex items-center rounded-md transition-colors [&.active]:bg-zinc-100 dark:[&.active]:bg-zinc-800"
                   >
                     {({ isActive }) => (
