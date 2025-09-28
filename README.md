@@ -42,6 +42,44 @@ Utilize o Visual Studio Code ou outra IDE com compatibilidade com os plugins:
 - [X] Separar plugin do Redmine em outro Repositório e publicar no NPM
 - [X] Fazer Download e Injetar plugins dinamicamente em tempo de execução com Container De Ioc e estudar possibilidades para fazer menu de busca de plugins semelhante a Extensões do VS Code
 - [ ] Em Progresso ⏳; Implementar motor de sincronização com RxDB [replication-http](https://rxdb.info/replication-http.html) 
+  - ## Fase 1: Preparação do Backend
+    - A API interna  deve expor três métodos essenciais para gerenciar a sincronização de dados.
+    - [ ] 1.1. Criar Rota de pull
+      - Endpoint:  /sync/time-entries/pull
+      - Finalidade: Fornecer ao cliente RxDB as alterações ocorridas desde a última sincronização.
+      - Request Body: { checkpoint: { updatedAt: string, id: string } | null, limit: number }
+      - Response Body: { documents: Document[], checkpoint: { updatedAt: string, id: string } }
+    - [ ] 1.2. Criar Rota de push
+      - Endpoint: POST /sync/time-entries/push
+      - Finalidade: Receber do cliente RxDB um lote de documentos criados ou alterados offline.
+      - Request Body: { documents: Document[] }
+      - Response Body: { conflicts: Document[] } (um array com os documentos que não puderam ser salvos).
+    - [ ] 1.3. Criar Rota de findByPeriod
+      - Endpoint: POST /time-entries/by-period
+      - Finalidade: Fornecer à UI o lote inicial de dados recentes na primeira sincronização ("carga rápida").
+      - Request Body: { startDate: string, endDate: string } (outros filtros como userId e workspaceId devem ser extraídos do JWT).
+      - Response Body: { data: Document[], totalItems: number, ... }
+
+  - ## Fase 2: Estruturar o Banco de Dados Local
+    - O cliente (Frontend) deve ter seus schemas RxDB finalizados para suportar a sincronização.
+    - [ ] 2.1. Adicionar Coleção de tasks
+      - A coleção deve ser adicionada ao banco de dados local para armazenar informações de contexto como title e estimatedHours.
+    - [ ] 2.2. Atualizar Coleção de workspaces
+      - O schema deve ser atualizado para incluir um campo de controle de estado, como prioritySyncStatus: 'PENDING' | 'COMPLETED', para gerenciar o ciclo de vida da sincronização.
+
+  - ## Fase 3: Construir a Lógica de Sincronização no Cliente
+    - Um orquestrador, chamado SyncManager, deve ser criado no cliente para gerenciar os dois processos de sincronização.
+    - [ ] 3.1. Implementar a Carga Rápida
+      - Criar uma função que, na primeira conexão de um workspace, busca os dados dos últimos 60 dias através da rota findByPeriod para tornar o app útil imediatamente.
+    - [ ] 3.2. Implementar a Replicação Contínua
+      - Criar a função principal que inicia o RxDB.syncHTTP() contra as rotas pull e push, mantendo os dados recentes atualizados em tempo real e enviando as alterações feitas - offline.
+
+  - ## Fase 4: Conectar na Interface (UI)
+    - O SyncManager deve ser integrado ao ciclo de vida da aplicação.
+    - [ ] 4.1. Gerenciar o Ciclo de Vida da Sincronização
+      - A sincronização para um workspace deve ser iniciada ou parada automaticamente com base no estado de autenticação do usuário e no workspace selecionado.
+    - [ ] 4.2. Refatorar Telas para Serem Reativas
+      - Todas as telas da UI devem ser refatoradas para ler os dados exclusivamente do banco local (RxDB) através de consultas reativas (.$), garantindo que a interface se atualize automaticamente à medida que a sincronização ocorre em segundo plano.
 
 # Arquitetura da Plataforma
 ## 1. Visão Geral
