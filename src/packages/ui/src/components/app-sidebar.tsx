@@ -48,7 +48,7 @@ export function AppSidebar({ content, footer }: AppSidebarProps) {
           <HomeIcon />
           <span className="bg-foreground text-background absolute left-full ml-4 hidden -translate-x-2 cursor-pointer rounded-md px-2 py-1 text-xs font-semibold opacity-0 transition-all group-hover:block group-hover:translate-x-0 group-hover:opacity-100">
             Inicio
-          </span>
+          </span>{' '}
         </Link>
 
         <hr className="w-8 border-t" />
