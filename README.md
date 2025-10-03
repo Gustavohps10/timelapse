@@ -2,9 +2,11 @@
 
 ## Uma Plataforma Local-First para Apontamento de Horas com Foco em Performance e Flexibilidade
 
-<p>
-    ![header-light](./docs/diagram-light.png#gh-dark-mode-only)
-    ![header-dark](./docs/diagram-dark.png#gh-light-mode-only)
+<p  width="100%" >
+  
+  <img src="./docs/diagram-light.png#gh-dark-mode-only" width="100%" />
+  <img src="./docs/diagram-dark.png#gh-light-mode-only" width="100%" />
+
 </p>
 
 Este projeto é uma **plataforma de apontamento de horas Local-First**, construída para oferecer uma experiência de uso instantânea, robusta e extensível. Sua arquitetura prioriza a **autonomia do usuário** e a **performance offline**, utilizando um ecossistema de **plugins dinâmicos** para se conectar a diferentes fontes de dados (Redmine, Jira, etc.).
