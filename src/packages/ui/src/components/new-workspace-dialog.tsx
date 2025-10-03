@@ -95,11 +95,11 @@ export function NewWorkspaceDialog({
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
       <DialogPortal>
         <DialogOverlay />
-        <DialogContent className="max-h-[90vh] w-full overflow-y-auto p-0 sm:max-w-lg">
-          <DialogHeader className="p-6 pb-4">
+        <DialogContent>
+          <DialogHeader>
             <DialogTitle>Novo Workspace</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nome do Workspace</Label>
               <Input
