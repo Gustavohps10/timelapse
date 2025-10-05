@@ -7,4 +7,10 @@ export interface ITimeEntryQuery extends IQueryBase<TimeEntryDTO> {
     startDate: Date,
     endDate: Date,
   ): Promise<PagedResultDTO<TimeEntryDTO>>
+
+  pull(
+    memberId: string,
+    checkpoint: { updatedAt: Date; id: string },
+    batch: number,
+  ): Promise<TimeEntryDTO[]>
 }

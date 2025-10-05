@@ -182,6 +182,12 @@ export async function createOfflineFirstClient(
           }
           return result
         },
+        async pull(payload) {
+          // TODO: implementar pull incremental futuramente
+          throw new Error(
+            'NotImplementedException: pull remoto ainda não implementado',
+          )
+        },
       }
 
     const offlineClient: IApplicationClient = {

@@ -1,19 +1,27 @@
-import { IListTimeEntriesUseCase } from '@timelapse/application'
+export interface ListTimeEntriesRequest {
+  memberId: string
+  startDate: Date
+  endDate: Date
+}
+import {
+  IListTimeEntriesUseCase,
+  ITimeEntriesPullUseCase,
+} from '@timelapse/application'
 import { IRequest } from '@timelapse/cross-cutting/transport'
 import {
   PaginatedViewModel,
   TimeEntryViewModel,
 } from '@timelapse/presentation/view-models'
 
-export interface ListTimeEntriesRequest {
-  memberId: string
-  startDate: Date
-  endDate: Date
+export interface PullTimeEntriesRequest {
+  checkpoint: { updatedAt: Date; id: string }
+  batch: number
 }
 
 export class TimeEntriesHandler {
   constructor(
     private readonly listTimeEntriesService: IListTimeEntriesUseCase,
+    private readonly timeEntriesPullService: ITimeEntriesPullUseCase,
   ) {}
 
   public async listTimeEntries(
@@ -50,5 +58,34 @@ export class TimeEntriesHandler {
       totalPages: 1,
       currentPage: 1,
     }
+  }
+
+  public async pull(
+    _event: Electron.IpcMainInvokeEvent,
+    { body }: IRequest<PullTimeEntriesRequest>,
+  ): Promise<TimeEntryViewModel[]> {
+    const { checkpoint, batch } = body
+
+    const result = await this.timeEntriesPullService.execute({
+      checkpoint,
+      batch,
+    })
+    if (result.isFailure()) {
+      return []
+    }
+
+    return result.success.map((entry) => ({
+      id: entry.id,
+      taskId: entry.taskId,
+      project: entry.project,
+      issue: entry.issue,
+      user: entry.user,
+      activity: entry.activity,
+      hours: entry.hours,
+      comments: entry.comments,
+      spentOn: entry.spentOn,
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+    }))
   }
 }

@@ -93,6 +93,15 @@ export interface ITimeEntriesClient {
       endDate: Date
     }>,
   ) => Promise<PaginatedViewModel<TimeEntryViewModel[]>>
+
+  pull: (
+    payload: IRequest<{
+      workspaceId: string
+      memberId: string
+      checkpoint: { updatedAt: Date; id: string }
+      batch: number
+    }>,
+  ) => Promise<TimeEntryViewModel[]>
 }
 
 export interface IHeadersClient {
