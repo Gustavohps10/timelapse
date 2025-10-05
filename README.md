@@ -2,9 +2,11 @@
 
 ## Uma Plataforma Local-First para Apontamento de Horas com Foco em Performance e Flexibilidade
 
-<p>
-    ![header-light](./docs/diagram-light.png#gh-dark-mode-only)
-    ![header-dark](./docs/diagram-dark.png#gh-light-mode-only)
+<p  width="100%" >
+  
+  <img src="./docs/diagram-light.png#gh-dark-mode-only" width="100%" />
+  <img src="./docs/diagram-dark.png#gh-light-mode-only" width="100%" />
+
 </p>
 
 Este projeto é uma **plataforma de apontamento de horas Local-First**, construída para oferecer uma experiência de uso instantânea, robusta e extensível. Sua arquitetura prioriza a **autonomia do usuário** e a **performance offline**, utilizando um ecossistema de **plugins dinâmicos** para se conectar a diferentes fontes de dados (Redmine, Jira, etc.).
@@ -18,8 +20,8 @@ O projeto é guiado pelos seguintes pilares, que garantem sua flexibilidade e al
 | Conceito | Descrição | Tecnologia Base |
 | :--- | :--- | :--- |
 | **Local-First** | A interface de usuário *sempre* interage com o banco de dados local. Isso garante carregamento instantâneo, independentemente da latência da rede. | **RxDB + PGlite** |
-| **Workspaces** | Unidades centrais de trabalho. Permitem ao usuário isolar e gerenciar conexões a diferentes fontes de dados de forma segura (ex: um workspace para Redmine, outro para Jira). | **Monorepo** |
 | **Offline-First** | As aplicações instaláveis (Desktop/Mobile) são totalmente funcionais sem conexão com a internet. A sincronização é um processo em *background*. | **RxDB Replication** |
+| **Workspaces** | Unidades centrais de trabalho. Permitem ao usuário isolar e gerenciar conexões a diferentes fontes de dados de forma segura (ex: um workspace para Time A com Redmine, outro para Time B com Jira). | **Monorepo** |
 | **Ecossistema de Plugins** | A plataforma é extensível. Novas **Fontes de dados** (SDK) podem ser baixadas e carregadas dinamicamente em tempo de execução para integrar com qualquer API de terceiro. | **GitHub, Container IoC** |
 
 ---
