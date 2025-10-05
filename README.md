@@ -73,8 +73,7 @@ Esta seção detalha o progresso e o foco atual do desenvolvimento.
 - [X] **Armazenamento Seguro:** Implementação de `Keytar` (Desktop) para credenciais dinâmicas.
 - [X] **Ecossistema de Plugins:** Separar o `redmine-plugin` em repositório externo e publicar no NPM/Github.
 - [X] Implementar a **Instalação Dinâmica de Plugins** em tempo de execução via Container de Inversão de Controle (IoC).
-
-### ⏳ Em Progresso: Implementação do Motor de Sincronização (RxDB)
+- [ ] ⏳ Em Progresso: Implementação do Motor de Sincronização (RxDB)
 
 O foco atual é implementar a replicação HTTP contínua com **RxDB Replication** para sincronizar o banco de dados local com as APIs externas.
 
@@ -82,7 +81,7 @@ O foco atual é implementar a replicação HTTP contínua com **RxDB Replication
 
 | Item | Status | Descrição |
 | :--- | :--- | :--- |
-| **1.1. Rota de Pull** | [X] | Endpoint `/sync/time-entries/pull`. Implementar a lógica de replicação incremental e *batching* (máx. 50 documentos), utilizando o `checkpoint` (`updatedAt` + `id`) para evitar perdas e garantir a continuidade da sincronização. |
+| **1.1. Rota de Pull** | ✅ | Endpoint `/sync/time-entries/pull`. Implementar a lógica de replicação incremental e *batching* (máx. 50 documentos), utilizando o `checkpoint` (`updatedAt` + `id`) para evitar perdas e garantir a continuidade da sincronização. |
 | **1.2. Rota de Push** | [ ] | Endpoint `POST /sync/time-entries/push`. Receber e processar documentos criados/alterados offline pelo cliente. Deve retornar *conflicts* se houver falhas. |
 
 #### 💿 Fase 2: Estruturar o Banco de Dados Local
