@@ -50,6 +50,50 @@ export class RedmineTimeEntryQuery
     }
   }
 
+  public async pull(
+    memberId: string,
+    checkpoint: { updatedAt: Date; id: string },
+    batch: number,
+  ): Promise<TimeEntryDTO[]> {
+    const client = await this.getAuthenticatedClient()
+
+    const response = await client.get('/time_entries.json', {
+      params: {
+        user_id: memberId,
+        limit: batch,
+        sort: 'updated_on,id',
+      },
+    })
+
+    const entries: TimeEntryDTO[] = response.data.time_entries
+      .map((entry: any) => ({
+        id: entry.id,
+        project: { id: entry.project.id, name: entry.project.name },
+        issue: { id: entry.issue?.id },
+        user: { id: entry.user.id, name: entry.user.name },
+        activity: { id: entry.activity.id, name: entry.activity.name },
+        hours: entry.hours,
+        comments: entry.comments,
+        spentOn: new Date(entry.spent_on),
+        createdAt: new Date(entry.created_on),
+        updatedAt: new Date(entry.updated_on),
+      }))
+      .filter((entry: TimeEntryDTO) => {
+        if (!entry.updatedAt || entry.id == null) return false
+
+        const updatedTime = entry.updatedAt.getTime()
+        const checkpointTime = checkpoint.updatedAt.getTime()
+        const checkpointId = Number(checkpoint.id)
+
+        return (
+          updatedTime > checkpointTime ||
+          (updatedTime === checkpointTime && entry.id > checkpointId)
+        )
+      })
+
+    return entries
+  }
+
   findAll(
     pagination?: PaginationOptionsDTO,
   ): Promise<PagedResultDTO<TimeEntryDTO>> {

@@ -1,3 +1,4 @@
+import Redmine4Test from '@timelapse/addon-for-tests'
 import {
   ICredentialsStorage,
   IWorkspacesRepository,
@@ -49,7 +50,8 @@ export function createInjectConnectorMiddleware(
 
     const addonURL = pathToFileURL(addonPath).href
     const datasourceModule = await import(addonURL)
-    const connector = datasourceModule.default
+    // const connector = datasourceModule.default
+    const connector = Redmine4Test
 
     const connectorDeps = {
       authenticationStrategy: connector.getAuthenticationStrategy(context),

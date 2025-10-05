@@ -7,6 +7,7 @@ export const IpcChannels = {
   DELETE_TOKEN: 'token:delete',
 
   LIST_TIME_ENTRIES: 'time-entries',
+  TIME_ENTRIES_PULL: 'time-entries:pull',
 
   SET_HEADERS: 'set-headers',
   GET_HEADERS: 'get-headers',

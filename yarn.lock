@@ -3904,7 +3904,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@timelapse/addon-for-tests@workspace:src/tests/addon-for-tests":
+"@timelapse/addon-for-tests@workspace:*, @timelapse/addon-for-tests@workspace:src/tests/addon-for-tests":
   version: 0.0.0-use.local
   resolution: "@timelapse/addon-for-tests@workspace:src/tests/addon-for-tests"
   dependencies:
@@ -3963,6 +3963,7 @@ __metadata:
     "@tailwindcss/postcss": "npm:^4.1.11"
     "@tailwindcss/typography": "npm:^0.5.16"
     "@tailwindcss/vite": "npm:^4.0.6"
+    "@timelapse/addon-for-tests": "workspace:*"
     "@timelapse/application": "workspace:*"
     "@timelapse/cross-cutting": "workspace:*"
     "@timelapse/infra": "workspace:*"

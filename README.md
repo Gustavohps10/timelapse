@@ -80,7 +80,7 @@ O foco atual é implementar a replicação HTTP contínua com **RxDB Replication
 
 | Item | Status | Descrição |
 | :--- | :--- | :--- |
-| **1.1. Rota de Pull** | [ ] | Endpoint `/sync/time-entries/pull`. Implementar a lógica de replicação incremental e *batching* (máx. 50 documentos), utilizando o `checkpoint` (`updatedAt` + `id`) para evitar perdas e garantir a continuidade da sincronização. |
+| **1.1. Rota de Pull** | [X] | Endpoint `/sync/time-entries/pull`. Implementar a lógica de replicação incremental e *batching* (máx. 50 documentos), utilizando o `checkpoint` (`updatedAt` + `id`) para evitar perdas e garantir a continuidade da sincronização. |
 | **1.2. Rota de Push** | [ ] | Endpoint `POST /sync/time-entries/push`. Receber e processar documentos criados/alterados offline pelo cliente. Deve retornar *conflicts* se houver falhas. |
 
 #### 💿 Fase 2: Estruturar o Banco de Dados Local
