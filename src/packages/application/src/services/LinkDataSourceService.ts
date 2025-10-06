@@ -1,4 +1,9 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  InternalServerError,
+  NotFoundError,
+} from '@timelapse/cross-cutting/helpers'
 
 import { IWorkspacesRepository } from '@/contracts'
 import {
@@ -19,7 +24,7 @@ export class LinkDataSourceService implements ILinkDataSourceUseCase {
       )
 
       if (workspace == null)
-        return Either.failure(new AppError('WORKSPACE_NAO_ENCONTRADO', '', 404))
+        return Either.failure(NotFoundError.danger('WORKSPACE_NAO_ENCONTRADO'))
 
       workspace.linkDataSource(input.dataSource)
 
@@ -36,9 +41,7 @@ export class LinkDataSourceService implements ILinkDataSourceUseCase {
 
       return Either.success(workspaceDTO)
     } catch (error) {
-      return Either.failure(
-        new AppError('ERRO_INESPERADO', (error as Error).message, 500),
-      )
+      return Either.failure(InternalServerError.danger('ERRO_INESPERADO'))
     }
   }
 }

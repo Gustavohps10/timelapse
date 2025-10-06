@@ -3,7 +3,13 @@ import {
   AddonManifestDTO,
   IAddonsFacade,
 } from '@timelapse/application'
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  InternalServerError,
+  NotFoundError,
+  ValidationError,
+} from '@timelapse/cross-cutting/helpers'
 import axios from 'axios'
 import { promises as fs } from 'fs'
 import yaml from 'js-yaml'
@@ -60,7 +66,9 @@ export class AddonsFacade implements IAddonsFacade {
 
       return Either.success(addons)
     } catch {
-      return Either.failure(new AppError('FAILED_TO_FETCH_ADDONS'))
+      return Either.failure(
+        InternalServerError.danger('FAILED_TO_FETCH_ADDONS'),
+      )
     }
   }
 
@@ -84,7 +92,9 @@ export class AddonsFacade implements IAddonsFacade {
 
       return Either.success(installedAddons)
     } catch {
-      return Either.failure(new AppError('FAILED_TO_LIST_INSTALLED_ADDONS'))
+      return Either.failure(
+        InternalServerError.danger('FAILED_TO_LIST_INSTALLED_ADDONS'),
+      )
     }
   }
 
@@ -97,7 +107,8 @@ export class AddonsFacade implements IAddonsFacade {
     const localAddonsList = result.success
     const addon = localAddonsList.find((a) => a.id === addonId)
 
-    if (!addon) return Either.failure(new AppError('LOCAL_ADDON_NOT_FOUND'))
+    if (!addon)
+      return Either.failure(NotFoundError.danger('LOCAL_ADDON_NOT_FOUND'))
 
     const localIconPath = `${LOCAL_ADDONS_PATH}/${addonId}/icon.png`
 
@@ -110,7 +121,7 @@ export class AddonsFacade implements IAddonsFacade {
         logo: base64,
       })
     } catch (err) {
-      return Either.failure(new AppError('LOCAL_ADDON_ICON_NOT_FOUND'))
+      return Either.failure(NotFoundError.danger('LOCAL_ADDON_ICON_NOT_FOUND'))
     }
   }
 
@@ -121,7 +132,9 @@ export class AddonsFacade implements IAddonsFacade {
       const { data: rawYaml } = await axios.get(installerUrl)
       return this.parseInstaller(rawYaml)
     } catch {
-      return Either.failure(new AppError('FAILED_TO_FETCH_INSTALLER'))
+      return Either.failure(
+        InternalServerError.danger('FAILED_TO_FETCH_INSTALLER'),
+      )
     }
   }
 
@@ -132,7 +145,7 @@ export class AddonsFacade implements IAddonsFacade {
       const doc = yaml.load(fileContent.toString()) as RawManifest
 
       if (!doc.AddonId) {
-        return Either.failure(new AppError('ADDONID_NOT_FOUND'))
+        return Either.failure(NotFoundError.danger('ADDONID_NOT_FOUND'))
       }
 
       const addon: AddonManifestDTO = {
@@ -153,7 +166,9 @@ export class AddonsFacade implements IAddonsFacade {
 
       return Either.success(addon)
     } catch {
-      return Either.failure(new AppError('FAILED_TO_PARSE_MANIFEST'))
+      return Either.failure(
+        InternalServerError.danger('FAILED_TO_PARSE_MANIFEST'),
+      )
     }
   }
 
@@ -164,7 +179,7 @@ export class AddonsFacade implements IAddonsFacade {
       const doc = yaml.load(fileContent.toString()) as RawInstaller
 
       if (!doc.AddonId) {
-        return Either.failure(new AppError('INSTALLER_INVALID'))
+        return Either.failure(ValidationError.danger('INSTALLER_INVALID'))
       }
 
       const installer: AddonInstallerDTO = {
@@ -180,7 +195,9 @@ export class AddonsFacade implements IAddonsFacade {
 
       return Either.success(installer)
     } catch {
-      return Either.failure(new AppError('FAILED_TO_PARSE_INSTALLER'))
+      return Either.failure(
+        InternalServerError.danger('FAILED_TO_PARSE_INSTALLER'),
+      )
     }
   }
 
@@ -201,7 +218,7 @@ export class AddonsFacade implements IAddonsFacade {
 
       return Either.success(new Uint8Array(response.data))
     } catch {
-      return Either.failure(new AppError('DOWNLOAD_FAILED'))
+      return Either.failure(InternalServerError.danger('DOWNLOAD_FAILED'))
     }
   }
 }

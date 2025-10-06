@@ -1,4 +1,9 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  InternalServerError,
+  NotFoundError,
+} from '@timelapse/cross-cutting/helpers'
 
 import {
   ConnectDataSourceInput,
@@ -28,7 +33,7 @@ export class ConnectDataSourceService implements IConnectDataSourceUseCase {
       input.workspaceId,
     )
     if (!workspace) {
-      return Either.failure(new AppError('Workspace não encontrado'))
+      return Either.failure(NotFoundError.danger('Workspace não encontrado'))
     }
 
     const authResult = await this.authenticationStrategy.authenticate({
@@ -71,7 +76,7 @@ export class ConnectDataSourceService implements IConnectDataSourceUseCase {
         error instanceof Error
           ? error.message
           : 'Erro inesperado ao conectar a fonte de dados.'
-      return Either.failure(new AppError(errorMessage))
+      return Either.failure(InternalServerError.danger(errorMessage))
     }
   }
 }

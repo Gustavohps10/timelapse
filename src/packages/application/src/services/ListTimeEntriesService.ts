@@ -1,4 +1,8 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  InternalServerError,
+} from '@timelapse/cross-cutting/helpers'
 
 import { ITimeEntryQuery } from '@/contracts'
 import { IListTimeEntriesUseCase } from '@/contracts/use-cases/IListTimeEntriesUseCase'
@@ -26,9 +30,7 @@ export class ListTimeEntriesService implements IListTimeEntriesUseCase {
 
       return Either.success(timeEntries)
     } catch (error) {
-      return Either.failure(
-        new AppError('ERRO_INESPERADO', (error as Error).message, 500),
-      )
+      return Either.failure(InternalServerError.danger('ERRO_INESPERADO'))
     }
   }
 }

@@ -1,4 +1,8 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  NotFoundError,
+} from '@timelapse/cross-cutting/helpers'
 
 import { IWorkspacesRepository } from '@/contracts'
 import {
@@ -18,9 +22,7 @@ export class GetWorkspaceService implements IGetWorkspaceUseCase {
     )
 
     if (!workspace) {
-      return Either.failure(
-        new AppError('Workspace não encontrado.', 'not_found', 404),
-      )
+      return Either.failure(NotFoundError.danger('Workspace não encontrado.'))
     }
 
     const workspaceDTO: WorkspaceDTO = {

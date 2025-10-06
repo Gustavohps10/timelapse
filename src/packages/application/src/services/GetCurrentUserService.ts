@@ -1,9 +1,14 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  InternalServerError,
+  NotFoundError,
+  UnauthorizedError,
+} from '@timelapse/cross-cutting/helpers'
 
-import { IMemberQuery } from '@/contracts'
-import { IGetCurrentUserUseCase } from '@/contracts/use-cases/IGetCurrentUserUseCase'
+import { IGetCurrentUserUseCase, IMemberQuery } from '@/contracts'
 import { MemberDTO } from '@/dtos'
-import { SessionManager } from '@/workflow/SessionManager'
+import { SessionManager } from '@/workflow'
 
 export class GetCurrentUserService implements IGetCurrentUserUseCase {
   constructor(
@@ -15,21 +20,15 @@ export class GetCurrentUserService implements IGetCurrentUserUseCase {
     try {
       const sessionUser = this.sessionManager.getCurrentUser()
       if (!sessionUser)
-        return Either.failure(
-          new AppError('NAO_FOI_POSSIVEL_OBTER_USUARIO', '', 422),
-        )
-      const user = await this.memberQuery.findById(sessionUser.id)
+        return Either.failure(UnauthorizedError.danger('USUARIO_NAO_LOGADO'))
 
+      const user = await this.memberQuery.findById(sessionUser.id)
       if (!user)
-        return Either.failure(
-          new AppError('NAO_FOI_POSSIVEL_OBTER_USUARIO', '', 422),
-        )
+        return Either.failure(NotFoundError.danger('USUARIO_NAO_ENCONTRADO'))
 
       return Either.success(user)
     } catch (erro: unknown) {
-      return Either.failure(
-        new AppError('NAO_FOI_POSSIVEL_OBTER_USUARIO', '', 422),
-      )
+      return Either.failure(InternalServerError.danger('ERRO_AO_OBTER_USUARIO'))
     }
   }
 }

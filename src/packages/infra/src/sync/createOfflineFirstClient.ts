@@ -1,5 +1,9 @@
 import { IApplicationClient } from '@timelapse/application'
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  InternalServerError,
+} from '@timelapse/cross-cutting/helpers'
 import { TimeEntryViewModel } from '@timelapse/presentation/view-models'
 import { addRxPlugin, createRxDatabase, RxDatabase } from 'rxdb'
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
@@ -200,14 +204,6 @@ export async function createOfflineFirstClient(
 
     return Either.success(offlineClient)
   } catch (error) {
-    return Either.failure(
-      new AppError(
-        'OFFLINE_CLIENT_ERROR',
-        error instanceof Error
-          ? error.message
-          : 'Erro ao criar cliente offline-first',
-        500,
-      ),
-    )
+    return Either.failure(InternalServerError.danger('OFFLINE_CLIENT_ERROR'))
   }
 }

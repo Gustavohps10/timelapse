@@ -1,4 +1,8 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  NotFoundError,
+} from '@timelapse/cross-cutting/helpers'
 
 import {
   IDisconnectDataSourceUseCase,
@@ -19,7 +23,7 @@ export class DisconnectDataSourceService
       input.workspaceId,
     )
     if (!workspace) {
-      return Either.failure(new AppError('Workspace não encontrado'))
+      return Either.failure(NotFoundError.danger('Workspace não encontrado'))
     }
 
     const result = workspace.disconnectDataSource()
