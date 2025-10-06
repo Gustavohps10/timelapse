@@ -1,4 +1,8 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  ValidationError,
+} from '@timelapse/cross-cutting/helpers'
 import { randomUUID } from 'crypto'
 
 import { Entity } from '@/entities/Entity'
@@ -91,7 +95,7 @@ export class Workspace extends Entity {
   linkDataSource(dataSource: string): Either<AppError, void> {
     if (dataSource === 'local') {
       return Either.failure(
-        new AppError('Não é possível vincular o DataSource local'),
+        ValidationError.danger('Não é possível vincular o DataSource local'),
       )
     }
 
@@ -111,7 +115,7 @@ export class Workspace extends Entity {
   connectDataSource(config: Record<string, unknown>): Either<AppError, void> {
     if (this._dataSource === 'local') {
       return Either.failure(
-        new AppError('Não é possível conectar o DataSource local'),
+        ValidationError.danger('Não é possível conectar o DataSource local'),
       )
     }
 

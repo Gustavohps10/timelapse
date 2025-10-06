@@ -1,4 +1,8 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  InternalServerError,
+} from '@timelapse/cross-cutting/helpers'
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
 
 import { IHttpClient } from '@/contracts/IHttpClient'
@@ -115,15 +119,11 @@ export class HttpClient implements IHttpClient {
 
   private handleError(error: unknown): Either<AppError, never> {
     if (error instanceof AxiosError) {
-      const appError = new AppError(
-        error.message,
-        undefined,
-        error.response?.status || 500,
-      )
+      const appError = InternalServerError.danger(error.message)
       return Either.failure(appError)
     }
 
-    const appError = new AppError('An unknown error occurred', undefined, 500)
+    const appError = InternalServerError.danger('An unknown error occurred')
     return Either.failure(appError)
   }
 }

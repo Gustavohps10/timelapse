@@ -1,4 +1,8 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  InternalServerError,
+} from '@timelapse/cross-cutting/helpers'
 import { Workspace } from '@timelapse/domain'
 
 import {
@@ -19,7 +23,9 @@ export class CreateWorkspaceService implements ICreateWorkspaceUseCase {
     try {
       await this.workspacesRepository.create(workspace)
     } catch {
-      return Either.failure(new AppError('ALGO DEU ERRADO AO CRIAR WORKSPACE'))
+      return Either.failure(
+        InternalServerError.danger('ALGO DEU ERRADO AO CRIAR WORKSPACE'),
+      )
     }
 
     const workspaceDTO: WorkspaceDTO = {

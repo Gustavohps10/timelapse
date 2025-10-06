@@ -1,4 +1,8 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  InternalServerError,
+} from '@timelapse/cross-cutting/helpers'
 
 import { ITaskQuery } from '@/contracts'
 import { IListTasksUseCase } from '@/contracts/use-cases/IListTasksUseCase'
@@ -18,9 +22,7 @@ export class ListTaskService implements IListTasksUseCase {
       const tasks = await this.taskQuery.findAll()
       return Either.success(tasks)
     } catch (error: unknown) {
-      return Either.failure(
-        new AppError('ERRO_INESPERADO', (error as Error).message, 500),
-      )
+      return Either.failure(InternalServerError.danger('ERRO_INESPERADO'))
     }
   }
 }

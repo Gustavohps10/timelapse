@@ -1,4 +1,9 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  InternalServerError,
+  NotFoundError,
+} from '@timelapse/cross-cutting/helpers'
 
 import {
   IUnlinkDataSourceUseCase,
@@ -18,7 +23,7 @@ export class UnlinkDataSourceService implements IUnlinkDataSourceUseCase {
         input.workspaceId,
       )
       if (!workspace) {
-        return Either.failure(new AppError('Workspace não encontrado'))
+        return Either.failure(NotFoundError.danger('Workspace não encontrado'))
       }
 
       const result = workspace.unlinkDataSource()
@@ -37,9 +42,7 @@ export class UnlinkDataSourceService implements IUnlinkDataSourceUseCase {
 
       return Either.success(workspaceDTO)
     } catch (error) {
-      return Either.failure(
-        new AppError('ERRO_INESPERADO', (error as Error).message, 500),
-      )
+      return Either.failure(InternalServerError.danger('ERRO_INESPERADO'))
     }
   }
 }

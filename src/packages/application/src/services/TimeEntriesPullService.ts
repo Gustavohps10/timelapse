@@ -1,4 +1,9 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import {
+  AppError,
+  Either,
+  InternalServerError,
+  UnauthorizedError,
+} from '@timelapse/cross-cutting/helpers'
 
 import { ITimeEntryQuery } from '@/contracts/data'
 import {
@@ -28,11 +33,7 @@ export class TimeEntriesPullService implements ITimeEntriesPullUseCase {
 
       if (!sessionUser) {
         return Either.failure(
-          new AppError(
-            'USUARIO_NAO_ENCONTRADO',
-            'Usuário não autenticado.',
-            401,
-          ),
+          UnauthorizedError.danger('Usuário não autenticado.'),
         )
       }
 
@@ -44,9 +45,7 @@ export class TimeEntriesPullService implements ITimeEntriesPullUseCase {
 
       return Either.success(timeEntries)
     } catch (error) {
-      return Either.failure(
-        new AppError('ERRO_INESPERADO', (error as Error).message, 500),
-      )
+      return Either.failure(InternalServerError.danger('ERRO_INESPERADO'))
     }
   }
 }

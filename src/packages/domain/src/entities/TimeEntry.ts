@@ -1,25 +1,33 @@
-import { AppError, Either } from '@timelapse/cross-cutting/helpers'
+import { Either, ValidationError } from '@timelapse/cross-cutting/helpers'
 import { randomUUID } from 'crypto'
+import z from 'zod'
 
 import { Entity } from '@/entities/Entity'
 
-// Tipo para as propriedades, facilitando a manutenção
 export type TimeEntryProps = {
-  taskId: string // New relationship field
-  project: { id: number; name: string }
-  issue: { id: number }
-  user: { id: number; name: string }
-  activity: { id: number; name: string }
-  hours: number
-  comments: string
-  spentOn: Date
+  task?: { id: string }
+  project?: { id: number; name: string }
+  user?: { id: number; name: string }
+  activity?: { id: number; name: string }
+  hours?: number
+  comments?: string
+  spentOn?: Date
 }
+
+const TimeEntrySchema = z.object({
+  task: z.object({ id: z.string() }),
+  project: z.object({ id: z.number(), name: z.string() }),
+  user: z.object({ id: z.number(), name: z.string() }),
+  activity: z.object({ id: z.number(), name: z.string() }),
+  hours: z.number().nonnegative(),
+  comments: z.string(),
+  spentOn: z.date(),
+})
 
 export class TimeEntry extends Entity {
   private _id: string
-  private _taskId: string // New relationship field
+  private _task: { id: string }
   private _project: { id: number; name: string }
-  private _issue: { id: number }
   private _user: { id: number; name: string }
   private _activity: { id: number; name: string }
   private _hours: number
@@ -29,16 +37,15 @@ export class TimeEntry extends Entity {
   private _updatedAt: Date
 
   private constructor(
-    props: TimeEntryProps,
+    props: z.infer<typeof TimeEntrySchema>,
     id: string,
     createdAt: Date,
     updatedAt: Date,
   ) {
     super()
     this._id = id
-    this._taskId = props.taskId
+    this._task = props.task
     this._project = props.project
-    this._issue = props.issue
     this._user = props.user
     this._activity = props.activity
     this._hours = props.hours
@@ -48,99 +55,74 @@ export class TimeEntry extends Entity {
     this._updatedAt = updatedAt
   }
 
-  static create(props: TimeEntryProps): TimeEntry {
+  static create(
+    props: Partial<TimeEntryProps>,
+  ): Either<ValidationError, TimeEntry> {
+    const parsed = TimeEntrySchema.safeParse(props)
+    if (!parsed.success) {
+      const details: Record<string, string[]> = {}
+      for (const [key, value] of Object.entries(parsed.error.format())) {
+        if (
+          '_errors' in value &&
+          Array.isArray(value._errors) &&
+          value._errors.length > 0
+        ) {
+          details[key] = value._errors as string[]
+        }
+      }
+      return Either.failure(ValidationError.danger('CAMPOS_INVALIDOS', details))
+    }
+
     const now = new Date()
-    const id = `${randomUUID()}`
-    return new TimeEntry(props, id, now, now)
+    const id = randomUUID()
+    return Either.success(new TimeEntry(parsed.data, id, now, now))
   }
 
   get id(): string {
     return this._id
   }
-  private set id(value: string) {
-    this._id = value
+  get task() {
+    return this._task
   }
-
-  get taskId(): string {
-    return this._taskId
-  }
-  private set taskId(value: string) {
-    this._taskId = value
-  }
-
   get project() {
     return this._project
   }
-  private set project(value: { id: number; name: string }) {
-    this._project = value
-  }
-
-  get issue() {
-    return this._issue
-  }
-  private set issue(value: { id: number }) {
-    this._issue = value
-  }
-
   get user() {
     return this._user
   }
-  private set user(value: { id: number; name: string }) {
-    this._user = value
-  }
-
   get activity() {
     return this._activity
   }
-  private set activity(value: { id: number; name: string }) {
-    this._activity = value
-  }
-
   get hours(): number {
     return this._hours
   }
-  private set hours(value: number) {
-    this._hours = value
-  }
-
   get comments(): string {
     return this._comments
   }
-  private set comments(value: string) {
-    this._comments = value
-  }
-
   get spentOn(): Date {
     return this._spentOn
   }
-  private set spentOn(value: Date) {
-    this._spentOn = value
-  }
-
   get createdAt(): Date {
     return this._createdAt
   }
-  private set createdAt(value: Date) {
-    this._createdAt = value
-  }
-
   get updatedAt(): Date {
     return this._updatedAt
   }
-  private set updatedAt(value: Date) {
-    this._updatedAt = value
-  }
 
-  updateHours(hours: number): Either<AppError, void> {
+  updateHours(hours: number): Either<ValidationError, void> {
     if (hours < 0) {
-      return Either.failure(new AppError('As horas não podem ser negativas.'))
+      return Either.failure(
+        ValidationError.danger('HOURS_INVALID', {
+          hours: ['Deve ser maior que 0'],
+        }),
+      )
     }
     this._hours = hours
     this.touch()
     return Either.success(undefined)
   }
 
-  updateComments(comments: string): Either<AppError, void> {
+  updateComments(comments: string): Either<ValidationError, void> {
     this._comments = comments
     this.touch()
     return Either.success(undefined)
