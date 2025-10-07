@@ -1,12 +1,12 @@
 export type TimeEntry = {
-  id?: number
-  issue_id?: number
-  project_id?: number
+  id?: string
+  issue_id?: string
+  project_id?: string
   spent_on: string
   hours: number
-  activity_id?: number
+  activity_id?: string
   comments?: string
-  user_id?: number
+  user_id?: string
   sincStatus?: 'synced' | 'pending' | 'failed'
 }
 

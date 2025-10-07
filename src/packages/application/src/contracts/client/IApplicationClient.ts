@@ -3,6 +3,7 @@ import {
   AuthenticationViewModel,
   MemberViewModel,
   PaginatedViewModel,
+  SyncDocumentViewModel,
   TaskViewModel,
   TimeEntryViewModel,
   ViewModel,
@@ -10,6 +11,7 @@ import {
 } from '@timelapse/presentation/view-models'
 
 import { FileData } from '@/contracts/infra'
+import { PushTimeEntriesInput } from '@/contracts/use-cases'
 
 export interface ConfigField {
   id: string
@@ -101,7 +103,11 @@ export interface ITimeEntriesClient {
       checkpoint: { updatedAt: Date; id: string }
       batch: number
     }>,
-  ) => Promise<TimeEntryViewModel[]>
+  ) => Promise<PaginatedViewModel<TimeEntryViewModel[]>>
+
+  push: (
+    payload: IRequest<PushTimeEntriesInput>,
+  ) => Promise<PaginatedViewModel<SyncDocumentViewModel<TimeEntryViewModel>[]>>
 }
 
 export interface IHeadersClient {

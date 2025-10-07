@@ -93,6 +93,11 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
       return timeEntriesHandler.pull(event, req)
   })
 
+  IpcHandler.register('TIME_ENTRIES_PUSH', [ensureAuthenticated, injectConnector], (event, req) => {
+      const timeEntriesHandler = serviceProvider.resolve<TimeEntriesHandler>('timeEntriesHandler')
+      return timeEntriesHandler.push(event, req)
+  })
+
   IpcHandler.register('ADDONS_LIST', () => {
     const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
     return addonsHandler.list()

@@ -8,6 +8,7 @@ export const IpcChannels = {
 
   LIST_TIME_ENTRIES: 'time-entries',
   TIME_ENTRIES_PULL: 'time-entries:pull',
+  TIME_ENTRIES_PUSH: 'time-entries:push',
 
   SET_HEADERS: 'set-headers',
   GET_HEADERS: 'get-headers',

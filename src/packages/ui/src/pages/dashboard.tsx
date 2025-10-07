@@ -118,8 +118,8 @@ export function Dashboard() {
         const dailyHours: { [key: string]: number } = {}
 
         timeEntries.forEach((entry) => {
-          const dateKey = new Date(entry.spentOn!).toISOString().split('T')[0] // ex: '2025-05-09'
-          const hours = entry.hours ?? 0
+          const dateKey = new Date(entry.createdAt).toISOString().split('T')[0] // ex: '2025-05-09'
+          const hours = entry.timeSpent ?? 0
 
           dailyHours[dateKey] = dailyHours[dateKey]
             ? (dailyHours[dateKey] += hours)

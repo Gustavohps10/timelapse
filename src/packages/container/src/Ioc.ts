@@ -14,6 +14,7 @@ import {
   ListWorkspacesService,
   SessionManager,
   TimeEntriesPullService,
+  TimeEntriesPushService,
   UnlinkDataSourceService,
 } from '@timelapse/application'
 import { JwtService } from '@timelapse/infra/auth'
@@ -91,6 +92,7 @@ export class ContainerBuilder {
       getWorkspaceService: asClass(GetWorkspaceService).scoped(),
       importAddonService: asClass(ImportAddonService).scoped(),
       timeEntriesPullService: asClass(TimeEntriesPullService).scoped(),
+      timeEntriesPushService: asClass(TimeEntriesPushService).scoped(),
     })
     return this
   }
