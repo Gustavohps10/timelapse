@@ -1,6 +1,7 @@
 export * from './AuthenticationViewModel'
 export * from './MemberViewModel'
 export * from './PaginatedViewModel'
+export * from './SyncDocumentViewModel'
 export * from './TaskViewModel'
 export * from './TimeEntryViewModel'
 export * from './ViewModel'

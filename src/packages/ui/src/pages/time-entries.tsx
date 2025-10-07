@@ -107,7 +107,6 @@ function groupByIssue(data: TimeEntry[]): Row[] {
         hours: 0,
         spent_on: 'Invalid Date',
         comments: '',
-        activity_id: 1,
         sincStatus: 'pending',
         subRows: [],
       }
@@ -182,12 +181,11 @@ export function TimeEntries() {
   const mappedEntries: TimeEntry[] = (timeEntriesResponse?.data ?? []).map(
     (entry): TimeEntry => ({
       id: entry.id,
-      project_id: entry.project?.id,
       user_id: entry.user?.id,
-      issue_id: entry.issue?.id,
-      hours: entry.hours ?? 0,
+      issue_id: entry.task?.id,
+      hours: entry.timeSpent ?? 0,
       comments: entry.comments ?? '',
-      spent_on: entry.spentOn?.toString().split('T')[0] ?? '',
+      spent_on: entry.createdAt?.toString().split('T')[0] ?? '',
       activity_id: entry.activity?.id,
       sincStatus: 'synced',
     }),

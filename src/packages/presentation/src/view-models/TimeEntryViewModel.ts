@@ -1,24 +1,20 @@
 export interface TimeEntryViewModel {
-  id?: number
-  taskId?: string // New relationship field
-  project?: {
-    id?: number
+  id?: string
+  task: {
+    id: string
+  }
+  activity: {
+    id: string
     name?: string
   }
-  issue?: {
-    id?: number
-  }
-  user?: {
-    id?: number
+  user: {
+    id: string
     name?: string
   }
-  activity?: {
-    id?: number
-    name?: string
-  }
-  hours?: number
+  startDate?: Date
+  endDate?: Date
+  timeSpent: number
   comments?: string
-  spentOn?: Date
-  createdAt?: Date
-  updatedAt?: Date
+  createdAt: Date
+  updatedAt: Date
 }
