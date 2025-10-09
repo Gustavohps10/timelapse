@@ -18,7 +18,6 @@ const mainItems = [
 ]
 
 export function AppSidebarWorkspacesContent() {
-  console.log('Content da Workspace')
   const { workspaceId } = useParams<{ workspaceId: string }>()
 
   return (

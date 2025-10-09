@@ -8,6 +8,7 @@ import React, {
 
 import { User } from '@/contexts/session/User'
 import { useClient } from '@/hooks/use-client'
+import { useWorkspaceSyncManager } from '@/hooks/use-workspace-sync-manager'
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -33,6 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [user, setUser] = useState<User | null>(null)
+  const syncManager = useWorkspaceSyncManager()
 
   const login = useCallback(
     async (user: User, token: string) => {
@@ -79,6 +81,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
           authorization: `Bearer ${res.data}`,
         })
 
+        await client.services.timeEntries.pull
+
         const response = await client.services.session.getCurrentUser({
           body: { workspaceId },
         })
@@ -108,6 +112,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       window.removeEventListener('force-logout', handleForceLogout)
     }
   }, [logout])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      syncManager.initialize(workspaceId)
+      return
+    }
+
+    syncManager.stop()
+  }, [isAuthenticated, workspaceId])
 
   return (
     <AuthContext.Provider

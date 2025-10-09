@@ -122,8 +122,6 @@ export function WorkspaceSettings() {
     enabled: !!workspaceId && !!workspace?.dataSource,
   })
 
-  console.log(localAddon)
-
   const [dynamicFields, setDynamicFields] = useState<{
     credentials: FieldGroup[]
     configuration: FieldGroup[]

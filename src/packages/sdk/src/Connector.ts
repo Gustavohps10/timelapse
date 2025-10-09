@@ -4,6 +4,7 @@ import {
   ITaskQuery,
   ITaskRepository,
   ITimeEntryQuery,
+  ITimeEntryRepository,
 } from '@timelapse/application'
 
 export interface ConfigField {
@@ -38,6 +39,7 @@ export interface IConnector {
   getAuthenticationStrategy(context: Context): IAuthenticationStrategy
   getTaskQuery(context: Context): ITaskQuery
   getTimeEntryQuery(context: Context): ITimeEntryQuery
+  getTimeEntryRepository(context: Context): ITimeEntryRepository
   getMemberQuery(context: Context): IMemberQuery
   getTaskRepository(context: Context): ITaskRepository
 }

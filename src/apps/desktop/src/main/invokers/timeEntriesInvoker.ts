@@ -23,11 +23,11 @@ export const timeEntriesInvoker: ITimeEntriesClient = {
 
   pull: (
     payload: IRequest<PullTimeEntriesRequest>,
-  ): Promise<PaginatedViewModel<TimeEntryViewModel[]>> =>
-    IpcInvoker.invoke<
-      IRequest<PullTimeEntriesRequest>,
-      PaginatedViewModel<TimeEntryViewModel[]>
-    >('TIME_ENTRIES_PULL', payload),
+  ): Promise<TimeEntryViewModel[]> =>
+    IpcInvoker.invoke<IRequest<PullTimeEntriesRequest>, TimeEntryViewModel[]>(
+      'TIME_ENTRIES_PULL',
+      payload,
+    ),
 
   push: (
     payload: IRequest<PushTimeEntriesInput>,
