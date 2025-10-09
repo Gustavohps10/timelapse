@@ -58,6 +58,7 @@ export function createInjectConnectorMiddleware(
       taskQuery: connector.getTaskQuery(context),
       memberQuery: connector.getMemberQuery(context),
       timeEntryQuery: connector.getTimeEntryQuery(context),
+      timeEntryRepository: connector.getTimeEntryRepository(context),
       taskRepository: connector.getTaskRepository(context),
     }
 

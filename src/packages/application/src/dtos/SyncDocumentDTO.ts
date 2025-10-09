@@ -1,11 +1,10 @@
 import { AppError } from '@timelapse/cross-cutting/helpers'
 
-export type SyncDocumentDTO<T> = {
-  document: T
+export type SyncDocumentDTO<T> = T & {
   _deleted?: boolean
-  _conflicted?: boolean
-  _conflictData?: { server?: T; local: T }
-  _validationError?: AppError
-  _syncedAt?: Date
+  conflicted?: boolean
+  conflictData?: { server?: T; local: T }
+  validationError?: AppError
+  syncedAt?: Date
   assumedMasterState?: T
 }

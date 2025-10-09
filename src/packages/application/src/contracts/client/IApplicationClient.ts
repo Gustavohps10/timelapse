@@ -103,11 +103,11 @@ export interface ITimeEntriesClient {
       checkpoint: { updatedAt: Date; id: string }
       batch: number
     }>,
-  ) => Promise<PaginatedViewModel<TimeEntryViewModel[]>>
+  ) => Promise<TimeEntryViewModel[]>
 
   push: (
     payload: IRequest<PushTimeEntriesInput>,
-  ) => Promise<PaginatedViewModel<SyncDocumentViewModel<TimeEntryViewModel>[]>>
+  ) => Promise<SyncDocumentViewModel<TimeEntryViewModel>[]>
 }
 
 export interface IHeadersClient {

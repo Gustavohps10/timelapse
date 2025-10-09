@@ -68,22 +68,14 @@ export class TimeEntriesHandler {
   public async pull(
     _event: Electron.IpcMainInvokeEvent,
     { body }: IRequest<PullTimeEntriesRequest>,
-  ): Promise<PaginatedViewModel<TimeEntryViewModel[]>> {
+  ): Promise<TimeEntryViewModel[]> {
     const result = await this.timeEntriesPullService.execute({
       checkpoint: body.checkpoint,
       batch: body.batch,
     })
 
     if (result.isFailure()) {
-      return {
-        statusCode: 500,
-        isSuccess: false,
-        error: result.failure.messageKey,
-        data: [],
-        totalItems: 0,
-        totalPages: 0,
-        currentPage: 1,
-      }
+      return []
     }
 
     const dtos = result.success
@@ -100,57 +92,26 @@ export class TimeEntriesHandler {
       updatedAt: dto.updatedAt,
     }))
 
-    return {
-      statusCode: 200,
-      isSuccess: true,
-      data: viewModels,
-      totalItems: dtos.length,
-      totalPages: 1,
-      currentPage: 1,
-    }
+    return viewModels
   }
 
   public async push(
     _event: Electron.IpcMainInvokeEvent,
     { body }: IRequest<PushTimeEntriesInput>,
-  ): Promise<PaginatedViewModel<SyncDocumentViewModel<TimeEntryViewModel>[]>> {
+  ): Promise<SyncDocumentViewModel<TimeEntryViewModel>[]> {
     const result = await this.timeEntriesPushService.execute(body)
 
     if (result.isFailure()) {
-      return {
-        statusCode: 500,
-        isSuccess: false,
-        error: result.failure.messageKey,
-        data: [],
-        totalItems: 0,
-        totalPages: 0,
-        currentPage: 1,
-      }
+      return []
     }
 
-    const viewModels: SyncDocumentViewModel<TimeEntryViewModel>[] =
-      result.success.map((dto) => ({
-        document: dto.document,
-        _deleted: dto._deleted,
-        _conflicted: dto._conflicted,
-        _conflictData: dto._conflictData,
-        _validationError: dto._validationError && {
-          messageKey: dto._validationError.messageKey,
-          details: dto._validationError.details,
-          statusCode: dto._validationError.statusCode,
-          type: dto._validationError.type,
-        },
-        _syncedAt: dto._syncedAt,
-        assumedMasterState: dto.assumedMasterState,
-      }))
+    const dtos = result.success
+    const viewModels: SyncDocumentViewModel<TimeEntryViewModel>[] = dtos.map(
+      (dto) => ({
+        ...dto,
+      }),
+    )
 
-    return {
-      statusCode: 200,
-      isSuccess: true,
-      data: viewModels,
-      totalItems: viewModels.length,
-      totalPages: 1,
-      currentPage: 1,
-    }
+    return viewModels
   }
 }

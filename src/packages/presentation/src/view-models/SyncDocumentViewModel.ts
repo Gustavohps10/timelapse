@@ -1,13 +1,12 @@
-export type SyncDocumentViewModel<T> = {
-  document: T
+export type SyncDocumentViewModel<T> = T & {
   _deleted?: boolean
-  _conflicted?: boolean
-  _conflictData?: { server?: T; local: T }
-  _validationError?: {
+  conflicted?: boolean
+  conflictData?: { server?: T; local: T }
+  validationError?: {
     messageKey: string
     details?: Record<string, string[]>
     statusCode: number
   }
-  _syncedAt?: Date
+  syncedAt?: Date
   assumedMasterState?: T
 }

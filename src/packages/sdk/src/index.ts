@@ -8,6 +8,7 @@ export type {
   ITaskQuery,
   ITaskRepository,
   ITimeEntryQuery,
+  ITimeEntryRepository,
   MemberDTO,
   PagedResultDTO,
   PaginationOptionsDTO,

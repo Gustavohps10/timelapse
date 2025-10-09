@@ -6,6 +6,7 @@ import { RedmineMemberQuery } from '@/RedmineMemberQuery'
 import { RedmineTaskQuery } from '@/RedmineTaskQuery'
 import { RedmineTaskRepository } from '@/RedmineTaskRepository'
 import { RedmineTimeEntryQuery } from '@/RedmineTimeEntryQuery'
+import { RedmineTimeEntryRepository } from '@/RedmineTimeEntryRepository'
 
 const RedmineConnector: IConnector = {
   id: '@timelapse/redmine-plugin',
@@ -16,12 +17,14 @@ const RedmineConnector: IConnector = {
     credentials: credentialFieldGroups,
   },
 
-  // eslint-disable-next-line prettier/prettier
+  /* eslint-disable */
   getAuthenticationStrategy: (context: Context) => new RedmineAuthenticationStrategy(),
   getTaskQuery: (context: Context) => new RedmineTaskQuery(),
   getTimeEntryQuery: (context: Context) => new RedmineTimeEntryQuery(context),
+  getTimeEntryRepository: (context: Context) => new RedmineTimeEntryRepository(context),
   getMemberQuery: (context: Context) => new RedmineMemberQuery(context),
   getTaskRepository: (context: Context) => new RedmineTaskRepository(),
+    /* eslint-enable */
 }
 
 export default RedmineConnector
