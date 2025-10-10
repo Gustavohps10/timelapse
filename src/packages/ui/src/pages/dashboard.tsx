@@ -27,7 +27,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { useAuth } from '@/hooks/use-auth'
-import { useClient } from '@/hooks/use-client'
+import { useSync } from '@/hooks/use-sync'
 
 interface ChartData {
   date: string
@@ -44,9 +44,10 @@ const chartConfig = {
 
 export function Dashboard() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
-  const client = useClient()
+  //const client = useClient()
   const [chartData, setChartData] = useState<ChartData[]>([])
   const { user } = useAuth()
+  const { timeEntriesCollection } = useSync()
 
   function CustomizedTick(props: any) {
     const { x, y, payload } = props
@@ -73,68 +74,72 @@ export function Dashboard() {
   const formatDate = (date: Date) =>
     `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
+  console.log(timeEntriesCollection)
   useEffect(() => {
-    const today = new Date()
-    const dayOfWeek = today.getDay()
+    console.log('USER', user)
+    console.log('COOL', timeEntriesCollection)
+    if (!user || !timeEntriesCollection) return
 
-    const monday = new Date(today)
-    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+    const fetchTimeEntries = async () => {
+      const today = new Date()
+      const dayOfWeek = today.getDay()
 
-    const friday = new Date(monday)
-    friday.setDate(monday.getDate() + 4)
+      const monday = new Date(today)
+      monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
 
-    const weekDays: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'] = [
-      'Seg',
-      'Ter',
-      'Qua',
-      'Qui',
-      'Sex',
-    ]
+      const friday = new Date(monday)
+      friday.setDate(monday.getDate() + 4)
 
-    const formattedWeekDays = weekDays.map((_, index) => {
-      const dayDate = new Date(monday)
-      dayDate.setDate(monday.getDate() + index)
-      return formatDate(dayDate)
-    })
+      const weekDays: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'] = [
+        'Seg',
+        'Ter',
+        'Qua',
+        'Qui',
+        'Sex',
+      ]
 
-    if (!user) return
-
-    // Buscar últimos 30 dias para manter dados atualizados
-    const endDate = friday
-    const startDate = new Date(endDate)
-    startDate.setDate(startDate.getDate() - 30)
-
-    client.services.timeEntries
-      .findByMemberId({
-        body: {
-          workspaceId: workspaceId!,
-          memberId: user.id.toString(),
-          startDate,
-          endDate,
-        },
+      const formattedWeekDays = weekDays.map((_, index) => {
+        const dayDate = new Date(monday)
+        dayDate.setDate(monday.getDate() + index)
+        return formatDate(dayDate)
       })
-      .then((response) => {
-        const timeEntries = response.data ?? []
-        const dailyHours: { [key: string]: number } = {}
 
-        timeEntries.forEach((entry) => {
-          const dateKey = new Date(entry.createdAt).toISOString().split('T')[0] // ex: '2025-05-09'
-          const hours = entry.timeSpent ?? 0
+      const endDate = friday
+      const startDate = new Date(endDate)
+      startDate.setDate(startDate.getDate() - 30)
 
-          dailyHours[dateKey] = dailyHours[dateKey]
-            ? (dailyHours[dateKey] += hours)
-            : (dailyHours[dateKey] = hours)
-        })
+      // Consultar diretamente na collection
+      const entries = await timeEntriesCollection
+        .find()
+        .where('user.id')
+        .eq(user.id.toString())
+        .where('createdAt')
+        .gte(startDate.toISOString())
+        .lte(endDate.toISOString())
+        .exec()
 
-        const chartData = formattedWeekDays.map((date, index) => ({
-          date: date,
-          day: weekDays[index],
-          dailyHours: dailyHours[date] || 0,
-        }))
+      console.log(entries)
+      const dailyHours: { [key: string]: number } = {}
 
-        setChartData(chartData)
+      entries.forEach((entry) => {
+        const dateKey = entry.createdAt.split('T')[0] // 'YYYY-MM-DD'
+        const hours = entry.timeSpent ?? 0
+        dailyHours[dateKey] = dailyHours[dateKey]
+          ? (dailyHours[dateKey] += hours)
+          : (dailyHours[dateKey] = hours)
       })
-  }, [user])
+
+      const chartData = formattedWeekDays.map((date, index) => ({
+        date,
+        day: weekDays[index],
+        dailyHours: dailyHours[date] || 0,
+      }))
+
+      setChartData(chartData)
+    }
+
+    fetchTimeEntries()
+  }, [user, timeEntriesCollection])
 
   return (
     <>
