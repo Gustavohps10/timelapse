@@ -1,5 +1,5 @@
 import { TimeEntryViewModel } from '@timelapse/presentation/view-models'
-import { useEffect, useRef, useState } from 'react'
+import { ReactNode, useRef, useState } from 'react'
 import { addRxPlugin, createRxDatabase, RxCollection, RxDatabase } from 'rxdb'
 import {
   replicateRxCollection,
@@ -8,6 +8,7 @@ import {
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie'
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv'
 
+import { SyncContext } from '@/contexts/SyncContext'
 import { useClient } from '@/hooks/use-client'
 import {
   SyncTimeEntryRxDBDTO,
@@ -23,7 +24,11 @@ type TimeEntriesCheckpoint = {
   id: string
 }
 
-export function useWorkspaceSyncManager() {
+interface SyncProviderProps {
+  children: ReactNode
+}
+
+export function SyncProvider({ children }: SyncProviderProps) {
   const client = useClient()
   const dbRef = useRef<RxDatabase<TimeEntriesDB> | null>(null)
   const replicationRef = useRef<RxReplicationState<
@@ -38,44 +43,17 @@ export function useWorkspaceSyncManager() {
   const [error, setError] = useState<any>(null)
   const [databaseName, setDatabaseName] = useState<string | null>(null)
   const [collectionName, setCollectionName] = useState<string | null>(null)
-
-  useEffect(() => {
-    console.log('isActive:', isActive)
-  }, [isActive])
-
-  useEffect(() => {
-    console.log('isPulling:', isPulling)
-  }, [isPulling])
-
-  useEffect(() => {
-    console.log('isPushing:', isPushing)
-  }, [isPushing])
-
-  useEffect(() => {
-    console.log('lastReplication:', lastReplication)
-  }, [lastReplication])
-
-  useEffect(() => {
-    console.log('error:', error)
-  }, [error])
-
-  useEffect(() => {
-    console.log('databaseName:', databaseName)
-  }, [databaseName])
-
-  useEffect(() => {
-    console.log('collectionName:', collectionName)
-  }, [collectionName])
+  const [timeEntriesCollection, setTimeEntriesCollection] =
+    useState<RxCollection<SyncTimeEntryRxDBDTO> | null>(null)
 
   const initialize = async (workspaceId: string) => {
-    //NAO FUNCIONA ARRUMAR DEPOIS
-    // if (import.meta.env.MODE !== 'production') {
-    //   const { RxDBDevModePlugin } = await import('rxdb/plugins/dev-mode')
-    //   addRxPlugin(RxDBDevModePlugin)
-    // }
-
     const { RxDBDevModePlugin } = await import('rxdb/plugins/dev-mode')
+    const { RxDBQueryBuilderPlugin } = await import(
+      'rxdb/plugins/query-builder'
+    )
+
     addRxPlugin(RxDBDevModePlugin)
+    addRxPlugin(RxDBQueryBuilderPlugin)
 
     const storage = wrappedValidateAjvStorage({ storage: getRxStorageDexie() })
     const db = await createRxDatabase<TimeEntriesDB>({
@@ -91,6 +69,7 @@ export function useWorkspaceSyncManager() {
     dbRef.current = db
     setDatabaseName(db.name)
     setCollectionName('timeEntries')
+    setTimeEntriesCollection(collections.timeEntries)
 
     const replication = replicateRxCollection<
       SyncTimeEntryRxDBDTO,
@@ -103,10 +82,7 @@ export function useWorkspaceSyncManager() {
         initialCheckpoint: (() => {
           const sixtyDaysAgo = new Date()
           sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
-          return {
-            updatedAt: sixtyDaysAgo.toISOString(),
-            id: '',
-          }
+          return { updatedAt: sixtyDaysAgo.toISOString(), id: '' }
         })(),
         async handler(checkpoint, batchSize) {
           setIsPulling(true)
@@ -123,7 +99,6 @@ export function useWorkspaceSyncManager() {
               },
             })
 
-            console.log('replicating pull response', response)
             const data = response || []
             const lastItem = data.reduce<TimeEntryViewModel | null>(
               (prev, curr) =>
@@ -151,11 +126,7 @@ export function useWorkspaceSyncManager() {
             }))
 
             setLastReplication(new Date())
-
-            return {
-              documents,
-              checkpoint: newCheckpoint,
-            }
+            return { documents, checkpoint: newCheckpoint }
           } finally {
             setIsPulling(false)
           }
@@ -173,8 +144,6 @@ export function useWorkspaceSyncManager() {
       },
       live: true,
       retryTime: 5000,
-      // waitForLeadership: false,
-      // autoStart: true,
     })
 
     replicationRef.current = replication
@@ -189,15 +158,22 @@ export function useWorkspaceSyncManager() {
     setIsPushing(false)
   }
 
-  return {
-    isActive,
-    isPulling,
-    isPushing,
-    lastReplication,
-    error,
-    databaseName,
-    collectionName,
-    initialize,
-    stop,
-  }
+  return (
+    <SyncContext.Provider
+      value={{
+        isActive,
+        isPulling,
+        isPushing,
+        lastReplication,
+        error,
+        databaseName,
+        collectionName,
+        timeEntriesCollection,
+        initialize,
+        stop,
+      }}
+    >
+      {children}
+    </SyncContext.Provider>
+  )
 }
