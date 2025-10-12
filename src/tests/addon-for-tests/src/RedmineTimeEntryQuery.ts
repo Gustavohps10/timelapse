@@ -57,20 +57,10 @@ export class RedmineTimeEntryQuery
   ): Promise<TimeEntryDTO[]> {
     const client = await this.getAuthenticatedClient()
 
-    // ========================================================================
-    // PARTE 1: DEFINIÇÕES
-    // ========================================================================
-
-    // O array que vai acumular os novos apontamentos encontrados entre as páginas.
     const newEntriesFound: TimeEntryDTO[] = []
-
-    // Variáveis para controlar a paginação na API do Redmine.
     let offset = 0
-    const limitPerPage = 100 // Sempre buscamos o máximo para reduzir chamadas de API.
+    const limitPerPage = 100
 
-    // A janela de tempo fixa. Buscaremos apontamentos cujo TRABALHO ('spent_on')
-    // foi feito nos últimos 2 meses. É uma janela grande o suficiente para
-    // capturar 99.9% das edições, que geralmente são em itens recentes.
     const toDate = new Date()
     const fromDate = new Date()
     fromDate.setMonth(toDate.getMonth() - 2)
@@ -79,11 +69,6 @@ export class RedmineTimeEntryQuery
       `Iniciando pull. Buscando na janela de ${fromDate.toISOString()} a ${toDate.toISOString()}`,
     )
 
-    // ========================================================================
-    // PARTE 2: O LOOP DE BUSCA PAGINADA DENTRO DA JANELA
-    // ========================================================================
-
-    // Continuaremos buscando páginas até que uma das condições de saída seja atendida.
     while (true) {
       console.log(`Buscando no Redmine... Offset: ${offset}`)
 
@@ -98,33 +83,53 @@ export class RedmineTimeEntryQuery
       })
 
       const entriesFromApi: any[] = response.data.time_entries
-
-      // CONDIÇÃO DE SAÍDA 1: A API não tem mais dados nesta janela.
       if (entriesFromApi.length === 0) {
         console.log('API não retornou mais dados. Fim da busca.')
         break
       }
 
-      // Mapeia os dados da API usando o 'updated_on' REAL.
-      const mappedEntries = entriesFromApi.map((entry: any) => ({
-        id: entry.id.toString(),
-        task: { id: entry.issue.id.toString() },
-        activity: {
-          id: entry.activity.id.toString(),
-          name: entry.activity.name,
-        },
-        user: { id: entry.user.id.toString(), name: entry.user.name },
-        startDate: new Date(entry.spent_on),
-        endDate: new Date(
-          new Date(entry.spent_on).getTime() + entry.hours * 60 * 60 * 1000,
-        ),
-        timeSpent: entry.hours,
-        comments: entry.comments,
-        createdAt: new Date(entry.created_on),
-        updatedAt: new Date(entry.updated_on), // <-- O VALOR REAL E CORRETO
-      }))
+      const mappedEntries = entriesFromApi.map((entry: any) => {
+        const hours = Number(entry.hours) || 0
 
-      // Filtra em memória para achar apenas os que são mais novos que o checkpoint.
+        const spentOnUTC = new Date(entry.spent_on + 'T00:00:00Z')
+        const createdOnUTC = new Date(entry.created_on)
+
+        const endDate = new Date(spentOnUTC)
+        endDate.setUTCHours(
+          createdOnUTC.getUTCHours(),
+          createdOnUTC.getUTCMinutes(),
+          createdOnUTC.getUTCSeconds(),
+          0,
+        )
+
+        const startDate = new Date(spentOnUTC)
+        const startMs = endDate.getTime() - hours * 60 * 60 * 1000
+        const startTemp = new Date(startMs)
+
+        startDate.setUTCHours(
+          startTemp.getUTCHours(),
+          startTemp.getUTCMinutes(),
+          startTemp.getUTCSeconds(),
+          0,
+        )
+
+        return {
+          id: entry.id.toString(),
+          task: { id: entry.issue.id.toString() },
+          activity: {
+            id: entry.activity.id.toString(),
+            name: entry.activity.name,
+          },
+          user: { id: entry.user.id.toString(), name: entry.user.name },
+          startDate,
+          endDate,
+          timeSpent: hours,
+          comments: entry.comments,
+          createdAt: new Date(entry.created_on),
+          updatedAt: new Date(entry.updated_on),
+        }
+      })
+
       const pageFiltered = mappedEntries.filter((entry) => {
         const updatedTime = entry.updatedAt.getTime()
         const checkpointTime = checkpoint.updatedAt.getTime()
@@ -134,13 +139,8 @@ export class RedmineTimeEntryQuery
         return updatedTime > checkpointTime
       })
 
-      // Adiciona os resultados encontrados nesta página à nossa lista principal.
-      if (pageFiltered.length > 0) {
-        newEntriesFound.push(...pageFiltered)
-      }
+      if (pageFiltered.length > 0) newEntriesFound.push(...pageFiltered)
 
-      // CONDIÇÃO DE SAÍDA 2 (OTIMIZAÇÃO): Já encontramos itens suficientes para
-      // preencher o lote que o RxDB pediu. Não precisamos buscar mais páginas AGORA.
       if (newEntriesFound.length >= batch) {
         console.log(
           `Encontramos ${newEntriesFound.length} itens, o suficiente para o lote de ${batch}. Parando a busca por agora.`,
@@ -148,27 +148,16 @@ export class RedmineTimeEntryQuery
         break
       }
 
-      // Prepara para a próxima iteração.
       offset += limitPerPage
     }
 
-    // ========================================================================
-    // PARTE 3: PÓS-PROCESSAMENTO E RETORNO
-    // ========================================================================
-
-    // CRÍTICO: Ordenamos o resultado final em memória. Isso garante que, mesmo que
-    // os itens venham de páginas diferentes, eles serão enviados ao RxDB na ordem
-    // correta de atualização, garantindo que o próximo checkpoint seja o correto.
     newEntriesFound.sort((a, b) => {
       const timeA = a.updatedAt.getTime()
       const timeB = b.updatedAt.getTime()
-      if (timeA === timeB) {
-        return Number(a.id) - Number(b.id)
-      }
+      if (timeA === timeB) return Number(a.id) - Number(b.id)
       return timeA - timeB
     })
 
-    // Retornamos apenas a fatia ('slice') correspondente ao lote pedido.
     return newEntriesFound.slice(0, batch)
   }
 

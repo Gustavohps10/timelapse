@@ -81,8 +81,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
           authorization: `Bearer ${res.data}`,
         })
 
-        await client.services.timeEntries.pull
-
         const response = await client.services.session.getCurrentUser({
           body: { workspaceId },
         })
@@ -115,12 +113,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
   useEffect(() => {
     if (isAuthenticated) {
-      syncManager.initialize(workspaceId)
+      syncManager.startReplication()
       return
     }
 
-    syncManager.stop()
-  }, [isAuthenticated, workspaceId])
+    syncManager.stopReplication()
+  }, [isAuthenticated, syncManager])
 
   return (
     <AuthContext.Provider
