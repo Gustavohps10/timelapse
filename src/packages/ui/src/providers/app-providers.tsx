@@ -7,7 +7,6 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { ClientProvider } from '@/contexts/ClientContext'
 import { TimeEntriesContextProvider } from '@/contexts/TimeEntriesContext'
 import { queryClient } from '@/lib/query-client'
-import { SyncProvider } from '@/providers/sync-provider'
 
 interface AppProvidersProps {
   client: IApplicationClient
@@ -20,19 +19,17 @@ export function AppProviders({
 }: Readonly<AppProvidersProps>) {
   return (
     <ClientProvider client={client}>
-      <SyncProvider>
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <TooltipProvider>
-            <TimeEntriesContextProvider>
-              <SidebarProvider>
-                <QueryClientProvider client={queryClient}>
-                  {children}
-                </QueryClientProvider>
-              </SidebarProvider>
-            </TimeEntriesContextProvider>
-          </TooltipProvider>
-        </ThemeProvider>
-      </SyncProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <TooltipProvider>
+          <TimeEntriesContextProvider>
+            <SidebarProvider>
+              <QueryClientProvider client={queryClient}>
+                {children}
+              </QueryClientProvider>
+            </SidebarProvider>
+          </TimeEntriesContextProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </ClientProvider>
   )
 }
