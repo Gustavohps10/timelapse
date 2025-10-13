@@ -28,14 +28,12 @@ import {
 } from '@/sync/time-entries-sync-schema'
 
 // --- 1. Interface do Contexto Atualizada ---
-// Trocamos 'initialize' e 'stop' por funções mais específicas
-// e tipamos o erro corretamente.
 export interface SyncContextValue {
   isActive: boolean
   isPulling: boolean
   isPushing: boolean
   lastReplication: Date | null
-  error: Error | RxError | null // Tipagem mais segura que 'any'
+  error: Error | RxError | null
   databaseName: string | null
   collectionName: string | null
   timeEntriesCollection: RxCollection<SyncTimeEntryRxDBDTO> | null
@@ -72,19 +70,20 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
     TimeEntriesCheckpoint
   > | null>(null)
 
+  // NOVO: Ref para guardar o ID do intervalo de reSync
+  const reSyncIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
   const [isActive, setIsActive] = useState(false)
   const [isPulling, setIsPulling] = useState(false)
   const [isPushing, setIsPushing] = useState(false)
   const [lastReplication, setLastReplication] = useState<Date | null>(null)
-  const [error, setError] = useState<Error | RxError | null>(null) // State de erro tipado
+  const [error, setError] = useState<Error | RxError | null>(null)
   const [databaseName, setDatabaseName] = useState<string | null>(null)
   const [collectionName, setCollectionName] = useState<string | null>(null)
   const [timeEntriesCollection, setTimeEntriesCollection] =
     useState<RxCollection<SyncTimeEntryRxDBDTO> | null>(null)
 
-  // --- 2. Lógica de Replicação Separada ---
   const startReplication = useCallback(async () => {
-    // Impede múltiplas replicações ou iniciar sem o DB
     if (!dbRef.current || replicationRef.current) {
       return
     }
@@ -156,7 +155,7 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
           setIsPushing(true)
           try {
             console.log('Pushing changes:', changeRows)
-            return [] // Retorna os documentos que falharam (se houver)
+            return []
           } finally {
             setIsPushing(false)
           }
@@ -169,9 +168,23 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
     replicationRef.current = replication
     replication.error$.subscribe(setError)
     replication.active$.subscribe(setIsActive)
+
+    if (reSyncIntervalRef.current) {
+      clearInterval(reSyncIntervalRef.current)
+    }
+
+    reSyncIntervalRef.current = setInterval(() => {
+      console.log('🔄 Disparando reSync periódico...')
+      replicationRef.current?.reSync()
+    }, 10 * 1000) // A cada 10 segundos
   }, [workspaceId, client])
 
   const stopReplication = useCallback(() => {
+    if (reSyncIntervalRef.current) {
+      clearInterval(reSyncIntervalRef.current)
+      reSyncIntervalRef.current = null
+    }
+
     if (replicationRef.current) {
       replicationRef.current.cancel()
       replicationRef.current = null
@@ -214,7 +227,6 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
     return () => {
       stopReplication()
       if (dbRef.current) {
-        dbRef.current.close()
         dbRef.current = null
       }
     }
