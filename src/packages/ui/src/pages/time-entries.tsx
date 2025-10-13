@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { format } from 'date-fns'
+import { endOfDay, format, startOfDay } from 'date-fns'
 import {
   BarChart2,
   Briefcase,
@@ -72,7 +72,7 @@ import {
 } from '@/components/ui/tooltip'
 import { TimeEntriesContext } from '@/contexts/TimeEntriesContext'
 import { useAuth } from '@/hooks/use-auth'
-import { useClient } from '@/hooks/use-client'
+import { useSync } from '@/hooks/use-sync'
 import { TimeEntry as TimeEntryReducer } from '@/reducers/time-entries/reducer'
 
 const items = [
@@ -120,10 +120,9 @@ function groupByIssue(data: TimeEntry[]): Row[] {
 }
 
 export function TimeEntries() {
-  const client = useClient()
   const { workspaceId } = useParams<{ workspaceId: string }>()
   const [manualMinutes, setManualMinutes] = useState(60)
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const [timeEntryType, setTimeEntryType] =
     useState<TimeEntryReducer['type']>('increasing')
@@ -148,44 +147,46 @@ export function TimeEntries() {
   const longCacheTime = 1000 * 60 * 5
   const staleTime = dateKey === todayKey ? shortCacheTime : longCacheTime
 
+  const { timeEntriesCollection } = useSync()
   const { data: timeEntriesResponse } = useQuery({
     queryKey: ['time-entries', dateKey],
-    queryFn: () => {
-      // Se o usuário selecionou uma data específica, filtrar apenas esse dia
-      let startDate: Date
-      let endDate: Date
-      if (date) {
-        // Filtrar apenas o dia selecionado
-        startDate = new Date(date)
-        endDate = new Date(date)
-      } else {
-        // Range padrão de 30 dias
-        endDate = new Date()
-        startDate = new Date(endDate)
-        startDate.setDate(startDate.getDate() - 30)
+    queryFn: async () => {
+      if (!date || !timeEntriesCollection) {
+        return { data: [] }
       }
+      const startDate = startOfDay(date)
+      const endDate = endOfDay(date)
 
-      return client.services.timeEntries.findByMemberId({
-        body: {
-          workspaceId: workspaceId!,
-          memberId: user?.id.toString()!,
-          startDate,
-          endDate,
-        },
-      })
+      const results = await timeEntriesCollection
+        .find({
+          selector: {
+            startDate: {
+              $gte: startDate.toISOString(),
+              $lte: endDate.toISOString(),
+            },
+          },
+          sort: [{ startDate: 'desc' }],
+        })
+        .exec()
+
+      const plainObjects = results.map((doc) => doc.toJSON())
+
+      return { data: plainObjects }
     },
     staleTime,
+
+    enabled: !!timeEntriesCollection && !!date,
   })
 
-  console.log('⏱️ Time entries response:', timeEntriesResponse)
   const mappedEntries: TimeEntry[] = (timeEntriesResponse?.data ?? []).map(
-    (entry): TimeEntry => ({
+    (entry: any): TimeEntry => ({
       id: entry.id,
       user_id: entry.user?.id,
       issue_id: entry.task?.id,
       hours: entry.timeSpent ?? 0,
       comments: entry.comments ?? '',
-      spent_on: entry.createdAt?.toString().split('T')[0] ?? '',
+
+      spent_on: entry.startDate?.toString().split('T')[0] ?? '',
       activity_id: entry.activity?.id,
       sincStatus: 'synced',
     }),
@@ -194,12 +195,12 @@ export function TimeEntries() {
   const groupedEntries = groupByIssue(mappedEntries)
 
   function handlePlayPauseTimer() {
-    if (activeTimeEntry && activeTimeEntry.status == 'running') {
+    if (activeTimeEntry && activeTimeEntry.status === 'running') {
       pauseCurrentTimeEntry()
       return
     }
 
-    if (activeTimeEntry && activeTimeEntry.status == 'paused') {
+    if (activeTimeEntry && activeTimeEntry.status === 'paused') {
       playCurrentTimeEntry()
       return
     }
@@ -220,7 +221,6 @@ export function TimeEntries() {
         },
         description: 'Faça login para sincronizar seus apontamentos.',
       })
-      return
     }
   }
 
@@ -365,7 +365,7 @@ export function TimeEntries() {
                         onClick={handlePlayPauseTimer}
                       >
                         {activeTimeEntry &&
-                        activeTimeEntry.status == 'running' ? (
+                        activeTimeEntry.status === 'running' ? (
                           <Pause />
                         ) : (
                           <Play />
