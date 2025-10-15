@@ -1,5 +1,7 @@
 'use client'
 
+import { MaskitoOptions } from '@maskito/core'
+import { ElementState } from '@maskito/core/src/lib/types'
 import { useQuery } from '@tanstack/react-query'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import {
@@ -8,12 +10,9 @@ import {
   CalendarCheck,
   CalendarDaysIcon,
   CheckCircle,
-  ChevronsDownIcon,
-  ChevronsUpIcon,
   ClipboardCheck,
   ClockArrowDownIcon,
   ClockArrowUpIcon,
-  CloudUpload,
   Code,
   FileText,
   FlaskConical,
@@ -23,7 +22,6 @@ import {
   LifeBuoy,
   Palette,
   Pause,
-  Pin,
   Play,
   SearchCode,
   Settings,
@@ -31,15 +29,12 @@ import {
   Wrench,
 } from 'lucide-react'
 import { useContext, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { columns, Row } from '@/components/time-entries-table/columns'
 import {
   DataTable,
   TimeEntry,
 } from '@/components/time-entries-table/data-table'
-import { Timer } from '@/components/timer'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -71,7 +66,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { TimeEntriesContext } from '@/contexts/TimeEntriesContext'
-import { useAuth } from '@/hooks/use-auth'
 import { useSync } from '@/hooks/use-sync'
 import { TimeEntry as TimeEntryReducer } from '@/reducers/time-entries/reducer'
 
@@ -94,6 +88,69 @@ const items = [
   { value: '27', label: 'Reunião', icon: Users },
   { value: '28', label: 'Gestão', icon: Briefcase },
 ]
+
+export const timeMask: MaskitoOptions = {
+  mask: [/\d/, /\d/, ':', /[0-5]/, /\d/, ':', /[0-5]/, /\d/],
+  overwriteMode: 'replace',
+
+  preprocessors: [
+    ({ elementState, data }, actionType) => {
+      const { value, selection } = elementState
+      let [posStart, posEnd] = selection
+
+      if (posEnd > posStart) {
+        let newValue = value
+          .split('')
+          .map((c, i) =>
+            i >= posStart && i < posEnd && /\d/.test(c) ? '0' : c,
+          )
+          .join('')
+        return {
+          elementState: { value: newValue, selection: [posStart, posStart] },
+          data: '',
+        }
+      }
+
+      // Backspace
+      if (actionType === 'deleteBackward' && posStart > 0) {
+        let i = posStart - 1
+        if (/\d/.test(value[i])) {
+          const newValue = value.substring(0, i) + '0' + value.substring(i + 1)
+          return {
+            elementState: { value: newValue, selection: [i, i] },
+            data: '',
+          }
+        }
+      }
+
+      // Delete
+      if (actionType === 'deleteForward' && posStart < value.length) {
+        let i = posStart
+        if (/\d/.test(value[i])) {
+          const newValue = value.substring(0, i) + '0' + value.substring(i + 1)
+          return {
+            elementState: { value: newValue, selection: [i, i] },
+            data: '',
+          }
+        }
+      }
+
+      return { elementState, data }
+    },
+  ],
+
+  postprocessors: [
+    (elementState: ElementState): ElementState => {
+      const { value, selection } = elementState
+      const [h = '00', m = '00', s = '00'] = value.split(':')
+      const hh = String(Math.min(Number(h), 99)).padStart(2, '0')
+      const mm = String(Math.min(Number(m), 59)).padStart(2, '0')
+      const ss = String(Math.min(Number(s), 59)).padStart(2, '0')
+      const finalValue = `${hh}:${mm}:${ss}`
+      return { value: finalValue, selection }
+    },
+  ],
+}
 
 function groupByIssue(data: TimeEntry[]): Row[] {
   const groups: Record<string, Row> = {}
@@ -120,10 +177,7 @@ function groupByIssue(data: TimeEntry[]): Row[] {
 }
 
 export function TimeEntries() {
-  const { workspaceId } = useParams<{ workspaceId: string }>()
   const [manualMinutes, setManualMinutes] = useState(60)
-  const { isAuthenticated } = useAuth()
-  const navigate = useNavigate()
   const [timeEntryType, setTimeEntryType] =
     useState<TimeEntryReducer['type']>('increasing')
 
@@ -212,18 +266,6 @@ export function TimeEntries() {
     })
   }
 
-  function handleWithSync() {
-    if (!isAuthenticated) {
-      toast('Você precisa se autenticar para sincronizar.', {
-        action: {
-          label: 'Login',
-          onClick: () => navigate('/login'),
-        },
-        description: 'Faça login para sincronizar seus apontamentos.',
-      })
-    }
-  }
-
   return (
     <>
       <Breadcrumb>
@@ -247,22 +289,23 @@ export function TimeEntries() {
 
       <Card className="rounded-md">
         <CardContent className="p-6">
-          <div className="container mx-auto flex items-stretch justify-between gap-2">
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative my-1">
+          <Card className="shadow-0">
+            <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
+              {/* GRUPO DA ESQUERDA: Agrupa ticket, atividade e descrição */}
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <div className="relative">
                   <Hash
                     className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2"
                     style={{ width: 14 }}
                   />
                   <Input
                     placeholder="Ticket"
-                    className="bg-background w-28 pl-7 font-mono tracking-tighter"
+                    className="bg-background w-34 pl-7 font-mono tracking-tighter"
                   />
                 </div>
 
                 <Select>
-                  <SelectTrigger className="w-3xs cursor-pointer">
+                  <SelectTrigger className="w-[180px] cursor-pointer">
                     <SelectValue placeholder="Atividade" />
                   </SelectTrigger>
                   <SelectContent>
@@ -278,15 +321,38 @@ export function TimeEntries() {
                     ))}
                   </SelectContent>
                 </Select>
+
+                <Input placeholder="Descrição" className="flex-1" />
               </div>
 
-              <Input placeholder="Descrição" className="w-full" />
-            </div>
+              {/* GRUPO DA DIREITA: Agrupa os controles do timer */}
+              <div className="flex items-center gap-2">
+                <Input
+                  disabled={activeTimeEntry?.status === 'running'}
+                  defaultValue="00:00:00"
+                  maskOptions={timeMask}
+                  style={{ fontSize: 16 }}
+                  className="w-24 text-center font-mono text-lg tracking-tight"
+                />
 
-            <div className="flex items-start gap-2">
-              {/* Sidebar com Up/Down */}
-              {!activeTimeEntry && (
-                <div className="flex flex-col gap-2">
+                <Button
+                  className="font-semibold"
+                  onClick={handlePlayPauseTimer}
+                  variant={
+                    activeTimeEntry?.status === 'running'
+                      ? 'destructive'
+                      : 'default'
+                  }
+                >
+                  {activeTimeEntry?.status === 'running' ? (
+                    <Pause className="h-4" />
+                  ) : (
+                    <Play className="h-4" />
+                  )}
+                  {activeTimeEntry?.status === 'running' ? 'Parar' : 'Iniciar'}
+                </Button>
+
+                {!activeTimeEntry && (
                   <ToggleGroup
                     type="single"
                     onValueChange={(value) => {
@@ -300,17 +366,18 @@ export function TimeEntries() {
                         <ToggleGroupItem
                           value="increasing"
                           className="h-6 w-6 cursor-pointer border bg-transparent p-0"
+                          aria-label="Tempo Crescente"
                         >
                           <ClockArrowUpIcon
                             className={
                               timeEntryType === 'increasing'
                                 ? 'text-foreground'
-                                : 'text-zinc-500'
+                                : 'text-muted-foreground'
                             }
                           />
                         </ToggleGroupItem>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-background text-foreground">
+                      <TooltipContent>
                         <p className="font-semibold">Tempo Crescente</p>
                       </TooltipContent>
                     </Tooltip>
@@ -320,107 +387,46 @@ export function TimeEntries() {
                         <ToggleGroupItem
                           value="decreasing"
                           className="h-6 w-6 cursor-pointer border bg-transparent p-0"
+                          aria-label="Tempo Decrescente"
                         >
                           <ClockArrowDownIcon
                             className={
                               timeEntryType === 'decreasing'
                                 ? 'text-foreground'
-                                : 'text-zinc-500'
+                                : 'text-muted-foreground'
                             }
                           />
                         </ToggleGroupItem>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-background text-foreground">
+                      <TooltipContent>
                         <p className="font-semibold">Tempo Decrescente</p>
                       </TooltipContent>
                     </Tooltip>
                   </ToggleGroup>
-                </div>
-              )}
-
-              {/* Conteúdo principal: visor + botões */}
-              <div className="flex flex-col gap-2">
-                <div className="relative flex h-full items-center justify-center rounded-md border p-2">
-                  {activeTimeEntry?.type === 'increasing' && (
-                    <ChevronsUpIcon
-                      size={14}
-                      className="absolute top-1 left-1 text-zinc-600"
-                    />
-                  )}
-                  {activeTimeEntry?.type === 'decreasing' && (
-                    <ChevronsDownIcon
-                      size={14}
-                      className="absolute top-1 left-1 text-zinc-600"
-                    />
-                  )}
-                  <Timer onTimeChange={setManualMinutes} />
-                </div>
-
-                <div className="flex gap-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        className="h-8 w-8 p-0"
-                        onClick={handlePlayPauseTimer}
-                      >
-                        {activeTimeEntry &&
-                        activeTimeEntry.status === 'running' ? (
-                          <Pause />
-                        ) : (
-                          <Play />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-background text-foreground">
-                      <p className="font-semibold">Iniciar</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 p-0"
-                      >
-                        <Pin />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-background text-foreground">
-                      <p className="font-semibold">Marcar</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        className="h-8 w-8 p-0"
-                        variant="ghost"
-                        onClick={handleWithSync}
-                      >
-                        <CloudUpload />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-background text-foreground">
-                      <p className="font-semibold">Sincronizar</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
+                )}
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="container mx-auto py-4">
+          <div className="container mx-auto py-16">
             <div className="flex items-center gap-2">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="min-w-56">
+                  <Button
+                    variant="secondary"
+                    className="bg-background flex items-center gap-2 border font-sans tracking-tighter"
+                  >
                     <CalendarDaysIcon />
-                    {date
-                      ? format(date, 'EEEE - dd/MM/yyyy')
-                      : 'Selecione uma data'}
+                    {date ? (
+                      <>
+                        <span>{format(date, 'EEEE')}</span>
+                        <span className="font-mono">
+                          {format(date, 'dd/MM/yyyy')}
+                        </span>
+                      </>
+                    ) : (
+                      'Selecione uma data'
+                    )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-1">
