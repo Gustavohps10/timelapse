@@ -2113,6 +2113,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@maskito/core@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@maskito/core@npm:4.0.0"
+  checksum: 10c0/d20f30c2e14ed50867b7a08b50855aabeada41a0e9f51a037a627cbb0b0b32c43cfba9fd70b3c391ec9fc05dbcfe71fc9c84da61ca9554c85915fa34afa70cbf
+  languageName: node
+  linkType: hard
+
+"@maskito/react@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@maskito/react@npm:4.0.0"
+  peerDependencies:
+    "@maskito/core": ^4.0.0
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: 10c0/89fe443eb0b494e54b9ac85211c623f20d2bdabf402bb41bd07980e7082ef44e2a3aeec78d494d5898b7a833933164802bb95bd581923760af4ae27986bb7e98
+  languageName: node
+  linkType: hard
+
 "@microsoft/api-extractor-model@npm:7.30.7":
   version: 7.30.7
   resolution: "@microsoft/api-extractor-model@npm:7.30.7"
@@ -4014,11 +4032,9 @@ __metadata:
     ajv: "npm:^8.17.1"
     archiver: "npm:^7.0.1"
     axios: "npm:^1.7.9"
-    dexie: "npm:^4.2.0"
     js-yaml: "npm:^4.1.0"
     jsonwebtoken: "npm:^9.0.2"
     keytar: "npm:^7.9.0"
-    rxdb: "npm:^16.19.0"
     rxjs: "npm:^7.8.2"
     typescript: "npm:^5.8.3"
     unzipper: "npm:^0.12.3"
@@ -4067,6 +4083,8 @@ __metadata:
   resolution: "@timelapse/ui@workspace:src/packages/ui"
   dependencies:
     "@hookform/resolvers": "npm:^4.1.3"
+    "@maskito/core": "npm:^4.0.0"
+    "@maskito/react": "npm:^4.0.0"
     "@radix-ui/react-alert-dialog": "npm:^1.1.14"
     "@radix-ui/react-checkbox": "npm:^1.3.1"
     "@radix-ui/react-collapsible": "npm:^1.1.3"
@@ -4097,6 +4115,7 @@ __metadata:
     "@tiptap/starter-kit": "npm:^2.11.5"
     "@types/react": "npm:^19.0.0"
     "@types/react-dom": "npm:^19.0.0"
+    "@types/react-input-mask": "npm:^2"
     "@vitejs/plugin-react": "npm:^4.3.1"
     autoprefixer: "npm:^10.4.20"
     awilix: "npm:^12.0.5"
@@ -4863,6 +4882,24 @@ __metadata:
   peerDependencies:
     "@types/react": ^19.0.0
   checksum: 10c0/34c8dda86c1590b3ef0e7ecd38f9663a66ba2dd69113ba74fb0adc36b83bbfb8c94c1487a2505282a5f7e5e000d2ebf36f4c0fd41b3b672f5178fd1d4f1f8f58
+  languageName: node
+  linkType: hard
+
+"@types/react-input-mask@npm:^2":
+  version: 2.0.5
+  resolution: "@types/react-input-mask@npm:2.0.5"
+  dependencies:
+    "@types/react": "npm:*"
+  checksum: 10c0/43750b72da9eeb8acc6b6a78093c0a5a040feecd6d2d26340c12c1a4cb6f0e8b69f988cbdb426203306f8db2c20919897d7246b83eac9ad7a0d3d367600f59d9
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:*":
+  version: 19.2.2
+  resolution: "@types/react@npm:19.2.2"
+  dependencies:
+    csstype: "npm:^3.0.2"
+  checksum: 10c0/f830b1204aca4634ce3c6cb3477b5d3d066b80a4dd832a4ee0069acb504b6debd2416548a43a11c1407c12bc60e2dc6cf362934a18fe75fe06a69c0a98cba8ab
   languageName: node
   linkType: hard
 
