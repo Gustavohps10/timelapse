@@ -1,4 +1,10 @@
-import { ChartLine, FileText, Settings, Timer } from 'lucide-react'
+import {
+  ChartLine,
+  FileText,
+  ListTodoIcon,
+  Settings,
+  Timer,
+} from 'lucide-react'
 import { NavLink, useParams } from 'react-router-dom'
 
 import {
@@ -11,8 +17,9 @@ import {
 } from '@/components/ui/sidebar'
 
 const mainItems = [
-  { title: 'Dashboard', path: '', icon: ChartLine },
   { title: 'Apontamento', path: 'time-entries', icon: Timer },
+  { title: 'Dashboard', path: '', icon: ChartLine },
+  { title: 'Tarefas', path: 'tasks', icon: ListTodoIcon },
   { title: 'Documentação', path: 'docs', icon: FileText },
   { title: 'Configuração', path: 'settings', icon: Settings },
 ]

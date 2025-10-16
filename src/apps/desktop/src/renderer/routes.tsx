@@ -3,6 +3,7 @@ import {
   Docs,
   Error,
   NotFound,
+  Tasks,
   TimeEntries,
   TimerWidget,
   WorkspaceSettings,
@@ -29,6 +30,7 @@ export const router = createHashRouter([
       { index: true, element: <Dashboard /> },
       { path: 'docs', element: <Docs /> },
       { path: 'time-entries', element: <TimeEntries /> },
+      { path: 'tasks', element: <Tasks /> },
       { path: 'settings', element: <WorkspaceSettings /> },
       {
         path: 'widgets',
