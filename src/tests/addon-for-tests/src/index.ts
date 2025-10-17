@@ -19,7 +19,7 @@ const RedmineConnector: IConnector = {
 
   /* eslint-disable */
   getAuthenticationStrategy: (context: Context) => new RedmineAuthenticationStrategy(),
-  getTaskQuery: (context: Context) => new RedmineTaskQuery(),
+  getTaskQuery: (context: Context) => new RedmineTaskQuery(context),
   getTimeEntryQuery: (context: Context) => new RedmineTimeEntryQuery(context),
   getTimeEntryRepository: (context: Context) => new RedmineTimeEntryRepository(context),
   getMemberQuery: (context: Context) => new RedmineMemberQuery(context),
