@@ -12,6 +12,7 @@ import {
   ListTaskService,
   ListTimeEntriesService,
   ListWorkspacesService,
+  MetadataPullService,
   SessionManager,
   TaskPullService,
   TimeEntriesPullService,
@@ -95,6 +96,7 @@ export class ContainerBuilder {
       importAddonService: asClass(ImportAddonService).scoped(),
       timeEntriesPullService: asClass(TimeEntriesPullService).scoped(),
       timeEntriesPushService: asClass(TimeEntriesPushService).scoped(),
+      metadataPullService: asClass(MetadataPullService).scoped(),
     })
     return this
   }

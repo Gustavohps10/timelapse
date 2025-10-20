@@ -1,6 +1,8 @@
 export const IpcChannels = {
   SYSTEM_VERSION: 'system:version',
 
+  METADATA_PULL: 'metadata:pull',
+
   TASKS_PULL: 'tasks:pull',
   TASKS_LIST: 'tasks:list',
 

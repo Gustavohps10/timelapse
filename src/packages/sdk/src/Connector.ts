@@ -1,6 +1,7 @@
 import {
   IAuthenticationStrategy,
   IMemberQuery,
+  IMetadataQuery,
   ITaskQuery,
   ITaskRepository,
   ITimeEntryQuery,
@@ -42,4 +43,5 @@ export interface IConnector {
   getTimeEntryRepository(context: Context): ITimeEntryRepository
   getMemberQuery(context: Context): IMemberQuery
   getTaskRepository(context: Context): ITaskRepository
+  getMetadataQuery(context: Context): IMetadataQuery
 }

@@ -3,6 +3,7 @@ import { Context, IConnector } from '@timelapse/sdk'
 import { configurationFieldGroups, credentialFieldGroups } from '@/configFields'
 import { RedmineAuthenticationStrategy } from '@/RedmineAuthenticationStrategy'
 import { RedmineMemberQuery } from '@/RedmineMemberQuery'
+import { RedmineMetadataQuery } from '@/RedmineMetadataQuery'
 import { RedmineTaskQuery } from '@/RedmineTaskQuery'
 import { RedmineTaskRepository } from '@/RedmineTaskRepository'
 import { RedmineTimeEntryQuery } from '@/RedmineTimeEntryQuery'
@@ -24,6 +25,7 @@ const RedmineConnector: IConnector = {
   getTimeEntryRepository: (context: Context) => new RedmineTimeEntryRepository(context),
   getMemberQuery: (context: Context) => new RedmineMemberQuery(context),
   getTaskRepository: (context: Context) => new RedmineTaskRepository(),
+  getMetadataQuery: (context: Context) => new RedmineMetadataQuery(context),
     /* eslint-enable */
 }
 

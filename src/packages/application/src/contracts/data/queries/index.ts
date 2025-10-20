@@ -1,4 +1,5 @@
 export * from './IMemberQuery'
+export * from './IMetadataQuery'
 export * from './IQueryBase'
 export * from './ITaskQuery'
 export * from './ITimeEntryQuery'

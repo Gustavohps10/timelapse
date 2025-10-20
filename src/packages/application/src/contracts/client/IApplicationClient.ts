@@ -2,6 +2,7 @@ import { IHeaders, IRequest } from '@timelapse/cross-cutting/transport'
 import {
   AuthenticationViewModel,
   MemberViewModel,
+  MetadataViewModel,
   PaginatedViewModel,
   SyncDocumentViewModel,
   TaskViewModel,
@@ -92,6 +93,17 @@ export interface ITaskClient {
       batch: number
     }>,
   ) => Promise<ViewModel<TaskViewModel[]>>
+}
+
+export interface IMetadataClient {
+  pull: (
+    payload: IRequest<{
+      workspaceId: string
+      memberId: string
+      checkpoint: { updatedAt: Date; id: string }
+      batch: number
+    }>,
+  ) => Promise<ViewModel<MetadataViewModel>>
 }
 
 export interface ITimeEntriesClient {
@@ -217,6 +229,7 @@ export interface IApplicationClient {
     session: ISessionClient
     tasks: ITaskClient
     timeEntries: ITimeEntriesClient
+    metadata: IMetadataClient
   }
   modules: {
     headers: IHeadersClient

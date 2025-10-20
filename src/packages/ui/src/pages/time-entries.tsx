@@ -5,6 +5,7 @@ import { ElementState } from '@maskito/core/src/lib/types'
 import { useQuery } from '@tanstack/react-query'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import {
+  Activity,
   BarChart2,
   Briefcase,
   CalendarCheck,
@@ -25,10 +26,11 @@ import {
   Play,
   SearchCode,
   Settings,
+  ShieldCheck,
   Users,
   Wrench,
 } from 'lucide-react'
-import { useContext, useMemo, useState } from 'react'
+import { ElementType, useContext, useEffect, useMemo, useState } from 'react'
 
 import { columns, Row } from '@/components/time-entries-table/columns'
 import {
@@ -68,36 +70,36 @@ import {
 import { TimeEntriesContext } from '@/contexts/TimeEntriesContext'
 import { useSync } from '@/hooks/use-sync'
 import { TimeEntry as TimeEntryReducer } from '@/reducers/time-entries/reducer'
+import { SyncMetadataItem } from '@/sync/metadata-sync-schema'
 
-const items = [
-  { value: '-', label: '--- Selecione ---', icon: null },
-  { value: '8', label: 'Design', icon: Palette },
-  { value: '9', label: 'Desenvolvimento', icon: Code },
-  { value: '10', label: 'Análise', icon: BarChart2 },
-  { value: '11', label: 'Planejamento', icon: CalendarCheck },
-  { value: '12', label: 'Encerramento', icon: CheckCircle },
-  { value: '13', label: 'Teste', icon: FlaskConical },
-  { value: '14', label: 'Revisão Código', icon: SearchCode },
-  { value: '15', label: 'Gerência de Configuração', icon: Settings },
-  { value: '16', label: 'Correção', icon: Wrench },
-  { value: '17', label: 'Suporte', icon: LifeBuoy },
-  { value: '18', label: 'Apoio', icon: Handshake },
-  { value: '19', label: 'Homologação', icon: ClipboardCheck },
-  { value: '25', label: 'Documentação', icon: FileText },
-  { value: '26', label: 'Treinamento', icon: GraduationCap },
-  { value: '27', label: 'Reunião', icon: Users },
-  { value: '28', label: 'Gestão', icon: Briefcase },
-]
+const iconMap: { [key: string]: ElementType } = {
+  Palette,
+  Code,
+  BarChart2,
+  CalendarCheck,
+  CheckCircle,
+  FlaskConical,
+  SearchCode,
+  Settings,
+  Wrench,
+  LifeBuoy,
+  Handshake,
+  ClipboardCheck,
+  FileText,
+  GraduationCap,
+  Users,
+  Briefcase,
+  ShieldCheck,
+  Activity,
+}
 
 export const timeMask: MaskitoOptions = {
   mask: [/\d/, /\d/, ':', /[0-5]/, /\d/, ':', /[0-5]/, /\d/],
   overwriteMode: 'replace',
-
   preprocessors: [
     ({ elementState, data }, actionType) => {
       const { value, selection } = elementState
       let [posStart, posEnd] = selection
-
       if (posEnd > posStart) {
         let newValue = value
           .split('')
@@ -110,8 +112,6 @@ export const timeMask: MaskitoOptions = {
           data: '',
         }
       }
-
-      // Backspace
       if (actionType === 'deleteBackward' && posStart > 0) {
         let i = posStart - 1
         if (/\d/.test(value[i])) {
@@ -122,8 +122,6 @@ export const timeMask: MaskitoOptions = {
           }
         }
       }
-
-      // Delete
       if (actionType === 'deleteForward' && posStart < value.length) {
         let i = posStart
         if (/\d/.test(value[i])) {
@@ -134,11 +132,9 @@ export const timeMask: MaskitoOptions = {
           }
         }
       }
-
       return { elementState, data }
     },
   ],
-
   postprocessors: [
     (elementState: ElementState): ElementState => {
       const { value, selection } = elementState
@@ -154,10 +150,8 @@ export const timeMask: MaskitoOptions = {
 
 function groupByIssue(data: TimeEntry[]): Row[] {
   const groups: Record<string, Row> = {}
-
   for (const item of data) {
     const key = String(item.issue_id ?? 'sem-issue')
-
     if (!groups[key]) {
       groups[key] = {
         ...item,
@@ -168,11 +162,9 @@ function groupByIssue(data: TimeEntry[]): Row[] {
         subRows: [],
       }
     }
-
     groups[key].hours += item.hours
     groups[key].subRows?.push(item)
   }
-
   return Object.values(groups)
 }
 
@@ -180,9 +172,9 @@ export function TimeEntries() {
   const [manualMinutes, setManualMinutes] = useState(60)
   const [timeEntryType, setTimeEntryType] =
     useState<TimeEntryReducer['type']>('increasing')
-
   const todayDate = useMemo(() => new Date(new Date().toDateString()), [])
   const [date, setDate] = useState<Date | undefined>(todayDate)
+  const [activities, setActivities] = useState<SyncMetadataItem[]>([])
 
   const {
     activeTimeEntry,
@@ -196,10 +188,20 @@ export function TimeEntries() {
     () => todayDate.toISOString().split('T')[0],
     [todayDate],
   )
-
   const shortCacheTime = 1000 * 60 * 1
   const longCacheTime = 1000 * 60 * 5
   const staleTime = dateKey === todayKey ? shortCacheTime : longCacheTime
+
+  useEffect(() => {
+    if (!db?.metadata) return
+    const metaSub = db.metadata.findOne().$.subscribe((metaDoc) => {
+      if (metaDoc) {
+        const meta = metaDoc.toJSON()
+        setActivities([...(meta.activities || [])])
+      }
+    })
+    return () => metaSub.unsubscribe()
+  }, [db])
 
   const { data: timeEntriesResponse } = useQuery({
     queryKey: ['time-entries', dateKey],
@@ -209,7 +211,6 @@ export function TimeEntries() {
       }
       const startDate = startOfDay(date)
       const endDate = endOfDay(date)
-
       const results = await db?.timeEntries
         .find({
           selector: {
@@ -221,13 +222,9 @@ export function TimeEntries() {
           sort: [{ startDate: 'desc' }],
         })
         .exec()
-
-      const plainObjects = results.map((doc) => doc.toJSON())
-
-      return { data: plainObjects }
+      return { data: results.map((doc) => doc.toJSON()) }
     },
     staleTime,
-
     enabled: !!db?.timeEntries && !!date,
   })
 
@@ -238,7 +235,6 @@ export function TimeEntries() {
       issue_id: entry.task?.id,
       hours: entry.timeSpent ?? 0,
       comments: entry.comments ?? '',
-
       spent_on: entry.startDate?.toString().split('T')[0] ?? '',
       activity_id: entry.activity?.id,
       sincStatus: 'synced',
@@ -252,12 +248,10 @@ export function TimeEntries() {
       pauseCurrentTimeEntry()
       return
     }
-
     if (activeTimeEntry && activeTimeEntry.status === 'paused') {
       playCurrentTimeEntry()
       return
     }
-
     createNewTimeEntry({
       minutesAmount: manualMinutes,
       task: 'TESTE',
@@ -290,7 +284,6 @@ export function TimeEntries() {
         <CardContent className="p-6">
           <Card className="shadow-0">
             <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
-              {/* GRUPO DA ESQUERDA: Agrupa ticket, atividade e descrição */}
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 <div className="relative">
                   <Hash
@@ -305,26 +298,37 @@ export function TimeEntries() {
 
                 <Select>
                   <SelectTrigger className="w-[180px] cursor-pointer">
-                    <SelectValue placeholder="Atividade" />
+                    <SelectValue
+                      placeholder={
+                        activities.length > 0 ? 'Atividade' : 'Carregando...'
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {items.map(({ value, label, icon: IconComponent }) => (
-                      <SelectItem
-                        key={value}
-                        value={value}
-                        className="cursor-pointer"
-                      >
-                        {!!IconComponent && <IconComponent size={16} />}
-                        {label}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="-" className="cursor-pointer">
+                      --- Selecione ---
+                    </SelectItem>
+                    {activities.map((activity) => {
+                      const IconComponent = iconMap[activity.icon]
+                      return (
+                        <SelectItem
+                          key={activity.id}
+                          value={activity.id}
+                          className="cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            {IconComponent && <IconComponent size={16} />}
+                            <span>{activity.name}</span>
+                          </div>
+                        </SelectItem>
+                      )
+                    })}
                   </SelectContent>
                 </Select>
 
                 <Input placeholder="Descrição" className="flex-1" />
               </div>
 
-              {/* GRUPO DA DIREITA: Agrupa os controles do timer */}
               <div className="flex items-center gap-2">
                 <Input
                   disabled={activeTimeEntry?.status === 'running'}
@@ -333,7 +337,6 @@ export function TimeEntries() {
                   style={{ fontSize: 16 }}
                   className="w-24 text-center font-mono text-lg tracking-tight"
                 />
-
                 <Button
                   className="font-semibold"
                   onClick={handlePlayPauseTimer}
@@ -350,7 +353,6 @@ export function TimeEntries() {
                   )}
                   {activeTimeEntry?.status === 'running' ? 'Parar' : 'Iniciar'}
                 </Button>
-
                 {!activeTimeEntry && (
                   <ToggleGroup
                     type="single"
@@ -380,7 +382,6 @@ export function TimeEntries() {
                         <p className="font-semibold">Tempo Crescente</p>
                       </TooltipContent>
                     </Tooltip>
-
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <ToggleGroupItem
@@ -438,7 +439,6 @@ export function TimeEntries() {
                 </PopoverContent>
               </Popover>
             </div>
-
             <div className="container mx-auto py-4">
               <DataTable columns={columns} data={groupedEntries} />
             </div>

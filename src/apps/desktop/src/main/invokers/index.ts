@@ -1,6 +1,7 @@
 export * from './addonsInvoker'
 export * from './discordInvoker'
 export * from './headersInvoker'
+export * from './metadataInvoker'
 export * from './sessionInvoker'
 export * from './systemInvoker'
 export * from './tasksInvoker'

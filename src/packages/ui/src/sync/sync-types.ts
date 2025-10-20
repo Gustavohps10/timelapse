@@ -1,6 +1,8 @@
 // src/sync/sync-types.ts
 import { RxCollection, RxDatabase, RxError, RxJsonSchema } from 'rxdb'
 
+import { SyncMetadataRxDBDTO } from '@/sync/metadata-sync-schema'
+
 import { SyncTaskRxDBDTO } from './tasks-sync-schema'
 import { SyncTimeEntryRxDBDTO } from './time-entries-sync-schema'
 
@@ -14,6 +16,7 @@ export type ReplicationCheckpoint = {
 export type AppCollections = {
   timeEntries: RxCollection<SyncTimeEntryRxDBDTO>
   tasks: RxCollection<SyncTaskRxDBDTO>
+  metadata: RxCollection<SyncMetadataRxDBDTO>
   // Adicione futuras coleções aqui
 }
 

@@ -1,5 +1,7 @@
-// src/contexts/SyncProvider.tsx
+'use client'
+
 import {
+  MetadataViewModel,
   TaskViewModel,
   TimeEntryViewModel,
   ViewModel,
@@ -21,6 +23,10 @@ import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie'
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv'
 
 import { useClient } from '@/hooks/use-client'
+import {
+  metadataSyncSchema,
+  SyncMetadataRxDBDTO,
+} from '@/sync/metadata-sync-schema'
 import {
   AppCollections,
   AppDatabase,
@@ -55,12 +61,10 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
   )
   const reSyncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Um único estado para gerenciar o status de todas as replicações
   const [statuses, setStatuses] = useState<Record<string, ReplicationStatus>>(
     {},
   )
 
-  // Centraliza a atualização de status para uma entidade específica
   const updateStatus = useCallback(
     (name: keyof AppCollections, newStatus: Partial<ReplicationStatus>) => {
       setStatuses((prev) => ({
@@ -74,8 +78,49 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
     [],
   )
 
-  // --- CONFIGURAÇÃO DAS ENTIDADES SINCRONIZÁVEIS ---
   const replicationConfigs: ReplicationConfig<any, ReplicationCheckpoint>[] = [
+    {
+      name: 'metadata',
+      schema: metadataSyncSchema,
+      pull: async (checkpoint, batchSize) => {
+        const response: ViewModel<MetadataViewModel> =
+          await client.services.metadata.pull({
+            body: {
+              batch: batchSize,
+              workspaceId,
+              checkpoint: {
+                ...checkpoint!,
+                updatedAt: new Date(checkpoint!.updatedAt),
+              },
+              memberId: '',
+            },
+          })
+
+        const data = response.data
+        if (!data) {
+          return { documents: [], checkpoint: checkpoint! }
+        }
+
+        const document: SyncMetadataRxDBDTO = {
+          _id: '1',
+          _deleted: false,
+          taskStatuses: data.taskStatuses,
+          taskPriorities: data.taskPriorities,
+          activities: data.activities,
+          syncedAt: new Date().toISOString(),
+        }
+
+        const newCheckpoint = {
+          updatedAt: new Date().toISOString(),
+          id: workspaceId,
+        }
+
+        return { documents: [document], checkpoint: newCheckpoint }
+      },
+      push: async (rows) => {
+        return []
+      },
+    },
     {
       name: 'timeEntries',
       schema: timeEntriesSyncSchema,
@@ -84,7 +129,7 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
           await client.services.timeEntries.pull({
             body: {
               workspaceId,
-              memberId: '', // TODO: Obter o ID do membro logado
+              memberId: '',
               checkpoint: {
                 ...checkpoint!,
                 updatedAt: new Date(checkpoint!.updatedAt),
@@ -115,7 +160,7 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
         return { documents, checkpoint: newCheckpoint }
       },
       push: async (rows) => {
-        return [] // Retorna os conflitos
+        return []
       },
     },
     {
@@ -126,7 +171,7 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
           await client.services.tasks.pull({
             body: {
               workspaceId,
-              memberId: '', // TODO: Obter o ID do membro logado
+              memberId: '',
               checkpoint: {
                 ...checkpoint!,
                 updatedAt: new Date(checkpoint!.updatedAt),
@@ -135,13 +180,6 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
             },
           })
 
-        console.log(
-          'Pulling tasks with checkpoint:',
-          checkpoint,
-          'and batchSize:',
-          batchSize,
-        )
-        console.log('Pulled tasks response:', response)
         const data = response.data || []
         const lastItem = data.reduce<TaskViewModel | null>(
           (prev, curr) =>
@@ -154,7 +192,6 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
           ? { updatedAt: lastItem.updatedAt.toISOString(), id: lastItem.id! }
           : checkpoint!
 
-        // Supondo que 'data' é o array que veio da sua API do Redmine
         const documents: SyncTaskRxDBDTO[] = data.map((item) => ({
           _id: item.id,
           _deleted: false,
@@ -170,27 +207,17 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
           doneRatio: item.doneRatio,
           spentHours: item.spentHours,
           estimatedTime: item.estimatedTime,
-
-          // --- AQUI ESTÁ A CORREÇÃO ---
-          // Se 'item.createdAt' já é um objeto Date, chame .toISOString() diretamente.
           createdAt: item.createdAt.toISOString(),
           updatedAt: item.updatedAt.toISOString(),
-
-          // Trata as datas opcionais para evitar erros
           startDate: item.startDate ? item.startDate.toISOString() : undefined,
           dueDate: item.dueDate ? item.dueDate.toISOString() : undefined,
-
           statusChanges: item.statusChanges?.map((change) => ({
             fromStatus: change.fromStatus,
             toStatus: change.toStatus,
             changedBy: change.changedBy,
-            // Mantém a conversão que já estava correta
             changedAt: change.changedAt.toISOString(),
           })),
         }))
-
-        // Agora 'documents' está no formato correto para o RxDB
-        // return { documents, checkpoint: newCheckpoint }
 
         return { documents, checkpoint: newCheckpoint }
       },
@@ -198,19 +225,15 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
         return []
       },
     },
-    // Adicione a configuração de futuras entidades aqui
   ]
 
   const startAllReplications = useCallback(async () => {
     if (!dbRef.current || Object.keys(replicationsRef.current).length > 0) {
       return
     }
-
     console.log('🚀 Starting all replications...')
-
     for (const config of replicationConfigs) {
       const collection = dbRef.current.collections[config.name]
-
       const replication = replicateRxCollection<any, ReplicationCheckpoint>({
         collection,
         replicationIdentifier: `${config.name}-replication-${workspaceId}`,
@@ -233,7 +256,6 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
             } catch (err: any) {
               console.error(`Pull error for ${config.name}:`, err)
               updateStatus(config.name, { error: err })
-              // Para evitar loop de retry, retornamos o checkpoint antigo
               return {
                 documents: [],
                 checkpoint: checkpoint || { updatedAt: '', id: '' },
@@ -252,18 +274,16 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
             } catch (err: any) {
               console.error(`Push error for ${config.name}:`, err)
               updateStatus(config.name, { error: err })
-              return [] // Não reenviar em caso de erro
+              return []
             } finally {
               updateStatus(config.name, { isPushing: false })
             }
           },
         },
         live: true,
-        retryTime: 10000, // Aumentado para evitar spam em caso de erro
+        retryTime: 10000,
       })
-
       replicationsRef.current[config.name] = replication
-
       replication.error$.subscribe((err) =>
         updateStatus(config.name, { error: err }),
       )
@@ -272,12 +292,11 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
       )
     }
 
-    // Inicia o re-sync periódico
     if (reSyncIntervalRef.current) clearInterval(reSyncIntervalRef.current)
     reSyncIntervalRef.current = setInterval(() => {
       console.log('🔄 Triggering periodic re-sync for all replications...')
       Object.values(replicationsRef.current).forEach((rep) => rep.reSync())
-    }, 30 * 1000) // 30 segundos
+    }, 30 * 1000)
   }, [workspaceId, client, updateStatus])
 
   const stopAllReplications = useCallback(() => {
@@ -285,18 +304,16 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
       clearInterval(reSyncIntervalRef.current)
       reSyncIntervalRef.current = null
     }
-
     Object.values(replicationsRef.current).forEach((replication) =>
       replication.cancel(),
     )
     replicationsRef.current = {}
-    setStatuses({}) // Reseta todos os status
+    setStatuses({})
     console.log('🛑 All replications stopped.')
   }, [])
 
   useEffect(() => {
     const initDatabase = async () => {
-      // Plugins do RxDB (import dinâmico)
       const { RxDBDevModePlugin } = await import('rxdb/plugins/dev-mode')
       const { RxDBQueryBuilderPlugin } = await import(
         'rxdb/plugins/query-builder'
@@ -307,23 +324,18 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
       const storage = wrappedValidateAjvStorage({
         storage: getRxStorageDexie(),
       })
-
-      // Cria o banco de dados
       const db = await createRxDatabase<AppCollections>({
         name: `${workspaceId}-data`,
         storage,
         ignoreDuplicate: true,
       })
 
-      // Mapeia as configurações para o formato que addCollections espera
       const collectionsToCreate = replicationConfigs.reduce((acc, config) => {
         acc[config.name] = { schema: config.schema }
         return acc
       }, {} as any)
 
-      // Adiciona todas as coleções de uma vez
       await db.addCollections(collectionsToCreate)
-
       dbRef.current = db
     }
 
