@@ -7,6 +7,7 @@ import { handleDiscordLogin } from '@/main/auth/discord-handler'
 import {
   ConnectionHandler,
   SessionHandler,
+  TasksHandler,
   TimeEntriesHandler,
   TokenHandler,
 } from '@/main/handlers'
@@ -22,6 +23,11 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
   /* eslint-disable prettier/prettier */
   IpcHandler.register('SYSTEM_VERSION', () => {
     return Promise.resolve(app.getVersion())
+  })
+
+  IpcHandler.register('TASKS_PULL', (event, req) => {
+    const tasksHandler = serviceProvider.resolve<TasksHandler>('tasksHandler')
+    return tasksHandler.pull(event, req)
   })
   
   IpcHandler.register('WORKSPACES_CREATE', (event, req) => {

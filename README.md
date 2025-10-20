@@ -89,7 +89,7 @@ O foco atual é implementar a replicação HTTP contínua com **RxDB Replication
 | Item | Status | Descrição |
 | :--- | :--- | :--- |
 | **2.1. Coleção de Tasks** | [ ] | Adicionar coleção para armazenar dados de contexto (título, horas estimadas) para o apontamento. |
-| **2.2. Workspaces Schema** | [ ] | Atualizar o schema para incluir um campo de controle de estado (`prioritySyncStatus`) para gerenciar o ciclo de vida da sincronização. |
+ sincronização. |
 
 #### 🔄 Fase 3: Construir a Lógica de Sincronização no Cliente (SyncManager)
 

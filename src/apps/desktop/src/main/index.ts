@@ -11,7 +11,7 @@ import { join } from 'path'
 import {
   ConnectionHandler,
   SessionHandler,
-  TaskHandler,
+  TasksHandler,
   TimeEntriesHandler,
   TokenHandler,
 } from '@/main/handlers'
@@ -59,7 +59,7 @@ const createWindow = () => {
 export type IHandlersScope = {
   connectionHandler: typeof ConnectionHandler
   sessionHandler: typeof SessionHandler
-  taskHandler: typeof TaskHandler
+  tasksHandler: typeof TasksHandler
   timeEntriesHandler: typeof TimeEntriesHandler
   tokenHandler: typeof TokenHandler
   workspacesHandler: typeof WorkspacesHandler
@@ -154,7 +154,7 @@ app.whenReady().then(async () => {
     .addScoped<IHandlersScope>({
       connectionHandler: ConnectionHandler,
       sessionHandler: SessionHandler,
-      taskHandler: TaskHandler,
+      tasksHandler: TasksHandler,
       timeEntriesHandler: TimeEntriesHandler,
       tokenHandler: TokenHandler,
       workspacesHandler: WorkspacesHandler,

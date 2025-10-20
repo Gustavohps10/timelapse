@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [user, setUser] = useState<User | null>(null)
-  const syncManager = useSync()
+  const { startAllReplications, stopAllReplications } = useSync()
 
   const login = useCallback(
     async (user: User, token: string) => {
@@ -113,12 +113,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
   useEffect(() => {
     if (isAuthenticated) {
-      syncManager.startReplication()
+      startAllReplications()
       return
     }
 
-    syncManager.stopReplication()
-  }, [isAuthenticated, syncManager])
+    stopAllReplications()
+  }, [isAuthenticated, startAllReplications, stopAllReplications])
 
   return (
     <AuthContext.Provider

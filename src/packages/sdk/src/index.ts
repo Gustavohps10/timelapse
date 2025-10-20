@@ -1,5 +1,6 @@
 export * from './AddonConfig'
 export { Context, FieldGroup, IConnector } from './Connector'
+export * from './utils/MarkupConverter'
 export type {
   AuthenticationDTO,
   AuthenticationResult,

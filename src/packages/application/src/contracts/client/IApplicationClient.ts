@@ -84,6 +84,14 @@ export interface ISessionClient {
 
 export interface ITaskClient {
   listTasks: () => Promise<PaginatedViewModel<TaskViewModel[]>>
+  pull: (
+    payload: IRequest<{
+      workspaceId: string
+      memberId: string
+      checkpoint: { updatedAt: Date; id: string }
+      batch: number
+    }>,
+  ) => Promise<ViewModel<TaskViewModel[]>>
 }
 
 export interface ITimeEntriesClient {

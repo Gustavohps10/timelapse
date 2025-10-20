@@ -31,9 +31,9 @@ export const timeEntriesInvoker: ITimeEntriesClient = {
 
   push: (
     payload: IRequest<PushTimeEntriesInput>,
-  ): Promise<PaginatedViewModel<SyncDocumentViewModel<TimeEntryViewModel>[]>> =>
+  ): Promise<SyncDocumentViewModel<TimeEntryViewModel>[]> =>
     IpcInvoker.invoke<
       IRequest<PushTimeEntriesInput>,
-      PaginatedViewModel<SyncDocumentViewModel<TimeEntryViewModel>[]>
+      SyncDocumentViewModel<TimeEntryViewModel>[]
     >('TIME_ENTRIES_PUSH', payload),
 }

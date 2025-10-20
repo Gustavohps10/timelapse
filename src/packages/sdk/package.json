@@ -31,6 +31,7 @@
     "@timelapse/presentation": "workspace:*",
     "@types/adm-zip": "^0",
     "@types/js-yaml": "^4.0.9",
+    "@types/turndown": "^5.0.5",
     "adm-zip": "^0.5.16",
     "commander": "^14.0.0",
     "inquirer": "^12.9.4",
@@ -40,5 +41,10 @@
   },
   "bin": {
     "timelapse": "./dist/cli.cjs"
+  },
+  "dependencies": {
+    "highlight.js": "^11.11.1",
+    "textile-js": "^2.1.1",
+    "turndown": "^7.2.1"
   }
 }

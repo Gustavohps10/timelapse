@@ -5,7 +5,6 @@ import {
   ClientProvider,
   queryClient,
   SidebarProvider,
-  SyncProvider,
   ThemeProvider,
   TimeEntriesContextProvider,
   TooltipProvider,
@@ -18,19 +17,17 @@ import { router } from '@/renderer/routes'
 export function AppDesktop() {
   return (
     <ClientProvider client={ipcClient}>
-      <SyncProvider>
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <TooltipProvider>
-            <TimeEntriesContextProvider>
-              <SidebarProvider>
-                <QueryClientProvider client={queryClient}>
-                  <RouterProvider router={router} />
-                </QueryClientProvider>
-              </SidebarProvider>
-            </TimeEntriesContextProvider>
-          </TooltipProvider>
-        </ThemeProvider>
-      </SyncProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <TooltipProvider>
+          <TimeEntriesContextProvider>
+            <SidebarProvider>
+              <QueryClientProvider client={queryClient}>
+                <RouterProvider router={router} />
+              </QueryClientProvider>
+            </SidebarProvider>
+          </TimeEntriesContextProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </ClientProvider>
   )
 }
