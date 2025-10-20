@@ -402,6 +402,7 @@ export function Tasks() {
     }
   }
 
+  console.log(metadata)
   if (!metadata) {
     return (
       <div className="flex h-full items-center justify-center p-4">

@@ -25,9 +25,6 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
     const checkpointDate = checkpoint.updatedAt.toISOString().split('.')[0]
     const limitPerRequest = 100
 
-    // --- PASSO 1: Função auxiliar que lida com a paginação para UM filtro ---
-    // Esta função garante que obteremos TODAS as issues de um filtro,
-    // buscando página por página até o fim.
     const fetchAllPages = async (queryParams: object): Promise<any[]> => {
       const allIssuesForFilter: any[] = []
       let offset = 0
@@ -40,11 +37,8 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
           })
 
           const receivedIssues = response.data.issues
-          if (receivedIssues && receivedIssues.length > 0) {
-            allIssuesForFilter.push(...receivedIssues)
-          }
+          if (receivedIssues?.length) allIssuesForFilter.push(...receivedIssues)
 
-          // Se a API retornou menos itens que o limite, esta é a última página.
           if (!receivedIssues || receivedIssues.length < limitPerRequest) {
             keepFetching = false
           } else {
@@ -52,40 +46,66 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
           }
         } catch (error) {
           console.error('Erro ao buscar página de issues:', error)
-          keepFetching = false // Interrompe em caso de erro para este filtro
+          keepFetching = false
         }
       }
       return allIssuesForFilter
     }
 
-    // IDs dos campos personalizados que identificamos
-    const customFieldIds = [
-      8, // Responsável Teste
-      9, // Responsável Revisão
-      16, // Responsável Tarefa
-      24, // Responsável Análise
-    ]
+    const customFieldIds = [8, 9, 16, 24] // Teste, Revisão, Tarefa, Análise
 
-    // --- PASSO 2: Preparar e executar as buscas completas em paralelo ---
     const baseSearchParams = {
       updated_on: `>=${checkpointDate}`,
       sort: 'updated_on:asc,id:asc',
     }
 
+    const trackerIdsToPull = [
+      // 1, // Bug
+      // 2, // Funcionalidade
+      3, // Suporte
+      // 4, // Spike
+      5, // Scrum
+      // 6, // Refatoração
+      // 9, // Teste
+      // 10, // Orçamento
+      11, // Gerência de Configuração
+      12, // Apoio
+      13, // Homologação
+      // 14, // Documentação
+      // 15, // Tarefa Pai
+      // 18, // Comunicados
+      19, // Reunião
+      // 20, // Plano de projetos
+      // 21, // Auditoria
+      // 22, // Ação Corretiva
+      // 23, // Auditoria de Baseline
+    ]
+
     const fetchPromises = [
+      // 1. Tarefas atribuídas ao usuário
       fetchAllPages({ ...baseSearchParams, assigned_to_id: memberId }),
+
+      // 2. Tarefas criadas pelo usuário
       fetchAllPages({ ...baseSearchParams, author_id: memberId }),
+
+      // 3. Tarefas onde o usuário está em um campo customizado
       ...customFieldIds.map((fieldId) =>
         fetchAllPages({ ...baseSearchParams, [`cf_${fieldId}`]: memberId }),
       ),
+
+      // 4. UMA ÚNICA requisição para todos os tipos de tarefas genéricas
+      fetchAllPages({
+        ...baseSearchParams,
+        // --- CORREÇÃO APLICADA AQUI ---
+        // Usa .join('|') para criar uma string com o operador "OU" do Redmine
+        tracker_id: trackerIdsToPull.join('|'),
+      }),
     ]
 
-    // --- PASSO 3: Consolidar os resultados de TODAS as páginas de TODAS as buscas ---
     const resultsFromAllPages = await Promise.all(fetchPromises)
-    const allIssues = resultsFromAllPages.flatMap((issueList) => issueList)
+    const allIssues = resultsFromAllPages.flatMap((list) => list)
     const uniqueIssuesMap = new Map(allIssues.map((issue) => [issue.id, issue]))
 
-    // Reordenar a lista final para que o checkpoint funcione corretamente
     const sortedUniqueIssues = Array.from(uniqueIssuesMap.values()).sort(
       (a, b) => {
         const dateA = new Date(a.updated_on).getTime()
@@ -95,7 +115,6 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
       },
     )
 
-    // --- PASSO 4: Processar a lista unificada e criar os DTOs ---
     const newTasksFound: TaskDTO[] = []
 
     for (const issue of sortedUniqueIssues) {
@@ -110,18 +129,16 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
         continue
       }
 
-      const statusChanges: any[] = [] // Substitua 'any' pelo seu DTO
+      const statusChanges: any[] = []
       const journals: any[] = fullIssue.journals || []
       for (const journal of journals) {
         for (const detail of journal.details || []) {
           if (detail.name === 'status_id') {
-            const fromStatusName =
-              statusMap.get(detail.old_value) ?? 'Desconhecido'
-            const toStatusName =
-              statusMap.get(detail.new_value) ?? 'Desconhecido'
+            const fromStatus = statusMap.get(detail.old_value) ?? 'Desconhecido'
+            const toStatus = statusMap.get(detail.new_value) ?? 'Desconhecido'
             statusChanges.push({
-              fromStatus: fromStatusName,
-              toStatus: toStatusName,
+              fromStatus,
+              toStatus,
               changedBy: journal.user?.name!,
               changedAt: new Date(journal.created_on),
             })
@@ -155,10 +172,7 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
             }
           : undefined,
         author: fullIssue.author
-          ? {
-              id: fullIssue.author.id.toString(),
-              name: fullIssue.author.name,
-            }
+          ? { id: fullIssue.author.id.toString(), name: fullIssue.author.name }
           : undefined,
         createdAt: new Date(fullIssue.created_on),
         updatedAt: new Date(fullIssue.updated_on),
@@ -195,9 +209,7 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
 
       newTasksFound.push(task)
 
-      if (newTasksFound.length >= batch) {
-        break
-      }
+      if (newTasksFound.length >= batch) break
     }
 
     return newTasksFound.slice(0, batch)
