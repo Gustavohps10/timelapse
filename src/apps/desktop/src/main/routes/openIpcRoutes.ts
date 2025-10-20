@@ -12,6 +12,7 @@ import {
   TokenHandler,
 } from '@/main/handlers'
 import { AddonsHandler } from '@/main/handlers/AddonsHandler'
+import { MetadataHandler } from '@/main/handlers/MetadataHandler'
 import { WorkspacesHandler } from '@/main/handlers/WorkspacesHandler'
 import { createAuthMiddleware } from '@/main/middlewares/ensureAuthenticated'
 import { createInjectConnectorMiddleware } from '@/main/middlewares/injectConnector'
@@ -23,6 +24,11 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
   /* eslint-disable prettier/prettier */
   IpcHandler.register('SYSTEM_VERSION', () => {
     return Promise.resolve(app.getVersion())
+  })
+
+IpcHandler.register('METADATA_PULL', (event, req) => {
+    const metadataHandler = serviceProvider.resolve<MetadataHandler>('metadataHandler')
+    return metadataHandler.pull(event, req)
   })
 
   IpcHandler.register('TASKS_PULL', (event, req) => {

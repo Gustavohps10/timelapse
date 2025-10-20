@@ -5,6 +5,7 @@ import {
   addonsInvoker,
   discordInvoker,
   headersInvoker,
+  metadataInvoker,
   sessionInvoker,
   systemInvoker,
   tasksInvoker,
@@ -19,6 +20,7 @@ const api: IApplicationClient = {
     session: sessionInvoker,
     tasks: tasksInvoker,
     timeEntries: timeEntriesInvoker,
+    metadata: metadataInvoker,
   },
   modules: {
     headers: headersInvoker,

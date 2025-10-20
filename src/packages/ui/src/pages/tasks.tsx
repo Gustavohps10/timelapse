@@ -3,23 +3,43 @@
 import { format, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
+  Activity,
+  ArchiveX,
+  BarChart2,
+  Briefcase,
+  CalendarCheck,
+  CheckCircle,
   CheckCircle2,
   ChevronDown,
   CircleX,
+  ClipboardCheck,
+  Code,
   ExternalLink,
   FileText,
   Filter,
   Flag,
+  FlaskConical,
+  GraduationCap,
+  Handshake,
+  HelpCircle,
   History,
-  KanbanSquare, // Ícone adicionado
-  LayoutDashboard, // Ícone adicionado
-  List, // Ícone adicionado
+  KanbanSquare,
+  LayoutDashboard,
+  LifeBuoy,
+  List,
   MoreHorizontal,
+  Palette,
+  PauseCircle,
   PlusIcon,
+  SearchCode,
+  Settings,
+  ShieldCheck,
   Timer,
+  Users,
+  Wrench,
   ZapIcon,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { ElementType, useEffect, useMemo, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
@@ -56,13 +76,41 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSync } from '@/hooks/use-sync'
+import {
+  SyncMetadataItem,
+  SyncMetadataRxDBDTO,
+} from '@/sync/metadata-sync-schema'
 import { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
 
-const priorities = [
-  { value: 'baixa', label: 'Baixa', icon: Flag, color: 'text-gray-400' },
-  { value: 'normal', label: 'Normal', icon: Flag, color: 'text-gray-500' },
-  { value: 'alta', label: 'Alta', icon: Flag, color: 'text-red-500' },
-]
+// --- Mapeamento de Nomes de Ícones para Componentes ---
+const iconMap: { [key: string]: ElementType } = {
+  Timer,
+  ZapIcon,
+  CheckCircle2,
+  CircleX,
+  PauseCircle,
+  ArchiveX,
+  HelpCircle,
+  Flag,
+  Palette,
+  Code,
+  BarChart2,
+  CalendarCheck,
+  CheckCircle,
+  FlaskConical,
+  SearchCode,
+  Settings,
+  Wrench,
+  LifeBuoy,
+  Handshake,
+  ClipboardCheck,
+  FileText,
+  GraduationCap,
+  Users,
+  Briefcase,
+  ShieldCheck,
+  Activity,
+}
 
 function formatTime(seconds: number): string {
   if (!seconds || seconds === 0) return ''
@@ -78,20 +126,23 @@ function formatTime(seconds: number): string {
   return `${h}:${m}:${s}`
 }
 
+// --- Componentes Refatorados para Usar Metadados ---
+
 function TaskSection({
   title,
   tasks,
   onTaskClick,
+  statusMap,
+  priorityMap,
 }: {
   title: string
   tasks: SyncTaskRxDBDTO[]
   onTaskClick: (type: 'details' | 'history', task: SyncTaskRxDBDTO) => void
+  statusMap: Map<string, SyncMetadataItem>
+  priorityMap: Map<string, SyncMetadataItem>
 }) {
   const [isOpen, setIsOpen] = useState(true)
-
-  if (tasks.length === 0) {
-    return null
-  }
+  if (tasks.length === 0) return null
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-2">
@@ -112,6 +163,8 @@ function TaskSection({
                 key={task._id}
                 task={task}
                 onTaskClick={onTaskClick}
+                statusMap={statusMap}
+                priorityMap={priorityMap}
               />
             ))}
           </TableBody>
@@ -124,14 +177,18 @@ function TaskSection({
 function TaskTableRow({
   task,
   onTaskClick,
+  statusMap,
+  priorityMap,
 }: {
   task: SyncTaskRxDBDTO
   onTaskClick: (type: 'details' | 'history', task: SyncTaskRxDBDTO) => void
+  statusMap: Map<string, SyncMetadataItem>
+  priorityMap: Map<string, SyncMetadataItem>
 }) {
-  const priorityInfo = priorities.find(
-    (p) => p.value === task.priority?.name?.toLowerCase(),
-  )
-  const StatusIcon = getStatusIcon(task.status.name)
+  const statusInfo = statusMap.get(task.status.id)
+  const priorityInfo = priorityMap.get(task.priority?.id || '')
+  const StatusIcon = statusInfo ? iconMap[statusInfo.icon] : Timer
+  const PriorityIcon = priorityInfo ? iconMap[priorityInfo.icon] : Flag
 
   return (
     <TableRow
@@ -160,19 +217,21 @@ function TaskTableRow({
         {task.title}
       </TableCell>
       <TableCell className="w-[150px] py-2">
-        <Badge
-          className={`flex w-fit items-center gap-2 ${getStatusBadgeClass(task.status.name)}`}
-        >
-          <StatusIcon className="h-3 w-3" />
-          {task.status.name}
-        </Badge>
+        {statusInfo ? (
+          <Badge className={statusInfo.colors.badge}>
+            <StatusIcon className={`mr-2 h-3 w-3 ${statusInfo.colors.text}`} />
+            {task.status.name}
+          </Badge>
+        ) : (
+          <Badge variant="outline">{task.status.name}</Badge>
+        )}
       </TableCell>
       <TableCell className="w-[120px] py-2">
         <div className="flex items-center gap-2">
-          {priorityInfo?.icon && (
-            <priorityInfo.icon className={`h-4 w-4 ${priorityInfo.color}`} />
+          {priorityInfo && (
+            <PriorityIcon className={`h-4 w-4 ${priorityInfo.colors.text}`} />
           )}
-          <span>{priorityInfo?.label ?? 'Não definida'}</span>
+          <span>{task.priority?.name ?? 'Não definida'}</span>
         </div>
       </TableCell>
       <TableCell className="w-[180px] py-2 font-mono text-sm">
@@ -221,35 +280,14 @@ function TaskTableRow({
   )
 }
 
-const getStatusBadgeClass = (statusName: string) => {
-  const name = statusName.toLowerCase()
-  if (name.includes('resolvida') || name.includes('teste'))
-    return 'border border-green-500 text-green-500 bg-green-50 dark:border-green-400 dark:text-green-400 dark:bg-green-900/20'
-  if (name.includes('fechada'))
-    return 'bg-destructive text-destructive-foreground'
-  if (name.includes('andamento') || name.includes('revisão'))
-    return 'bg-gray-100 text-gray-800 dark:bg-gray-700/20 dark:text-gray-200'
-  if (name.includes('nova'))
-    return 'bg-blue-100 text-blue-800 dark:bg-blue-400/20 dark:text-blue-300'
-  return 'bg-gray-100 text-gray-800 dark:bg-gray-700/20 dark:text-gray-200'
-}
-
-const getStatusIcon = (statusName: string) => {
-  const name = statusName.toLowerCase()
-  if (name.includes('resolvida') || name.includes('teste')) return CheckCircle2
-  if (name.includes('fechada')) return CircleX
-  if (name.includes('andamento') || name.includes('revisão')) return ZapIcon
-  if (name.includes('nova')) return Timer
-  return Timer
-}
-
+// --- COMPONENTE PRINCIPAL ---
 export function Tasks() {
   const { db } = useSync()
   const [tasks, setTasks] = useState<SyncTaskRxDBDTO[]>([])
+  const [metadata, setMetadata] = useState<SyncMetadataRxDBDTO | null>(null)
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const [newTaskId, setNewTaskId] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-
   const [modalState, setModalState] = useState<{
     isOpen: boolean
     type: 'details' | 'history' | null
@@ -262,8 +300,8 @@ export function Tasks() {
     setModalState({ isOpen: false, type: null, task: null })
 
   useEffect(() => {
-    if (!db?.tasks) return
-    const subscription = db.tasks
+    if (!db) return
+    const tasksSub = db.tasks
       .find({ sort: [{ updatedAt: 'desc' }] })
       .$.subscribe((tasksFromDb) => {
         const tasksData = tasksFromDb.map((doc) =>
@@ -271,45 +309,76 @@ export function Tasks() {
         ) as SyncTaskRxDBDTO[]
         setTasks(tasksData)
       })
-    return () => subscription.unsubscribe()
+    // Busca o documento único de metadados
+    const metaSub = db.metadata.findOne().$.subscribe((metaDoc) => {
+      if (metaDoc) {
+        setMetadata(metaDoc.toJSON() as SyncMetadataRxDBDTO)
+      }
+    })
+    return () => {
+      tasksSub.unsubscribe()
+      metaSub.unsubscribe()
+    }
   }, [db])
 
-  const filteredTasks =
-    searchTerm.length > 0
-      ? tasks.filter(
-          (task) =>
-            task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            task.id.toLowerCase().includes(searchTerm.toLowerCase()),
-        )
-      : tasks
+  const { statusMap, priorityMap } = useMemo(() => {
+    if (!metadata) {
+      return { statusMap: new Map(), priorityMap: new Map() }
+    }
+    return {
+      statusMap: new Map(metadata.taskStatuses.map((item) => [item.id, item])),
+      priorityMap: new Map(
+        metadata.taskPriorities.map((item) => [item.id, item]),
+      ),
+    }
+  }, [metadata])
+
+  const filteredTasks = useMemo(
+    () =>
+      searchTerm.length > 0
+        ? tasks.filter(
+            (task) =>
+              task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              task.id.toLowerCase().includes(searchTerm.toLowerCase()),
+          )
+        : tasks,
+    [tasks, searchTerm],
+  )
 
   const groupedTasks = useMemo(() => {
     const pending: SyncTaskRxDBDTO[] = []
     const inProgress: SyncTaskRxDBDTO[] = []
     const completed: SyncTaskRxDBDTO[] = []
 
+    if (statusMap.size === 0) return { pending, inProgress, completed }
+
     for (const task of filteredTasks) {
-      const statusName = task.status.name.toLowerCase()
+      const statusInfo = statusMap.get(task.status.id)
+      const icon = statusInfo?.icon
+
       if (
-        statusName.includes('resolvida') ||
-        statusName.includes('teste') ||
-        statusName.includes('fechada')
-      )
+        icon === 'CheckCircle2' ||
+        icon === 'CircleX' ||
+        icon === 'ArchiveX'
+      ) {
         completed.push(task)
-      else if (
-        statusName.includes('andamento') ||
-        statusName.includes('revisão')
-      )
+      } else if (icon === 'ZapIcon') {
         inProgress.push(task)
-      else pending.push(task)
+      } else {
+        pending.push(task)
+      }
     }
     return { pending, inProgress, completed }
-  }, [filteredTasks])
+  }, [filteredTasks, statusMap])
 
-  const autoCompleteItems = filteredTasks.map((task) => ({
-    value: task.id,
-    label: `#${task.id} - ${task.title}`,
-  }))
+  const autoCompleteItems = useMemo(
+    () =>
+      filteredTasks.map((task) => ({
+        value: task.id,
+        label: `#${task.id} - ${task.title}`,
+      })),
+    [filteredTasks],
+  )
 
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -331,6 +400,14 @@ export function Tasks() {
     } catch (error) {
       console.error('Erro ao adicionar tarefa:', error)
     }
+  }
+
+  if (!metadata) {
+    return (
+      <div className="flex h-full items-center justify-center p-4">
+        <p className="text-muted-foreground">Carregando dados...</p>
+      </div>
+    )
   }
 
   return (
@@ -391,7 +468,6 @@ export function Tasks() {
       <Tabs defaultValue="list" className="flex flex-1 flex-col">
         <div className="flex items-center justify-between border-b">
           <TabsList>
-            {/* --- MUDANÇA: Ícones nas abas --- */}
             <TabsTrigger value="overview">
               <LayoutDashboard className="mr-2 h-4 w-4" />
               Overview
@@ -417,7 +493,6 @@ export function Tasks() {
                 emptyMessage="Nenhum resultado."
               />
             </div>
-            {/* --- MUDANÇA: Altura dos botões de filtro reduzida --- */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8">
@@ -447,16 +522,22 @@ export function Tasks() {
               title="Pendentes"
               tasks={groupedTasks.pending}
               onTaskClick={openModal}
+              statusMap={statusMap}
+              priorityMap={priorityMap}
             />
             <TaskSection
               title="Em Andamento"
               tasks={groupedTasks.inProgress}
               onTaskClick={openModal}
+              statusMap={statusMap}
+              priorityMap={priorityMap}
             />
             <TaskSection
               title="Concluídas"
               tasks={groupedTasks.completed}
               onTaskClick={openModal}
+              statusMap={statusMap}
+              priorityMap={priorityMap}
             />
           </div>
         </TabsContent>
@@ -480,8 +561,7 @@ export function Tasks() {
               </DialogTitle>
             </DialogHeader>
             <Tabs defaultValue={modalState.type ?? 'details'}>
-              {/* --- MUDANÇA: Removido w-full das abas do modal --- */}
-              <TabsList className="grid grid-cols-2">
+              <TabsList>
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
                 <TabsTrigger value="history">Histórico</TabsTrigger>
               </TabsList>
@@ -533,7 +613,6 @@ export function Tasks() {
                     {(modalState.task.statusChanges?.length ?? 0) > 0 ? (
                       <div className="relative space-y-6">
                         <div className="bg-border absolute top-2 left-[7px] h-full w-px" />
-                        {/* --- MUDANÇA: Correção do erro de tipagem com optional chaining --- */}
                         {modalState.task.statusChanges
                           ?.slice()
                           .sort(

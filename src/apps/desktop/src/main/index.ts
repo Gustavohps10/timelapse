@@ -16,6 +16,7 @@ import {
   TokenHandler,
 } from '@/main/handlers'
 import { AddonsHandler } from '@/main/handlers/AddonsHandler'
+import { MetadataHandler } from '@/main/handlers/MetadataHandler'
 import { WorkspacesHandler } from '@/main/handlers/WorkspacesHandler'
 import { openIpcRoutes } from '@/main/routes/openIpcRoutes'
 
@@ -64,6 +65,7 @@ export type IHandlersScope = {
   tokenHandler: typeof TokenHandler
   workspacesHandler: typeof WorkspacesHandler
   addonsHandler: typeof AddonsHandler
+  metadataHandler: typeof MetadataHandler
 }
 
 const createSecondaryWindow = () => {
@@ -159,6 +161,7 @@ app.whenReady().then(async () => {
       tokenHandler: TokenHandler,
       workspacesHandler: WorkspacesHandler,
       addonsHandler: AddonsHandler,
+      metadataHandler: MetadataHandler,
     })
     .build()
 
