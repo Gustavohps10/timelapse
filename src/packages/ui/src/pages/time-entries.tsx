@@ -190,7 +190,7 @@ export function TimeEntries() {
     pauseCurrentTimeEntry,
     playCurrentTimeEntry,
   } = useContext(TimeEntriesContext)
-
+  const { db } = useSync()
   const dateKey = useMemo(() => date?.toISOString().split('T')[0], [date])
   const todayKey = useMemo(
     () => todayDate.toISOString().split('T')[0],
@@ -201,17 +201,16 @@ export function TimeEntries() {
   const longCacheTime = 1000 * 60 * 5
   const staleTime = dateKey === todayKey ? shortCacheTime : longCacheTime
 
-  const { timeEntriesCollection } = useSync()
   const { data: timeEntriesResponse } = useQuery({
     queryKey: ['time-entries', dateKey],
     queryFn: async () => {
-      if (!date || !timeEntriesCollection) {
+      if (!date || !db?.timeEntries) {
         return { data: [] }
       }
       const startDate = startOfDay(date)
       const endDate = endOfDay(date)
 
-      const results = await timeEntriesCollection
+      const results = await db?.timeEntries
         .find({
           selector: {
             startDate: {
@@ -229,7 +228,7 @@ export function TimeEntries() {
     },
     staleTime,
 
-    enabled: !!timeEntriesCollection && !!date,
+    enabled: !!db?.timeEntries && !!date,
   })
 
   const mappedEntries: TimeEntry[] = (timeEntriesResponse?.data ?? []).map(

@@ -13,6 +13,7 @@ import {
   ListTimeEntriesService,
   ListWorkspacesService,
   SessionManager,
+  TaskPullService,
   TimeEntriesPullService,
   TimeEntriesPushService,
   UnlinkDataSourceService,
@@ -79,6 +80,7 @@ export class ContainerBuilder {
     this.container.register({
       sessionManager: asClass(SessionManager).scoped(),
       listTasksService: asClass(ListTaskService).scoped(),
+      taskPullService: asClass(TaskPullService).scoped(),
       listTimeEntriesService: asClass(ListTimeEntriesService).scoped(),
       getCurrentUserService: asClass(GetCurrentUserService).scoped(),
       createWorkspaceService: asClass(CreateWorkspaceService).scoped(),

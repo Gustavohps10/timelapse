@@ -12,7 +12,7 @@ import { SessionManager } from '@/workflow'
 export class TaskPullService implements ITaskPullUseCase {
   public constructor(
     private readonly sessionManager: SessionManager,
-    private readonly timeEntryQuery: ITaskQuery,
+    private readonly taskQuery: ITaskQuery,
   ) {}
 
   public async execute(
@@ -21,14 +21,15 @@ export class TaskPullService implements ITaskPullUseCase {
     try {
       const sessionUser = this.sessionManager.getCurrentUser()
 
-      const timeEntries = await this.timeEntryQuery.pull(
+      const tasks = await this.taskQuery.pull(
         sessionUser!.id,
         input.checkpoint,
         input.batch,
       )
 
-      return Either.success(timeEntries)
-    } catch {
+      return Either.success(tasks)
+    } catch (ex) {
+      console.error('Error pulling tasks:', ex)
       return Either.failure(InternalServerError.danger('ERRO_INESPERADO'))
     }
   }

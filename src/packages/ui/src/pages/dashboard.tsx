@@ -150,7 +150,7 @@ const WEEK_DAYS_CONFIG = [
 
 export function Dashboard() {
   const { user } = useAuth()
-  const { timeEntriesCollection } = useSync()
+  const { db } = useSync()
 
   const [date, setDate] = useState<DateRange | undefined>(() => {
     const today = new Date()
@@ -244,12 +244,12 @@ export function Dashboard() {
   }, [avgHoursPerDayData, selectedDays])
 
   useEffect(() => {
-    if (!timeEntriesCollection || !date?.from) return
+    if (!db?.timeEntries || !date?.from) return
 
     const processData = async () => {
       const today = new Date()
       const fetchSince = startOfMonth(today)
-      const allEntriesForSummary = await timeEntriesCollection
+      const allEntriesForSummary = await db.timeEntries
         .find({ selector: { startDate: { $gte: fetchSince.toISOString() } } })
         .exec()
 
@@ -283,7 +283,7 @@ export function Dashboard() {
       const queryEndDate = date.to ? new Date(date.to) : new Date(date.from!)
       queryEndDate.setHours(23, 59, 59, 999)
 
-      const entriesInRange = await timeEntriesCollection
+      const entriesInRange = await db.timeEntries
         .find({
           selector: {
             startDate: {
@@ -480,7 +480,7 @@ export function Dashboard() {
       })
     }
     processData()
-  }, [date, user, timeEntriesCollection, acceptableHours])
+  }, [date, user, db, acceptableHours])
 
   const maxHeatmapHours = useMemo(() => {
     const allHourValues = Object.values(heatmapData).flatMap((day) =>

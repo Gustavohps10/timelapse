@@ -1,5 +1,6 @@
 import {
   AddonInstallerDTO,
+  AddonManifest,
   FileData,
   IAddonsFacade,
   IImportAddonUseCase,
@@ -7,8 +8,6 @@ import {
 import { IRequest } from '@timelapse/cross-cutting/transport'
 import { ViewModel } from '@timelapse/presentation/view-models'
 import { IpcMainInvokeEvent } from 'electron'
-
-import { AddonManifest } from '@/main/contracts/invokers/IAddonsInvoker'
 
 export class AddonsHandler {
   constructor(

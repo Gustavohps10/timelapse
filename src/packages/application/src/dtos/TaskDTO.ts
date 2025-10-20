@@ -1,8 +1,14 @@
 export interface TaskDTO {
   id: string
-  url: string
   title: string
+  description?: string
+  url?: string
+  projectName?: string
   status: {
+    id: string
+    name: string
+  }
+  priority?: {
     id: string
     name: string
   }
@@ -10,13 +16,22 @@ export interface TaskDTO {
     id: string
     name: string
   }
+  author?: {
+    id: string
+    name: string
+  }
   createdAt: Date
   updatedAt: Date
-  estimatedTime: {
+  startDate?: Date
+  dueDate?: Date
+  doneRatio?: number
+  estimatedTime?: {
     production?: number
     validation?: number
     documentation?: number
+    generic?: number
   }
+  spentHours?: number
   statusChanges?: StatusChangeDTO[]
 }
 

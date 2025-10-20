@@ -55,10 +55,10 @@ export function createInjectConnectorMiddleware(
 
     const connectorDeps = {
       authenticationStrategy: connector.getAuthenticationStrategy(context),
-      taskQuery: connector.getTaskQuery(context),
       memberQuery: connector.getMemberQuery(context),
       timeEntryQuery: connector.getTimeEntryQuery(context),
       timeEntryRepository: connector.getTimeEntryRepository(context),
+      taskQuery: connector.getTaskQuery(context),
       taskRepository: connector.getTaskRepository(context),
     }
 
