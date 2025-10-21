@@ -18,6 +18,9 @@ export interface SyncMetadataRxDBDTO {
   taskStatuses: SyncMetadataItem[]
   taskPriorities: SyncMetadataItem[]
   activities: SyncMetadataItem[]
+  trackStatuses: SyncMetadataItem[]
+  participantRoles: SyncMetadataItem[]
+  estimationTypes: SyncMetadataItem[]
 
   conflicted?: boolean
   conflictData?: { server?: any; local?: any }
@@ -101,6 +104,72 @@ export const metadataSyncSchema: RxJsonSchema<SyncMetadataRxDBDTO> = {
         required: ['id', 'name', 'icon', 'colors'],
       },
     },
+    trackStatuses: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          icon: { type: 'string' },
+          colors: {
+            type: 'object',
+            properties: {
+              badge: { type: 'string' },
+              background: { type: 'string' },
+              text: { type: 'string' },
+              border: { type: 'string' },
+            },
+            required: ['badge', 'background', 'text'],
+          },
+        },
+        required: ['id', 'name', 'icon', 'colors'],
+      },
+    },
+    participantRoles: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          icon: { type: 'string' },
+          colors: {
+            type: 'object',
+            properties: {
+              badge: { type: 'string' },
+              background: { type: 'string' },
+              text: { type: 'string' },
+              border: { type: 'string' },
+            },
+            required: ['badge', 'background', 'text'],
+          },
+        },
+        required: ['id', 'name', 'icon', 'colors'],
+      },
+    },
+    estimationTypes: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          icon: { type: 'string' },
+          colors: {
+            type: 'object',
+            properties: {
+              badge: { type: 'string' },
+              background: { type: 'string' },
+              text: { type: 'string' },
+              border: { type: 'string' },
+            },
+            required: ['badge', 'background', 'text'],
+          },
+        },
+        required: ['id', 'name', 'icon', 'colors'],
+      },
+    },
     conflicted: { type: 'boolean' },
     conflictData: {
       type: 'object',
@@ -113,5 +182,13 @@ export const metadataSyncSchema: RxJsonSchema<SyncMetadataRxDBDTO> = {
     syncedAt: { type: 'string', format: 'date-time' },
     assumedMasterState: { type: 'object' },
   },
-  required: ['_id', 'taskStatuses', 'taskPriorities', 'activities'],
+  required: [
+    '_id',
+    'taskStatuses',
+    'taskPriorities',
+    'activities',
+    'trackStatuses',
+    'participantRoles',
+    'estimationTypes',
+  ],
 }

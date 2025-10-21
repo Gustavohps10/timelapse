@@ -1,5 +1,23 @@
 import { RxJsonSchema } from 'rxdb'
 
+export interface SyncParticipantsRxDBDTO {
+  id: string
+  name: string
+  role: {
+    id: string
+  }
+}
+
+export interface SyncEstimatedTimeRxDBDTO {
+  id: string
+  name: string
+  activities: {
+    id: string
+    name: string
+  }[]
+  hours: number
+}
+
 export interface SyncTaskRxDBDTO {
   _id: string
   _deleted: boolean
@@ -7,28 +25,25 @@ export interface SyncTaskRxDBDTO {
   title: string
   description?: string
   url?: string
-  project?: {
-    id?: string
-    name?: string
-  }
-  parent?: {
-    id?: string
-  }
+  projectName?: string
   status: {
     id: string
     name: string
   }
+  tracker?: {
+    id: string
+  }
   priority?: {
-    id?: string
-    name?: string
+    id: string
+    name: string
   }
   author?: {
-    id?: string
-    name?: string
+    id: string
+    name: string
   }
   assignedTo?: {
-    id?: string
-    name?: string
+    id: string
+    name: string
   }
   createdAt: string
   updatedAt: string
@@ -36,20 +51,19 @@ export interface SyncTaskRxDBDTO {
   dueDate?: string
   doneRatio?: number
   spentHours?: number
-  estimatedTime?: {
-    production?: number
-    validation?: number
-    documentation?: number
-    generic?: number
-  }
-  customFields?: Record<string, any>
-  metadata?: Record<string, any>
+  estimatedTimes?: SyncEstimatedTimeRxDBDTO[]
   statusChanges?: {
     fromStatus: string
     toStatus: string
-    changedBy?: string
+    description?: string
+    changedBy: {
+      id: string
+      name: string
+    }
     changedAt: string
   }[]
+  participants?: SyncParticipantsRxDBDTO[]
+
   conflicted?: boolean
   conflictData?: { server?: any; local?: any }
   validationError?: any
@@ -70,19 +84,8 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
     title: { type: 'string' },
     description: { type: 'string' },
     url: { type: 'string' },
-    project: {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-        name: { type: 'string' },
-      },
-    },
-    parent: {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-      },
-    },
+    projectName: { type: 'string' },
+
     status: {
       type: 'object',
       properties: {
@@ -91,12 +94,20 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
       },
       required: ['id', 'name'],
     },
+    tracker: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+      },
+      required: ['id'],
+    },
     priority: {
       type: 'object',
       properties: {
         id: { type: 'string' },
         name: { type: 'string' },
       },
+      required: ['id', 'name'],
     },
     author: {
       type: 'object',
@@ -104,6 +115,7 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
         id: { type: 'string' },
         name: { type: 'string' },
       },
+      required: ['id', 'name'],
     },
     assignedTo: {
       type: 'object',
@@ -111,6 +123,7 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
         id: { type: 'string' },
         name: { type: 'string' },
       },
+      required: ['id', 'name'],
     },
     createdAt: { type: 'string', format: 'date-time' },
     updatedAt: { type: 'string', format: 'date-time' },
@@ -118,17 +131,29 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
     dueDate: { type: 'string', format: 'date-time' },
     doneRatio: { type: 'number' },
     spentHours: { type: 'number' },
-    estimatedTime: {
-      type: 'object',
-      properties: {
-        production: { type: 'number' },
-        validation: { type: 'number' },
-        documentation: { type: 'number' },
-        generic: { type: 'number' },
+    estimatedTimes: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          activities: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                name: { type: 'string' },
+              },
+              required: ['id', 'name'],
+            },
+          },
+          hours: { type: 'number' },
+        },
+        required: ['id', 'name', 'activities', 'hours'],
       },
     },
-    customFields: { type: 'object' },
-    metadata: { type: 'object' },
     statusChanges: {
       type: 'array',
       items: {
@@ -136,10 +161,36 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
         properties: {
           fromStatus: { type: 'string' },
           toStatus: { type: 'string' },
-          changedBy: { type: 'string' },
+          description: { type: 'string' },
+          changedBy: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+            },
+            required: ['id', 'name'],
+          },
           changedAt: { type: 'string', format: 'date-time' },
         },
-        required: ['fromStatus', 'toStatus', 'changedAt'],
+        required: ['fromStatus', 'toStatus', 'changedBy', 'changedAt'],
+      },
+    },
+    participants: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          role: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+            },
+            required: ['id'],
+          },
+        },
+        required: ['id', 'name', 'role'],
       },
     },
     conflicted: { type: 'boolean' },

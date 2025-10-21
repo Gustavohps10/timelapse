@@ -106,6 +106,9 @@ export class Workspace extends Entity {
   }
 
   unlinkDataSource(): Either<AppError, void> {
+    console.log(
+      'DOMINIO: Unlinking data source........................................',
+    )
     this._dataSource = 'local'
     this._dataSourceConfiguration = undefined
     this.touch()
@@ -125,6 +128,9 @@ export class Workspace extends Entity {
   }
 
   disconnectDataSource(): Either<AppError, void> {
+    console.log(
+      'DOMINIO: Disconnecting data sourc.......................................',
+    )
     this._dataSourceConfiguration = undefined
     this.touch()
     return Either.success(undefined)

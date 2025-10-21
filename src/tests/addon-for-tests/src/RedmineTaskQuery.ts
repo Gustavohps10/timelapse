@@ -1,3 +1,4 @@
+import { Participants } from '@timelapse/application'
 import {
   ITaskQuery,
   MarkupConverter,
@@ -15,13 +16,6 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
     batch: number,
   ): Promise<TaskDTO[]> {
     const client = await this.getAuthenticatedClient()
-
-    const statusResponse = await client.get('issue_statuses.json')
-    const statusMap = new Map<string, string>()
-    for (const status of statusResponse.data.issue_statuses) {
-      statusMap.set(status.id.toString(), status.name)
-    }
-
     const checkpointDate = checkpoint.updatedAt.toISOString().split('.')[0]
     const limitPerRequest = 100
 
@@ -37,7 +31,9 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
           })
 
           const receivedIssues = response.data.issues
-          if (receivedIssues?.length) allIssuesForFilter.push(...receivedIssues)
+          if (receivedIssues?.length) {
+            allIssuesForFilter.push(...receivedIssues)
+          }
 
           if (!receivedIssues || receivedIssues.length < limitPerRequest) {
             keepFetching = false
@@ -52,52 +48,21 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
       return allIssuesForFilter
     }
 
-    const customFieldIds = [8, 9, 16, 24] // Teste, Revisão, Tarefa, Análise
-
+    const customFieldIds = [8, 9, 16, 24] // Teste, Revisao, Tarefa, Analise
     const baseSearchParams = {
       updated_on: `>=${checkpointDate}`,
       sort: 'updated_on:asc,id:asc',
     }
-
-    const trackerIdsToPull = [
-      // 1, // Bug
-      // 2, // Funcionalidade
-      3, // Suporte
-      // 4, // Spike
-      5, // Scrum
-      // 6, // Refatoração
-      // 9, // Teste
-      // 10, // Orçamento
-      11, // Gerência de Configuração
-      12, // Apoio
-      13, // Homologação
-      // 14, // Documentação
-      // 15, // Tarefa Pai
-      // 18, // Comunicados
-      19, // Reunião
-      // 20, // Plano de projetos
-      // 21, // Auditoria
-      // 22, // Ação Corretiva
-      // 23, // Auditoria de Baseline
-    ]
+    const trackerIdsToPull = [3, 5, 11, 12, 13, 19]
 
     const fetchPromises = [
-      // 1. Tarefas atribuídas ao usuário
       fetchAllPages({ ...baseSearchParams, assigned_to_id: memberId }),
-
-      // 2. Tarefas criadas pelo usuário
       fetchAllPages({ ...baseSearchParams, author_id: memberId }),
-
-      // 3. Tarefas onde o usuário está em um campo customizado
       ...customFieldIds.map((fieldId) =>
         fetchAllPages({ ...baseSearchParams, [`cf_${fieldId}`]: memberId }),
       ),
-
-      // 4. UMA ÚNICA requisição para todos os tipos de tarefas genéricas
       fetchAllPages({
         ...baseSearchParams,
-        // --- CORREÇÃO APLICADA AQUI ---
-        // Usa .join('|') para criar uma string com o operador "OU" do Redmine
         tracker_id: trackerIdsToPull.join('|'),
       }),
     ]
@@ -117,6 +82,13 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
 
     const newTasksFound: TaskDTO[] = []
 
+    const customFieldRoleMap = new Map<number, string>([
+      [8, '1'], // Responsavel Teste
+      [9, '2'], // Responsavel Revisao
+      [16, '3'], // Custom Responsavel Tarefa
+      [24, '4'], // Responsavel analise
+    ])
+
     for (const issue of sortedUniqueIssues) {
       const { issue: fullIssue } = await client
         .get(`issues/${issue.id}.json`, { params: { include: 'journals' } })
@@ -129,20 +101,86 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
         continue
       }
 
-      const statusChanges: any[] = []
-      const journals: any[] = fullIssue.journals || []
-      for (const journal of journals) {
-        for (const detail of journal.details || []) {
-          if (detail.name === 'status_id') {
-            const fromStatus = statusMap.get(detail.old_value) ?? 'Desconhecido'
-            const toStatus = statusMap.get(detail.new_value) ?? 'Desconhecido'
-            statusChanges.push({
-              fromStatus,
-              toStatus,
-              changedBy: journal.user?.name!,
+      const statusChanges = (fullIssue.journals || [])
+        .map((journal: any) => {
+          const statusDetail = (journal.details || []).find(
+            (d: any) => d.name === 'status_id',
+          )
+          if (statusDetail && journal.user) {
+            return {
+              fromStatus: statusDetail.old_value,
+              toStatus: statusDetail.new_value,
+              description: journal.notes
+                ? MarkupConverter.fromTextile(
+                    journal.notes,
+                    this.context?.config?.apiUrl!,
+                  )
+                : undefined,
+              changedBy: {
+                id: journal.user.id.toString(),
+                name: journal.user.name,
+              },
               changedAt: new Date(journal.created_on),
-            })
+            }
           }
+          return null
+        })
+        .filter(Boolean)
+
+      const knownNames = new Map<string, string>()
+      if (fullIssue.author) {
+        knownNames.set(fullIssue.author.id.toString(), fullIssue.author.name)
+      }
+      if (fullIssue.assigned_to) {
+        knownNames.set(
+          fullIssue.assigned_to.id.toString(),
+          fullIssue.assigned_to.name,
+        )
+      }
+
+      const participantRoles = new Map<string, Set<string>>()
+
+      const addRole = (userId: string, roleId: string) => {
+        if (!userId || !roleId) return
+        if (!participantRoles.has(userId)) {
+          participantRoles.set(userId, new Set<string>())
+        }
+        participantRoles.get(userId)!.add(roleId)
+      }
+
+      if (fullIssue.author) {
+        addRole(fullIssue.author.id.toString(), '5')
+      }
+      if (fullIssue.assigned_to) {
+        addRole(fullIssue.assigned_to.id.toString(), 'assignee')
+      }
+
+      const customFields: any[] = fullIssue.custom_fields || []
+      for (const field of customFields) {
+        if (customFieldRoleMap.has(field.id) && field.value) {
+          const roleId = customFieldRoleMap.get(field.id)!
+          const userIds: string[] = (
+            Array.isArray(field.value) ? field.value : [field.value]
+          ).filter(Boolean)
+
+          for (const userId of userIds) {
+            if (!knownNames.has(userId)) {
+              knownNames.set(userId, `Usuário (${userId})`)
+            }
+            addRole(userId, roleId)
+          }
+        }
+      }
+
+      const participants: Participants[] = []
+      for (const [userId, roles] of participantRoles.entries()) {
+        const name = knownNames.get(userId)!
+        for (const roleId of roles) {
+          participants.push({
+            id: userId,
+            name: name,
+            role: { id: roleId },
+          })
         }
       }
 
@@ -150,15 +188,20 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
         id: fullIssue.id.toString(),
         url: `${this.context?.config?.apiUrl}/issues/${fullIssue.id}`,
         title: fullIssue.subject,
-        description: MarkupConverter.fromTextile(
-          fullIssue.description,
-          this.context?.config?.apiUrl!,
-        ),
+        description: fullIssue.description
+          ? MarkupConverter.fromTextile(
+              fullIssue.description,
+              this.context?.config?.apiUrl!,
+            )
+          : undefined,
         projectName: fullIssue.project?.name,
         status: {
           id: fullIssue.status.id.toString(),
           name: fullIssue.status.name,
         },
+        tracker: fullIssue.tracker
+          ? { id: fullIssue.tracker.id.toString() }
+          : undefined,
         priority: fullIssue.priority
           ? {
               id: fullIssue.priority.id.toString(),
@@ -182,29 +225,56 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
         dueDate: fullIssue.due_date ? new Date(fullIssue.due_date) : undefined,
         doneRatio: fullIssue.done_ratio,
         spentHours: fullIssue.spent_hours,
-        estimatedTime: {
-          production:
-            Number(
-              (fullIssue.custom_fields as any[]).find((c) => c.id === 57)
-                ?.value,
-            ) || undefined,
-          validation:
-            Number(
-              (fullIssue.custom_fields as any[]).find((c) => c.id === 58)
-                ?.value,
-            ) || undefined,
-          documentation:
-            Number(
-              (fullIssue.custom_fields as any[]).find((c) => c.id === 59)
-                ?.value,
-            ) || undefined,
-          generic:
-            Number(
-              (fullIssue.custom_fields as any[]).find((c) => c.id === 60)
-                ?.value,
-            ) || undefined,
-        },
+        estimatedTimes: [
+          {
+            id: '1', // Produção
+            name: 'Tempo de Produção',
+            activities: [
+              { id: '8', name: 'Design' },
+              { id: '9', name: 'Desenvolvimento' },
+              { id: '10', name: 'Analise' },
+              { id: '11', name: 'Planejamento' },
+              { id: '14', name: 'Revisão Código' },
+              { id: '16', name: 'Correção' },
+            ],
+            hours:
+              Number(
+                (fullIssue.custom_fields as any[]).find((c) => c.id === 57)
+                  ?.value,
+              ) || 0,
+          },
+          {
+            id: '2', // Validação
+            name: 'Tempo de Validação',
+            activities: [
+              { id: '13', name: 'Teste' },
+              { id: '19', name: 'Homologação' },
+            ],
+            hours:
+              Number(
+                (fullIssue.custom_fields as any[]).find((c) => c.id === 58)
+                  ?.value,
+              ) || 0,
+          },
+          {
+            id: '3', // Documentação
+            name: 'Tempo de Documentação',
+            activities: [{ id: '25', name: 'Documentação' }],
+            hours:
+              Number(
+                (fullIssue.custom_fields as any[]).find((c) => c.id === 59)
+                  ?.value,
+              ) || 0,
+          },
+          {
+            id: '4', // Genérico / Outras
+            name: 'Tempo Genérico / Outras',
+            activities: [],
+            hours: Number(fullIssue.estimated_hours) || 0,
+          },
+        ],
         statusChanges: statusChanges.length > 0 ? statusChanges : undefined,
+        participants: participants.length > 0 ? participants : undefined,
       }
 
       newTasksFound.push(task)
