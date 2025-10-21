@@ -126,7 +126,7 @@ function formatTime(seconds: number): string {
   return `${h}:${m}:${s}`
 }
 
-// --- Componentes Refatorados para Usar Metadados ---
+// --- Componentes Refatorados (sem alterações aqui) ---
 
 function TaskSection({
   title,
@@ -143,7 +143,6 @@ function TaskSection({
 }) {
   const [isOpen, setIsOpen] = useState(true)
   if (tasks.length === 0) return null
-
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-2">
       <div className="flex items-center justify-between">
@@ -189,7 +188,6 @@ function TaskTableRow({
   const priorityInfo = priorityMap.get(task.priority?.id || '')
   const StatusIcon = statusInfo ? iconMap[statusInfo.icon] : Timer
   const PriorityIcon = priorityInfo ? iconMap[priorityInfo.icon] : Flag
-
   return (
     <TableRow
       onClick={() => onTaskClick('details', task)}
@@ -203,8 +201,7 @@ function TaskTableRow({
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 font-mono text-xs font-medium text-zinc-600 brightness-95 filter hover:underline dark:text-zinc-400 dark:brightness-105"
           >
-            #{task.id}
-            <ExternalLink className="h-3 w-3" />
+            #{task.id} <ExternalLink className="h-3 w-3" />
           </a>
         ) : (
           <span className="font-mono text-xs font-medium">#{task.id}</span>
@@ -309,11 +306,8 @@ export function Tasks() {
         ) as SyncTaskRxDBDTO[]
         setTasks(tasksData)
       })
-    // Busca o documento único de metadados
     const metaSub = db.metadata.findOne().$.subscribe((metaDoc) => {
-      if (metaDoc) {
-        setMetadata(metaDoc.toJSON() as SyncMetadataRxDBDTO)
-      }
+      if (metaDoc) setMetadata(metaDoc.toJSON() as SyncMetadataRxDBDTO)
     })
     return () => {
       tasksSub.unsubscribe()
@@ -322,9 +316,7 @@ export function Tasks() {
   }, [db])
 
   const { statusMap, priorityMap } = useMemo(() => {
-    if (!metadata) {
-      return { statusMap: new Map(), priorityMap: new Map() }
-    }
+    if (!metadata) return { statusMap: new Map(), priorityMap: new Map() }
     return {
       statusMap: new Map(metadata.taskStatuses.map((item) => [item.id, item])),
       priorityMap: new Map(
@@ -349,24 +341,14 @@ export function Tasks() {
     const pending: SyncTaskRxDBDTO[] = []
     const inProgress: SyncTaskRxDBDTO[] = []
     const completed: SyncTaskRxDBDTO[] = []
-
     if (statusMap.size === 0) return { pending, inProgress, completed }
-
     for (const task of filteredTasks) {
       const statusInfo = statusMap.get(task.status.id)
       const icon = statusInfo?.icon
-
-      if (
-        icon === 'CheckCircle2' ||
-        icon === 'CircleX' ||
-        icon === 'ArchiveX'
-      ) {
+      if (icon === 'CheckCircle2' || icon === 'CircleX' || icon === 'ArchiveX')
         completed.push(task)
-      } else if (icon === 'ZapIcon') {
-        inProgress.push(task)
-      } else {
-        pending.push(task)
-      }
+      else if (icon === 'ZapIcon') inProgress.push(task)
+      else pending.push(task)
     }
     return { pending, inProgress, completed }
   }, [filteredTasks, statusMap])
@@ -402,7 +384,6 @@ export function Tasks() {
     }
   }
 
-  console.log(metadata)
   if (!metadata) {
     return (
       <div className="flex h-full items-center justify-center p-4">
@@ -413,13 +394,13 @@ export function Tasks() {
 
   return (
     <div className="bg-background flex h-full flex-col p-4 pt-2">
+      {/* --- Header e Botão Nova Tarefa (sem alterações) --- */}
       <div className="flex items-center justify-between pb-4">
         <h1 className="text-2xl font-bold tracking-tight">Minhas Tarefas</h1>
         <Dialog>
           <DialogTrigger asChild>
             <Button>
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Nova Tarefa
+              <PlusIcon className="mr-2 h-4 w-4" /> Nova Tarefa
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
@@ -466,20 +447,18 @@ export function Tasks() {
         </Dialog>
       </div>
 
+      {/* --- Abas e Filtros (sem alterações) --- */}
       <Tabs defaultValue="list" className="flex flex-1 flex-col">
         <div className="flex items-center justify-between border-b">
           <TabsList>
             <TabsTrigger value="overview">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              Overview
+              <LayoutDashboard className="mr-2 h-4 w-4" /> Overview
             </TabsTrigger>
             <TabsTrigger value="list">
-              <List className="mr-2 h-4 w-4" />
-              Lista
+              <List className="mr-2 h-4 w-4" /> Lista
             </TabsTrigger>
             <TabsTrigger value="board">
-              <KanbanSquare className="mr-2 h-4 w-4" />
-              Quadro
+              <KanbanSquare className="mr-2 h-4 w-4" /> Quadro
             </TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2 p-1">
@@ -497,16 +476,14 @@ export function Tasks() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8">
-                  <Flag className="mr-2 h-4 w-4" />
-                  Prioridade
+                  <Flag className="mr-2 h-4 w-4" /> Prioridade
                 </Button>
               </DropdownMenuTrigger>
             </DropdownMenu>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8">
-                  <Filter className="mr-2 h-4 w-4" />
-                  Filtros
+                  <Filter className="mr-2 h-4 w-4" /> Filtros
                 </Button>
               </DropdownMenuTrigger>
             </DropdownMenu>
@@ -553,6 +530,7 @@ export function Tasks() {
         <span>Total de {filteredTasks.length} tarefa(s)</span>
       </div>
 
+      {/* --- MODAL DE DETALHES E HISTÓRICO --- */}
       <Dialog open={modalState.isOpen} onOpenChange={closeModal}>
         {modalState.task && (
           <DialogContent className="sm:max-w-6xl">
@@ -566,6 +544,8 @@ export function Tasks() {
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
                 <TabsTrigger value="history">Histórico</TabsTrigger>
               </TabsList>
+
+              {/* Aba de Detalhes (sem alterações) */}
               <TabsContent value="details">
                 <ScrollArea className="h-[65vh] rounded-md border">
                   <div className="prose prose-sm dark:prose-invert max-w-none p-4">
@@ -608,6 +588,8 @@ export function Tasks() {
                   </div>
                 </ScrollArea>
               </TabsContent>
+
+              {/* ✅✅✅ ABA DE HISTÓRICO ATUALIZADA ✅✅✅ */}
               <TabsContent value="history">
                 <ScrollArea className="h-[65vh]">
                   <div className="p-4">
@@ -627,8 +609,9 @@ export function Tasks() {
                                 <div className="bg-primary h-2 w-2 rounded-full" />
                               </div>
                               <div className="flex-1">
+                                {/* ✅ Exibe o nome do usuário a partir do objeto */}
                                 <p className="text-sm font-semibold">
-                                  {change.changedBy ?? 'Sistema'}
+                                  {change.changedBy.name}
                                 </p>
                                 <time className="text-muted-foreground text-xs">
                                   {formatDistanceToNow(
@@ -642,10 +625,38 @@ export function Tasks() {
                                   )}
                                   )
                                 </time>
-                                <p className="bg-muted mt-2 rounded-md border p-3 text-sm">
-                                  Status alterado de <b>{change.fromStatus}</b>{' '}
-                                  para <b>{change.toStatus}</b>
-                                </p>
+
+                                {/* Card principal da alteração */}
+                                <div className="bg-muted mt-2 rounded-md border p-3 text-sm">
+                                  <p>
+                                    Status alterado de{' '}
+                                    {/* ✅ Busca o nome do status 'DE' pelo ID */}
+                                    <b>
+                                      {statusMap.get(change.fromStatus)?.name ??
+                                        `ID: ${change.fromStatus}`}
+                                    </b>{' '}
+                                    para{' '}
+                                    {/* ✅ Busca o nome do status 'PARA' pelo ID */}
+                                    <b>
+                                      {statusMap.get(change.toStatus)?.name ??
+                                        `ID: ${change.toStatus}`}
+                                    </b>
+                                  </p>
+
+                                  {/* ✅ Renderiza a descrição se ela existir */}
+                                  {change.description && (
+                                    <>
+                                      <div className="my-2 border-t" />
+                                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                                        <ReactMarkdown
+                                          remarkPlugins={[remarkGfm]}
+                                        >
+                                          {change.description}
+                                        </ReactMarkdown>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           ))}

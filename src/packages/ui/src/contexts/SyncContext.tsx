@@ -104,6 +104,9 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
         const document: SyncMetadataRxDBDTO = {
           _id: '1',
           _deleted: false,
+          participantRoles: data.participantRoles,
+          estimationTypes: data.estimationTypes,
+          trackStatuses: data.trackStatuses,
           taskStatuses: data.taskStatuses,
           taskPriorities: data.taskPriorities,
           activities: data.activities,
@@ -192,32 +195,39 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
           ? { updatedAt: lastItem.updatedAt.toISOString(), id: lastItem.id! }
           : checkpoint!
 
-        const documents: SyncTaskRxDBDTO[] = data.map((item) => ({
-          _id: item.id,
-          _deleted: false,
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          url: item.url,
-          project: item.projectName ? { name: item.projectName } : undefined,
-          status: item.status,
-          priority: item.priority,
-          author: item.author,
-          assignedTo: item.assignedTo,
-          doneRatio: item.doneRatio,
-          spentHours: item.spentHours,
-          estimatedTime: item.estimatedTime,
-          createdAt: item.createdAt.toISOString(),
-          updatedAt: item.updatedAt.toISOString(),
-          startDate: item.startDate ? item.startDate.toISOString() : undefined,
-          dueDate: item.dueDate ? item.dueDate.toISOString() : undefined,
-          statusChanges: item.statusChanges?.map((change) => ({
-            fromStatus: change.fromStatus,
-            toStatus: change.toStatus,
-            changedBy: change.changedBy,
-            changedAt: change.changedAt.toISOString(),
-          })),
-        }))
+        const documents: SyncTaskRxDBDTO[] = data.map(
+          (item: TaskViewModel) => ({
+            _id: item.id,
+            _deleted: false,
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            url: item.url,
+            projectName: item.projectName,
+            status: item.status,
+            tracker: item.tracker,
+            priority: item.priority,
+            author: item.author,
+            assignedTo: item.assignedTo,
+            doneRatio: item.doneRatio,
+            spentHours: item.spentHours,
+            estimatedTimes: item.estimatedTimes,
+            createdAt: item.createdAt.toISOString(),
+            updatedAt: item.updatedAt.toISOString(),
+            startDate: item.startDate
+              ? item.startDate.toISOString()
+              : undefined,
+            dueDate: item.dueDate ? item.dueDate.toISOString() : undefined,
+            statusChanges: item.statusChanges?.map((change) => ({
+              fromStatus: change.fromStatus,
+              toStatus: change.toStatus,
+              description: change.description,
+              changedBy: change.changedBy,
+              changedAt: change.changedAt.toISOString(),
+            })),
+            participants: item.participants,
+          }),
+        )
 
         return { documents, checkpoint: newCheckpoint }
       },

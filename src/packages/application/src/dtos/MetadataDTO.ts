@@ -2,6 +2,9 @@ export interface MetadataDTO {
   taskStatuses: MetadataItem[]
   taskPriorities: MetadataItem[]
   activities: MetadataItem[]
+  trackStatuses: MetadataItem[]
+  participantRoles: MetadataItem[]
+  estimationTypes: MetadataItem[]
 }
 
 export interface MetadataItem {

@@ -20,24 +20,45 @@ export interface TaskDTO {
     id: string
     name: string
   }
+  tracker?: {
+    id: string
+  }
   createdAt: Date
   updatedAt: Date
   startDate?: Date
   dueDate?: Date
   doneRatio?: number
-  estimatedTime?: {
-    production?: number
-    validation?: number
-    documentation?: number
-    generic?: number
-  }
+  estimatedTimes?: EstimatedTime[]
   spentHours?: number
   statusChanges?: StatusChangeDTO[]
+  participants?: Participants[]
+}
+
+export interface Participants {
+  id: string
+  name: string
+  role: {
+    id: string
+  }
+}
+
+export interface EstimatedTime {
+  id: string
+  name: string
+  activities: {
+    id: string
+    name: string
+  }[]
+  hours: number
 }
 
 export interface StatusChangeDTO {
   fromStatus: string
   toStatus: string
-  changedBy: string
+  description?: string
+  changedBy: {
+    id: string
+    name: string
+  }
   changedAt: Date
 }
