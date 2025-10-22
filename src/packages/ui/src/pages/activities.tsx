@@ -82,7 +82,6 @@ import {
 } from '@/sync/metadata-sync-schema'
 import { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
 
-// --- Mapeamento de Nomes de Ícones para Componentes ---
 const iconMap: { [key: string]: ElementType } = {
   Timer,
   ZapIcon,
@@ -125,8 +124,6 @@ function formatTime(seconds: number): string {
     .padStart(2, '0')
   return `${h}:${m}:${s}`
 }
-
-// --- Componentes Refatorados (sem alterações aqui) ---
 
 function TaskSection({
   title,
@@ -277,8 +274,7 @@ function TaskTableRow({
   )
 }
 
-// --- COMPONENTE PRINCIPAL ---
-export function Tasks() {
+export function Activities() {
   const { db } = useSync()
   const [tasks, setTasks] = useState<SyncTaskRxDBDTO[]>([])
   const [metadata, setMetadata] = useState<SyncMetadataRxDBDTO | null>(null)

@@ -148,7 +148,7 @@ const WEEK_DAYS_CONFIG = [
   { id: 'Dom', label: 'Dom' },
 ]
 
-export function Dashboard() {
+export function Metrics() {
   const { user } = useAuth()
   const { db } = useSync()
 
