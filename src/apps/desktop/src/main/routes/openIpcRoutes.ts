@@ -1,4 +1,4 @@
-import { IServiceProvider } from '@timelapse/container'
+import { IServiceProvider } from '@timelapse/application'
 import RedmineConnector from '@timelapse/redmine-plugin'
 import { app } from 'electron'
 
@@ -26,12 +26,12 @@ export function openIpcRoutes(serviceProvider: IServiceProvider): void {
     return Promise.resolve(app.getVersion())
   })
 
-IpcHandler.register('METADATA_PULL', (event, req) => {
+IpcHandler.register('METADATA_PULL',[ensureAuthenticated, injectConnector], (event, req) => {
     const metadataHandler = serviceProvider.resolve<MetadataHandler>('metadataHandler')
     return metadataHandler.pull(event, req)
   })
 
-  IpcHandler.register('TASKS_PULL', (event, req) => {
+  IpcHandler.register('TASKS_PULL',[ensureAuthenticated, injectConnector], (event, req) => {
     const tasksHandler = serviceProvider.resolve<TasksHandler>('tasksHandler')
     return tasksHandler.pull(event, req)
   })

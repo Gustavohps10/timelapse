@@ -11,16 +11,28 @@ import {
   IConnectDataSourceUseCase,
   ICredentialsStorage,
   IJWTService,
+  ITaskQuery,
+  ITimeEntryQuery,
   IWorkspacesRepository,
 } from '@/contracts'
 import { AuthenticationDTO } from '@/dtos'
 
 export class ConnectDataSourceService implements IConnectDataSourceUseCase {
   constructor(
-    private readonly authenticationStrategy: IAuthenticationStrategy<any>,
     private readonly jwtService: IJWTService,
     private readonly credentialsStorage: ICredentialsStorage,
     private readonly workspacesRepository: IWorkspacesRepository,
+
+    // vem do data source - quero
+    private readonly authenticationStrategy: IAuthenticationStrategy<any>,
+    private readonly taskQuery: ITaskQuery,
+    private readonly timeEntryQuery: ITimeEntryQuery,
+    // outros metodos de data source..
+    //
+
+    //idea nova trabalhar com factory de data source
+    // private readonly serviceProvider: IServiceProvider,
+    // private readonly dataSourceFactory: IDataSourceFactory, // ao inves inves de injetar cada um, injectar uma factory que cria os data sources conforme necessidade
   ) {}
 
   public async execute<

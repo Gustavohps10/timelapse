@@ -1,6 +1,5 @@
+import { IServiceProvider } from '@timelapse/application'
 import { asValue, AwilixContainer } from 'awilix'
-
-import { IServiceProvider } from '@/IServiceProvider'
 
 export class ServiceProvider implements IServiceProvider {
   private scopeCache = new Map<string, IServiceProvider>()

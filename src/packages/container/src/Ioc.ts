@@ -6,6 +6,7 @@ import {
   GetWorkspaceService,
   ICredentialsStorage,
   ImportAddonService,
+  IServiceProvider,
   IWorkspacesQuery,
   IWorkspacesRepository,
   LinkDataSourceService,
@@ -33,7 +34,6 @@ import {
   Resolver,
 } from 'awilix'
 
-import { IServiceProvider } from '@/IServiceProvider'
 import { ServiceProvider } from '@/ServiceProvider'
 
 type Class<T = unknown> = new (...args: any[]) => T
@@ -162,7 +162,14 @@ export class ContainerBuilder {
    * Finaliza a construção e retorna o contêiner configurado.
    */
   public build(): IServiceProvider {
+    const serviceProvider = new ServiceProvider(this.container)
+
+    // registra ele mesmo dentro do container
+    this.container.register({
+      serviceProvider: asValue(serviceProvider),
+    })
+
     console.log('Container principal construído e dependências registradas.')
-    return new ServiceProvider(this.container)
+    return serviceProvider
   }
 }
