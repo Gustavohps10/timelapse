@@ -1,9 +1,9 @@
 import Redmine4Test from '@timelapse/addon-for-tests'
 import {
   ICredentialsStorage,
+  IServiceProvider,
   IWorkspacesRepository,
 } from '@timelapse/application'
-import { IServiceProvider } from '@timelapse/container'
 import { IRequest } from '@timelapse/cross-cutting/transport'
 import { IpcMainInvokeEvent } from 'electron'
 import { existsSync } from 'fs'
