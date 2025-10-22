@@ -1,9 +1,9 @@
 import {
-  Dashboard,
+  Activities,
   Docs,
   Error,
+  Metrics,
   NotFound,
-  Tasks,
   TimeEntries,
   TimerWidget,
   WorkspaceSettings,
@@ -27,10 +27,10 @@ export const router = createHashRouter([
     element: <WorkspaceLayout />,
     errorElement: <Error />,
     children: [
-      { index: true, element: <Dashboard /> },
+      { index: true, element: <Metrics /> },
       { path: 'docs', element: <Docs /> },
       { path: 'time-entries', element: <TimeEntries /> },
-      { path: 'tasks', element: <Tasks /> },
+      { path: 'activities', element: <Activities /> },
       { path: 'settings', element: <WorkspaceSettings /> },
       {
         path: 'widgets',

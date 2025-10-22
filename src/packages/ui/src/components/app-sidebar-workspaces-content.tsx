@@ -1,5 +1,5 @@
 import {
-  ChartLine,
+  ChartColumnBig,
   FileText,
   ListTodoIcon,
   Settings,
@@ -17,9 +17,9 @@ import {
 } from '@/components/ui/sidebar'
 
 const mainItems = [
+  { title: 'Atividades', path: 'activities', icon: ListTodoIcon },
   { title: 'Apontamento', path: 'time-entries', icon: Timer },
-  { title: 'Dashboard', path: '', icon: ChartLine },
-  { title: 'Tarefas', path: 'tasks', icon: ListTodoIcon },
+  { title: 'Métricas', path: '', icon: ChartColumnBig },
   { title: 'Documentação', path: 'docs', icon: FileText },
   { title: 'Configuração', path: 'settings', icon: Settings },
 ]
