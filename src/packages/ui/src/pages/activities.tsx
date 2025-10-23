@@ -75,7 +75,7 @@ import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useSync } from '@/hooks/use-sync'
+import { useSyncStore } from '@/stores/syncStore'
 import {
   SyncMetadataItem,
   SyncMetadataRxDBDTO,
@@ -275,7 +275,7 @@ function TaskTableRow({
 }
 
 export function Activities() {
-  const { db } = useSync()
+  const db = useSyncStore((state) => state?.db)
   const [tasks, setTasks] = useState<SyncTaskRxDBDTO[]>([])
   const [metadata, setMetadata] = useState<SyncMetadataRxDBDTO | null>(null)
   const [newTaskTitle, setNewTaskTitle] = useState('')

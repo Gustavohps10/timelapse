@@ -68,8 +68,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { TimeEntriesContext } from '@/contexts/TimeEntriesContext'
-import { useSync } from '@/hooks/use-sync'
 import { TimeEntry as TimeEntryReducer } from '@/reducers/time-entries/reducer'
+import { useSyncStore } from '@/stores/syncStore'
 import { SyncMetadataItem } from '@/sync/metadata-sync-schema'
 
 const iconMap: { [key: string]: ElementType } = {
@@ -169,6 +169,8 @@ function groupByIssue(data: TimeEntry[]): Row[] {
 }
 
 export function TimeEntries() {
+  const db = useSyncStore((state) => state?.db)
+
   const [manualMinutes, setManualMinutes] = useState(60)
   const [timeEntryType, setTimeEntryType] =
     useState<TimeEntryReducer['type']>('increasing')
@@ -182,7 +184,6 @@ export function TimeEntries() {
     pauseCurrentTimeEntry,
     playCurrentTimeEntry,
   } = useContext(TimeEntriesContext)
-  const { db } = useSync()
   const dateKey = useMemo(() => date?.toISOString().split('T')[0], [date])
   const todayKey = useMemo(
     () => todayDate.toISOString().split('T')[0],

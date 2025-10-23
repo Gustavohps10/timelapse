@@ -1,3 +1,5 @@
+'use client'
+
 import React, {
   createContext,
   ReactNode,
@@ -8,7 +10,7 @@ import React, {
 
 import { User } from '@/contexts/session/User'
 import { useClient } from '@/hooks/use-client'
-import { useSync } from '@/hooks/use-sync'
+import { useSyncActions } from '@/stores/syncStore'
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -34,7 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [user, setUser] = useState<User | null>(null)
-  const { startAllReplications, stopAllReplications } = useSync()
+  const { init, destroy } = useSyncActions()
 
   const login = useCallback(
     async (user: User, token: string) => {
@@ -112,13 +114,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   }, [logout])
 
   useEffect(() => {
-    if (isAuthenticated) {
-      startAllReplications()
+    if (isLoading) {
       return
     }
 
-    stopAllReplications()
-  }, [isAuthenticated, startAllReplications, stopAllReplications])
+    if (isAuthenticated) {
+      init()
+    } else {
+      destroy()
+    }
+  }, [isAuthenticated, isLoading, init, destroy])
 
   return (
     <AuthContext.Provider

@@ -6,77 +6,84 @@ import {
   TimeEntryViewModel,
   ViewModel,
 } from '@timelapse/presentation/view-models'
+import { createContext, ReactNode, useContext, useRef } from 'react'
 import {
-  createContext,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
-import { addRxPlugin, createRxDatabase } from 'rxdb'
+  addRxPlugin,
+  createRxDatabase,
+  RxCollection,
+  RxDatabase,
+  RxError,
+  RxJsonSchema,
+} from 'rxdb'
 import {
   replicateRxCollection,
   RxReplicationState,
 } from 'rxdb/plugins/replication'
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie'
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv'
+import { createStore, type StoreApi, useStore } from 'zustand'
 
 import { useClient } from '@/hooks/use-client'
 import {
   metadataSyncSchema,
   SyncMetadataRxDBDTO,
 } from '@/sync/metadata-sync-schema'
-import {
-  AppCollections,
-  AppDatabase,
-  ReplicationCheckpoint,
-  ReplicationConfig,
-  ReplicationStatus,
-  SyncContextValue,
-} from '@/sync/sync-types'
 import { SyncTaskRxDBDTO, tasksSyncSchema } from '@/sync/tasks-sync-schema'
 import {
   SyncTimeEntryRxDBDTO,
   timeEntriesSyncSchema,
 } from '@/sync/time-entries-sync-schema'
 
-export const SyncContext = createContext<SyncContextValue | undefined>(
-  undefined,
-)
-
-interface SyncProviderProps {
-  children: ReactNode
-  workspaceId: string
+export type ReplicationCheckpoint = {
+  updatedAt: string
+  id: string
 }
 
-export const SyncProvider: React.FC<SyncProviderProps> = ({
-  children,
-  workspaceId,
-}) => {
-  const client = useClient()
-  const dbRef = useRef<AppDatabase | null>(null)
-  const replicationsRef = useRef<Record<string, RxReplicationState<any, any>>>(
-    {},
-  )
-  const reSyncIntervalRef = useRef<NodeJS.Timeout | null>(null)
+export type AppCollections = {
+  timeEntries: RxCollection<SyncTimeEntryRxDBDTO>
+  tasks: RxCollection<SyncTaskRxDBDTO>
+  metadata: RxCollection<SyncMetadataRxDBDTO>
+}
 
-  const [statuses, setStatuses] = useState<Record<string, ReplicationStatus>>(
-    {},
-  )
+export type AppDatabase = RxDatabase<AppCollections>
 
-  const updateStatus = useCallback(
-    (name: keyof AppCollections, newStatus: Partial<ReplicationStatus>) => {
-      setStatuses((prev) => ({
-        ...prev,
-        [name]: {
-          ...prev[name],
-          ...newStatus,
-        },
-      }))
-    },
-    [],
-  )
+export interface ReplicationStatus {
+  isActive: boolean
+  isPulling: boolean
+  isPushing: boolean
+  lastReplication: Date | null
+  error: Error | RxError | null
+}
+
+export interface ReplicationConfig<RxDocType, CheckpointType> {
+  name: keyof AppCollections
+  schema: RxJsonSchema<RxDocType>
+  pull: (
+    checkpoint: CheckpointType | undefined,
+    batchSize: number,
+  ) => Promise<{ documents: RxDocType[]; checkpoint: CheckpointType }>
+  push: (rows: any[]) => Promise<any[]>
+}
+
+export interface SyncState {
+  db: AppDatabase | null
+  statuses: Record<string, ReplicationStatus>
+  isInitialized: boolean
+}
+
+export interface SyncActions {
+  init: () => Promise<void>
+  destroy: () => Promise<void>
+}
+
+export type SyncStore = SyncState & SyncActions
+
+export const createSyncStore = (
+  workspaceId: string,
+  client: any,
+): StoreApi<SyncStore> => {
+  let replications: Record<string, RxReplicationState<any, any>> = {}
+  let reSyncInterval: NodeJS.Timeout | null = null
 
   const replicationConfigs: ReplicationConfig<any, ReplicationCheckpoint>[] = [
     {
@@ -95,12 +102,10 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
               memberId: '',
             },
           })
-
         const data = response.data
         if (!data) {
           return { documents: [], checkpoint: checkpoint! }
         }
-
         const document: SyncMetadataRxDBDTO = {
           _id: '1',
           _deleted: false,
@@ -112,12 +117,10 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
           activities: data.activities,
           syncedAt: new Date().toISOString(),
         }
-
         const newCheckpoint = {
           updatedAt: new Date().toISOString(),
           id: workspaceId,
         }
-
         return { documents: [document], checkpoint: newCheckpoint }
       },
       push: async (rows) => {
@@ -182,7 +185,6 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
               batch: batchSize,
             },
           })
-
         const data = response.data || []
         const lastItem = data.reduce<TaskViewModel | null>(
           (prev, curr) =>
@@ -194,7 +196,6 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
         const newCheckpoint: ReplicationCheckpoint = lastItem
           ? { updatedAt: lastItem.updatedAt.toISOString(), id: lastItem.id! }
           : checkpoint!
-
         const documents: SyncTaskRxDBDTO[] = data.map(
           (item: TaskViewModel) => ({
             _id: item.id,
@@ -228,7 +229,6 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
             participants: item.participants,
           }),
         )
-
         return { documents, checkpoint: newCheckpoint }
       },
       push: async (rows) => {
@@ -237,93 +237,23 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
     },
   ]
 
-  const startAllReplications = useCallback(async () => {
-    if (!dbRef.current || Object.keys(replicationsRef.current).length > 0) {
-      return
-    }
-    console.log('🚀 Starting all replications...')
-    for (const config of replicationConfigs) {
-      const collection = dbRef.current.collections[config.name]
-      const replication = replicateRxCollection<any, ReplicationCheckpoint>({
-        collection,
-        replicationIdentifier: `${config.name}-replication-${workspaceId}`,
-        pull: {
-          batchSize: 100,
-          initialCheckpoint: (() => {
-            const sixtyDaysAgo = new Date()
-            sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
-            return { updatedAt: sixtyDaysAgo.toISOString(), id: '' }
-          })(),
-          async handler(checkpoint, batchSize) {
-            updateStatus(config.name, { isPulling: true })
-            try {
-              const result = await config.pull(checkpoint!, batchSize)
-              console.log(
-                `Pulled ${result.documents.length} documents for ${config.name}`,
-              )
-              updateStatus(config.name, { lastReplication: new Date() })
-              return result
-            } catch (err: any) {
-              console.error(`Pull error for ${config.name}:`, err)
-              updateStatus(config.name, { error: err })
-              return {
-                documents: [],
-                checkpoint: checkpoint || { updatedAt: '', id: '' },
-              }
-            } finally {
-              updateStatus(config.name, { isPulling: false })
-            }
-          },
-        },
-        push: {
-          batchSize: 100,
-          async handler(rows) {
-            updateStatus(config.name, { isPushing: true })
-            try {
-              return await config.push(rows)
-            } catch (err: any) {
-              console.error(`Push error for ${config.name}:`, err)
-              updateStatus(config.name, { error: err })
-              return []
-            } finally {
-              updateStatus(config.name, { isPushing: false })
-            }
-          },
-        },
-        live: true,
-        retryTime: 10000,
-      })
-      replicationsRef.current[config.name] = replication
-      replication.error$.subscribe((err) =>
-        updateStatus(config.name, { error: err }),
-      )
-      replication.active$.subscribe((isActive) =>
-        updateStatus(config.name, { isActive }),
-      )
-    }
+  return createStore<SyncStore>((set, get) => ({
+    db: null,
+    statuses: {},
+    isInitialized: false,
 
-    if (reSyncIntervalRef.current) clearInterval(reSyncIntervalRef.current)
-    reSyncIntervalRef.current = setInterval(() => {
-      console.log('🔄 Triggering periodic re-sync for all replications...')
-      Object.values(replicationsRef.current).forEach((rep) => rep.reSync())
-    }, 30 * 1000)
-  }, [workspaceId, client, updateStatus])
+    destroy: async () => {
+      if (reSyncInterval) clearInterval(reSyncInterval)
+      await Promise.all(Object.values(replications).map((rep) => rep.cancel()))
+      replications = {}
+      const db = get().db
+      if (db) await db.close()
+      set({ db: null, statuses: {}, isInitialized: false })
+    },
 
-  const stopAllReplications = useCallback(() => {
-    if (reSyncIntervalRef.current) {
-      clearInterval(reSyncIntervalRef.current)
-      reSyncIntervalRef.current = null
-    }
-    Object.values(replicationsRef.current).forEach((replication) =>
-      replication.cancel(),
-    )
-    replicationsRef.current = {}
-    setStatuses({})
-    console.log('🛑 All replications stopped.')
-  }, [])
+    init: async () => {
+      if (get().isInitialized) return
 
-  useEffect(() => {
-    const initDatabase = async () => {
       const { RxDBDevModePlugin } = await import('rxdb/plugins/dev-mode')
       const { RxDBQueryBuilderPlugin } = await import(
         'rxdb/plugins/query-builder'
@@ -331,45 +261,137 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({
       addRxPlugin(RxDBDevModePlugin)
       addRxPlugin(RxDBQueryBuilderPlugin)
 
-      const storage = wrappedValidateAjvStorage({
-        storage: getRxStorageDexie(),
-      })
+      const updateStatus = (
+        name: keyof AppCollections,
+        newStatus: Partial<ReplicationStatus>,
+      ) => {
+        set((state) => ({
+          statuses: {
+            ...state.statuses,
+            [name]: { ...state.statuses[name], ...newStatus },
+          },
+        }))
+      }
+
       const db = await createRxDatabase<AppCollections>({
         name: `${workspaceId}-data`,
-        storage,
+        storage: wrappedValidateAjvStorage({ storage: getRxStorageDexie() }),
         ignoreDuplicate: true,
       })
-
-      const collectionsToCreate = replicationConfigs.reduce((acc, config) => {
-        acc[config.name] = { schema: config.schema }
-        return acc
-      }, {} as any)
-
+      const collectionsToCreate = replicationConfigs.reduce(
+        (acc, config) => ({ ...acc, [config.name]: { schema: config.schema } }),
+        {} as { [key in keyof AppCollections]: { schema: RxJsonSchema<any> } },
+      )
       await db.addCollections(collectionsToCreate)
-      dbRef.current = db
-    }
+      set({ db, isInitialized: true })
 
-    initDatabase()
+      for (const config of replicationConfigs) {
+        const replication = replicateRxCollection<any, ReplicationCheckpoint>({
+          collection: db[config.name],
+          replicationIdentifier: `${config.name}-replication-${workspaceId}`,
+          live: true,
+          retryTime: 10000,
+          pull: {
+            batchSize: 100,
+            initialCheckpoint: (() => {
+              const sixtyDaysAgo = new Date()
+              sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
+              return { updatedAt: sixtyDaysAgo.toISOString(), id: '' }
+            })(),
+            async handler(checkpoint, batchSize) {
+              updateStatus(config.name, { isPulling: true })
+              try {
+                const result = await config.pull(checkpoint, batchSize)
+                updateStatus(config.name, {
+                  lastReplication: new Date(),
+                  error: null,
+                })
+                return result
+              } catch (err: any) {
+                updateStatus(config.name, { error: err })
+                return {
+                  documents: [],
+                  checkpoint: checkpoint || { updatedAt: '', id: '' },
+                }
+              } finally {
+                updateStatus(config.name, { isPulling: false })
+              }
+            },
+          },
+          push: {
+            batchSize: 100,
+            async handler(rows) {
+              updateStatus(config.name, { isPushing: true })
+              try {
+                return await config.push(rows)
+              } catch (err: any) {
+                updateStatus(config.name, { error: err })
+                return []
+              } finally {
+                updateStatus(config.name, { isPushing: false })
+              }
+            },
+          },
+        })
 
-    return () => {
-      stopAllReplications()
-      if (dbRef.current) {
-        dbRef.current.close()
-        dbRef.current = null
+        replications[config.name] = replication
+        replication.error$.subscribe((err) =>
+          updateStatus(config.name, { error: err }),
+        )
+        replication.active$.subscribe((isActive) =>
+          updateStatus(config.name, { isActive }),
+        )
       }
-    }
-  }, [workspaceId, stopAllReplications])
+
+      if (reSyncInterval) clearInterval(reSyncInterval)
+      reSyncInterval = setInterval(() => {
+        Object.values(replications).forEach((rep) => rep.reSync())
+      }, 30 * 1000)
+    },
+  }))
+}
+
+const SyncStoreContext = createContext<StoreApi<SyncStore> | undefined>(
+  undefined,
+)
+
+interface SyncProviderProps {
+  children: ReactNode
+  workspaceId: string
+}
+
+export const SyncProvider: React.FC<SyncProviderProps> = ({
+  children,
+  workspaceId,
+}) => {
+  const client = useClient()
+  const storeRef = useRef<StoreApi<SyncStore> | null>(null)
+
+  if (!storeRef.current) {
+    storeRef.current = createSyncStore(workspaceId, client)
+  }
 
   return (
-    <SyncContext.Provider
-      value={{
-        db: dbRef.current,
-        statuses,
-        startAllReplications,
-        stopAllReplications,
-      }}
-    >
+    <SyncStoreContext.Provider value={storeRef.current}>
       {children}
-    </SyncContext.Provider>
+    </SyncStoreContext.Provider>
   )
+}
+
+export const useSyncStore = <T,>(
+  selector: (store: SyncStore) => T,
+): T | undefined => {
+  const storeApi = useContext(SyncStoreContext)
+  if (!storeApi) {
+    return undefined
+  }
+  return useStore(storeApi, selector)
+}
+
+export const useSyncActions = () => {
+  const storeApi = useContext(SyncStoreContext)
+  if (!storeApi) {
+    throw new Error('useSyncActions must be used within a SyncProvider')
+  }
+  return storeApi.getState()
 }
