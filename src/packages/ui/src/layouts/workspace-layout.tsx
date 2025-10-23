@@ -9,7 +9,8 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { AuthProvider, SyncProvider } from '@/providers'
+import { AuthProvider } from '@/providers'
+import { SyncProvider } from '@/stores/syncStore'
 
 export function WorkspaceLayout() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
@@ -22,7 +23,7 @@ export function WorkspaceLayout() {
           content={<AppSidebarWorkspacesContent />}
           footer={<AppSidebarWorkspacesFooter />}
         />
-        <main className="h-[100vh] flex-1 overflow-hidden">
+        <main className="relative h-[100vh] flex-1 overflow-hidden">
           <Header />
           <ScrollArea className="h-full">
             <section className="p-4">

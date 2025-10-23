@@ -68,7 +68,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useAuth } from '@/hooks/use-auth'
-import { useSync } from '@/hooks/use-sync'
+import { useSyncStore } from '@/stores/syncStore'
 
 interface TimelineChartData {
   date: string
@@ -150,7 +150,7 @@ const WEEK_DAYS_CONFIG = [
 
 export function Metrics() {
   const { user } = useAuth()
-  const { db } = useSync()
+  const db = useSyncStore((state) => state?.db)
 
   const [date, setDate] = useState<DateRange | undefined>(() => {
     const today = new Date()

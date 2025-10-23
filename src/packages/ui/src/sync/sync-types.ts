@@ -1,4 +1,5 @@
 // src/sync/sync-types.ts
+
 import { RxCollection, RxDatabase, RxError, RxJsonSchema } from 'rxdb'
 
 import { SyncMetadataRxDBDTO } from '@/sync/metadata-sync-schema'
@@ -6,46 +7,62 @@ import { SyncMetadataRxDBDTO } from '@/sync/metadata-sync-schema'
 import { SyncTaskRxDBDTO } from './tasks-sync-schema'
 import { SyncTimeEntryRxDBDTO } from './time-entries-sync-schema'
 
-// Um tipo de checkpoint padronizado
+// TIPOS DE BANCO DE DADOS (sem alteração)
 export type ReplicationCheckpoint = {
   updatedAt: string
   id: string
 }
 
-// Mapeia os nomes das coleções para seus tipos
 export type AppCollections = {
   timeEntries: RxCollection<SyncTimeEntryRxDBDTO>
   tasks: RxCollection<SyncTaskRxDBDTO>
   metadata: RxCollection<SyncMetadataRxDBDTO>
-  // Adicione futuras coleções aqui
 }
 
 export type AppDatabase = RxDatabase<AppCollections>
 
-// Status de replicação para uma única entidade
+// CONFIGURAÇÃO DE REPLICAÇÃO APRIMORADA ✨
+// Agora com opções específicas por coleção
+export interface ReplicationConfig<RxDocType> {
+  name: keyof AppCollections
+  schema: RxJsonSchema<RxDocType>
+
+  // Configurações opcionais da replicação
+  live?: boolean // Padrão: true
+  retryTime?: number // Padrão: 10000ms
+  batchSize?: number // Padrão: 100
+  initialCheckpointFactory?: () => ReplicationCheckpoint
+
+  // Handlers de pull e push (sem alteração na assinatura)
+  pull: (
+    checkpoint: ReplicationCheckpoint | null,
+    batchSize: number,
+  ) => Promise<{ documents: RxDocType[]; checkpoint: ReplicationCheckpoint }>
+  push: (rows: any[]) => Promise<any[]>
+}
+
+// TIPOS PARA O STORE ZUSTAND 🧠
+// O estado reativo que os componentes vão consumir
+export interface SyncState {
+  db: AppDatabase | null
+  statuses: Record<string, ReplicationStatus>
+  isInitialized: boolean
+}
+
+// As ações (funções) para interagir com o store
+export interface SyncActions {
+  init: () => Promise<void>
+  destroy: () => Promise<void>
+}
+
+// O tipo completo do nosso store
+export type SyncStore = SyncState & SyncActions
+
+// Status de replicação (sem alteração)
 export interface ReplicationStatus {
   isActive: boolean
   isPulling: boolean
   isPushing: boolean
   lastReplication: Date | null
   error: Error | RxError | null
-}
-
-// Configuração para uma entidade sincronizável
-export interface ReplicationConfig<RxDocType, CheckpointType> {
-  name: keyof AppCollections
-  schema: RxJsonSchema<RxDocType>
-  pull: (
-    checkpoint: CheckpointType | null,
-    batchSize: number,
-  ) => Promise<{ documents: RxDocType[]; checkpoint: CheckpointType }>
-  push: (rows: any[]) => Promise<any[]>
-}
-
-// O valor que o nosso Context irá prover
-export interface SyncContextValue {
-  db: AppDatabase | null
-  statuses: Record<string, ReplicationStatus>
-  startAllReplications: () => Promise<void>
-  stopAllReplications: () => void
 }
