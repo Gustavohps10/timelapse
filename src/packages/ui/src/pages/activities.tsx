@@ -1,5 +1,6 @@
 'use client'
 
+// --- TANSTACK/REACT-QUERY IMPORTS ---
 // --- DND-KIT IMPORTS ---
 import {
   closestCorners,
@@ -18,6 +19,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 // --- DATE-FNS IMPORTS ---
 import { format, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -30,7 +32,6 @@ import {
   CalendarCheck,
   CheckCircle,
   CheckCircle2,
-  ChevronDown,
   CircleX,
   ClipboardCheck,
   Code,
@@ -43,12 +44,9 @@ import {
   GripVertical,
   Handshake,
   HelpCircle,
-  History,
   KanbanSquare,
   LifeBuoy,
-  List,
   Loader2,
-  MoreHorizontal,
   Palette,
   PauseCircle,
   PlusIcon,
@@ -61,13 +59,7 @@ import {
   ZapIcon,
 } from 'lucide-react'
 // --- REACT HOOKS ---
-import React, {
-  ElementType,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import React, { ElementType, useCallback, useMemo, useState } from 'react'
 // --- MARKDOWN & SYNTAX HIGHLIGHTING ---
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
@@ -81,11 +73,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -96,16 +83,11 @@ import {
 } from '@/components/ui/dialog'
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Tooltip,
@@ -122,7 +104,10 @@ import {
 } from '@/sync/metadata-sync-schema'
 import { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
 
-// --- ICON MAPPING ---
+// ============================================================================
+// --- TIPAGENS E CONSTANTES ---
+// ============================================================================
+
 const iconMap: { [key: string]: ElementType } = {
   Timer,
   ZapIcon,
@@ -152,7 +137,10 @@ const iconMap: { [key: string]: ElementType } = {
   Activity,
 }
 
+// ============================================================================
 // --- HELPER FUNCTIONS ---
+// ============================================================================
+
 function formatTime(seconds: number): string {
   if (!seconds || seconds === 0) return '00:00:00'
   const h = Math.floor(seconds / 3600)
@@ -168,7 +156,7 @@ function formatTime(seconds: number): string {
 }
 
 // ============================================================================
-// --- BOARD VIEW COMPONENTS (DND IMPLEMENTATION) ---
+// --- COMPONENTES DO BOARD (DND) ---
 // ============================================================================
 
 const TaskCard = React.memo(function TaskCard({
@@ -178,7 +166,7 @@ const TaskCard = React.memo(function TaskCard({
 }: {
   task: SyncTaskRxDBDTO
   priorityMap: Map<string, SyncMetadataItem>
-  onTaskClick: (type: 'details' | 'history', task: SyncTaskRxDBDTO) => void
+  onTaskClick: (task: SyncTaskRxDBDTO) => void
 }) {
   const {
     attributes,
@@ -189,11 +177,7 @@ const TaskCard = React.memo(function TaskCard({
     isDragging,
   } = useSortable({ id: task._id, data: { type: 'Task', task } })
 
-  const style = {
-    transition,
-    transform: CSS.Transform.toString(transform),
-  }
-
+  const style = { transition, transform: CSS.Transform.toString(transform) }
   const priorityInfo = priorityMap.get(task.priority?.id || '')
   const PriorityIcon = priorityInfo ? iconMap[priorityInfo.icon] : Flag
 
@@ -202,7 +186,7 @@ const TaskCard = React.memo(function TaskCard({
       <div
         ref={setNodeRef}
         style={style}
-        className="border-primary bg-primary/10 h-[140px] w-[300px] shrink-0 rounded-lg border-2 border-dashed"
+        className="border-primary bg-primary/10 h-[140px] w-full rounded-lg border-2 border-dashed"
       />
     )
   }
@@ -211,11 +195,11 @@ const TaskCard = React.memo(function TaskCard({
     <Card
       ref={setNodeRef}
       style={style}
-      className="group relative h-[140px] w-[300px] shrink-0 cursor-grab active:cursor-grabbing"
-      onClick={() => onTaskClick('details', task)}
+      className="group relative w-full shrink-0 cursor-grab active:cursor-grabbing"
+      onClick={() => onTaskClick(task)}
     >
       <CardHeader className="flex flex-row items-start justify-between space-y-0 p-4">
-        <div className="space-y-1">
+        <div className="w-full space-y-1 overflow-hidden">
           {task.url && (
             <a
               href={task.url}
@@ -234,10 +218,10 @@ const TaskCard = React.memo(function TaskCard({
         <div
           {...attributes}
           {...listeners}
-          className="text-muted-foreground/50 hover:bg-accent rounded p-1 group-hover:opacity-100 sm:opacity-0"
+          className="text-muted-foreground/50 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
           aria-label="Mover tarefa"
         >
-          <GripVertical className="h-5 w-5" />
+          <GripVertical className="h-5 w-5 shrink-0" />
         </div>
       </CardHeader>
       <CardContent className="flex items-center justify-between p-4 pt-0">
@@ -281,24 +265,68 @@ const TaskCard = React.memo(function TaskCard({
   )
 })
 
-function BoardView({
+const BoardColumn = React.memo(function BoardColumn({
+  status,
   tasks,
-  groupedTasks,
   priorityMap,
   onTaskClick,
-  statusMap,
 }: {
+  status: SyncMetadataItem
   tasks: SyncTaskRxDBDTO[]
-  groupedTasks: {
-    pending: SyncTaskRxDBDTO[]
-    inProgress: SyncTaskRxDBDTO[]
-    completed: SyncTaskRxDBDTO[]
-  }
   priorityMap: Map<string, SyncMetadataItem>
-  onTaskClick: (type: 'details' | 'history', task: SyncTaskRxDBDTO) => void
-  statusMap: Map<string, SyncMetadataItem>
+  onTaskClick: (task: SyncTaskRxDBDTO) => void
 }) {
+  const taskIds = useMemo(() => tasks.map((task) => task._id), [tasks])
+
+  return (
+    <div className="bg-muted/50 flex h-full w-[320px] shrink-0 flex-col rounded-md">
+      <div className="flex items-center justify-between border-b p-3">
+        <h3 className="font-semibold">{status.name}</h3>
+        <Badge variant="secondary">{tasks.length}</Badge>
+      </div>
+      <ScrollArea className="flex-1">
+        <SortableContext id={status.id} items={taskIds}>
+          <div className="flex flex-col gap-2 p-2">
+            {tasks.length > 0 ? (
+              tasks.map((task) => (
+                <TaskCard
+                  key={task._id}
+                  task={task}
+                  priorityMap={priorityMap}
+                  onTaskClick={onTaskClick}
+                />
+              ))
+            ) : (
+              <div className="flex h-32 items-center justify-center rounded-md border-2 border-dashed">
+                <p className="text-muted-foreground text-sm">
+                  Solte tarefas aqui
+                </p>
+              </div>
+            )}
+          </div>
+        </SortableContext>
+      </ScrollArea>
+    </div>
+  )
+})
+
+// ============================================================================
+// --- COMPONENTE PRINCIPAL ---
+// ============================================================================
+
+export function Activities() {
   const db = useSyncStore((state) => state.db)
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
+
+  const [searchTerm, setSearchTerm] = useState('')
+  const [newTaskTitle, setNewTaskTitle] = useState('')
+  const [newTaskId, setNewTaskId] = useState('')
+  const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false)
+  const [modalState, setModalState] = useState<{
+    type: 'details' | 'history'
+    task: SyncTaskRxDBDTO | null
+  }>({ type: 'details', task: null })
   const [activeTask, setActiveTask] = useState<SyncTaskRxDBDTO | null>(null)
 
   const sensors = useSensors(
@@ -308,418 +336,95 @@ function BoardView({
     }),
   )
 
-  const inProgressTaskIds = useMemo(
-    () => groupedTasks.inProgress.map((t) => t._id),
-    [groupedTasks.inProgress],
-  )
-  const pendingTaskIds = useMemo(
-    () => groupedTasks.pending.map((t) => t._id),
-    [groupedTasks.pending],
-  )
-  const completedTaskIds = useMemo(
-    () => groupedTasks.completed.map((t) => t._id),
-    [groupedTasks.completed],
-  )
-
-  const handleDragStart = (event: DragStartEvent) => {
-    if (event.active.data.current?.type === 'Task') {
-      setActiveTask(event.active.data.current.task)
-    }
-  }
-
-  const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
-      setActiveTask(null)
-      const { active, over } = event
-
-      if (!over || !active || active.id === over.id) return
-
-      const activeTask = tasks.find((t) => t._id === active.id)
-      if (!activeTask) return
-
-      const overContainerId =
-        over.data.current?.sortable?.containerId ?? over.id
-
-      let newStatusId: string | null = null
-
-      const findStatusByIcon = (icon: string) =>
-        Array.from(statusMap.values()).find((s) => s.icon === icon)
-      const findFirstPendingStatus = () => {
-        const completedIds = new Set(
-          Array.from(statusMap.values())
-            .filter((s) =>
-              ['CheckCircle2', 'CircleX', 'ArchiveX'].includes(s.icon),
-            )
-            .map((s) => s.id),
-        )
-        const inProgressId = findStatusByIcon('ZapIcon')?.id
-        return Array.from(statusMap.values()).find(
-          (s) => s.id !== inProgressId && !completedIds.has(s.id),
-        )
-      }
-
-      if (overContainerId === 'inProgressLane') {
-        newStatusId = findStatusByIcon('ZapIcon')?.id || null
-      } else if (overContainerId === 'Pendentes') {
-        newStatusId = findFirstPendingStatus()?.id || null
-      } else if (overContainerId === 'Concluídas') {
-        newStatusId = findStatusByIcon('CheckCircle2')?.id || null
-      }
-
-      if (newStatusId && newStatusId !== activeTask.status.id) {
-        const newStatus = statusMap.get(newStatusId)
-        if (db?.tasks && newStatus) {
-          await db.tasks.findOne(activeTask._id).update({
-            $set: {
-              status: { id: newStatus.id, name: newStatus.name },
-              updatedAt: new Date().toISOString(),
-            },
-          })
-        }
-      }
+  const { data: metadata } = useQuery({
+    queryKey: ['metadata'],
+    queryFn: async () => {
+      if (!db?.metadata) return null
+      const metaDoc = await db.metadata.findOne().exec()
+      return metaDoc ? (metaDoc.toJSON() as SyncMetadataRxDBDTO) : null
     },
-    [tasks, db, statusMap],
-  )
+    enabled: !!db,
+    staleTime: 1000 * 60 * 5,
+  })
 
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="p-4">
-        <h2 className="mb-2 text-lg font-semibold">Em Andamento</h2>
-        <ScrollArea className="w-full rounded-md border p-4 whitespace-nowrap">
-          {/* ✅ CADA SEÇÃO AGORA É UM SORTABLE CONTEXT INDEPENDENTE */}
-          <SortableContext id="inProgressLane" items={inProgressTaskIds}>
-            <div className="flex w-max space-x-4">
-              {groupedTasks.inProgress.map((task) => (
-                <TaskCard
-                  key={task._id}
-                  task={task}
-                  priorityMap={priorityMap}
-                  onTaskClick={onTaskClick}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </ScrollArea>
-      </div>
-
-      <div className="space-y-4 p-4">
-        <Collapsible defaultOpen className="space-y-2">
-          <CollapsibleTrigger className="flex w-full flex-1 items-center gap-2 p-2 text-sm font-semibold">
-            <ChevronDown className="h-4 w-4 transition-transform data-[state=closed]:-rotate-90" />
-            <span>Pendentes</span>
-            <Badge variant="secondary">{groupedTasks.pending.length}</Badge>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <SortableContext id="Pendentes" items={pendingTaskIds}>
-              <div className="grid grid-cols-1 gap-4 p-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {groupedTasks.pending.map((task) => (
-                  <TaskCard
-                    key={task._id}
-                    task={task}
-                    priorityMap={priorityMap}
-                    onTaskClick={onTaskClick}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </CollapsibleContent>
-        </Collapsible>
-        <Collapsible defaultOpen className="space-y-2">
-          <CollapsibleTrigger className="flex w-full flex-1 items-center gap-2 p-2 text-sm font-semibold">
-            <ChevronDown className="h-4 w-4 transition-transform data-[state=closed]:-rotate-90" />
-            <span>Concluídas</span>
-            <Badge variant="secondary">{groupedTasks.completed.length}</Badge>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <SortableContext id="Concluídas" items={completedTaskIds}>
-              <div className="grid grid-cols-1 gap-4 p-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {groupedTasks.completed.map((task) => (
-                  <TaskCard
-                    key={task._id}
-                    task={task}
-                    priorityMap={priorityMap}
-                    onTaskClick={onTaskClick}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
-
-      {/* ✅✅✅ OVERLAY LEVE PARA MÁXIMA PERFORMANCE ✅✅✅ */}
-      <DragOverlay>
-        {activeTask ? (
-          <Card className="border-primary h-[140px] w-[300px] shrink-0 border-2 opacity-75">
-            <CardHeader>
-              <p
-                className="line-clamp-2 text-sm font-semibold"
-                title={activeTask.title}
-              >
-                {activeTask.title}
-              </p>
-            </CardHeader>
-          </Card>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
-  )
-}
-
-// ============================================================================
-// --- LIST VIEW & MAIN COMPONENT (INTACTOS) ---
-// ============================================================================
-function TaskSection({
-  title,
-  tasks,
-  onTaskClick,
-  statusMap,
-  priorityMap,
-}: {
-  title: string
-  tasks: SyncTaskRxDBDTO[]
-  onTaskClick: (type: 'details' | 'history', task: SyncTaskRxDBDTO) => void
-  statusMap: Map<string, SyncMetadataItem>
-  priorityMap: Map<string, SyncMetadataItem>
-}) {
-  const [isOpen, setIsOpen] = useState(true)
-  if (tasks.length === 0) return null
-  return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-2">
-      <div className="flex items-center justify-between">
-        <CollapsibleTrigger className="flex flex-1 items-center gap-2 p-2 text-sm font-semibold">
-          <ChevronDown
-            className={`h-4 w-4 transition-transform ${isOpen ? '' : '-rotate-90'}`}
-          />
-          <span>{title}</span>
-          <Badge variant="secondary">{tasks.length}</Badge>
-        </CollapsibleTrigger>
-      </div>
-      <CollapsibleContent className="rounded-md border">
-        <Table>
-          <TableBody>
-            {tasks.map((task) => (
-              <TaskTableRow
-                key={task._id}
-                task={task}
-                onTaskClick={onTaskClick}
-                statusMap={statusMap}
-                priorityMap={priorityMap}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </CollapsibleContent>
-    </Collapsible>
-  )
-}
-function TaskTableRow({
-  task,
-  onTaskClick,
-  statusMap,
-  priorityMap,
-}: {
-  task: SyncTaskRxDBDTO
-  onTaskClick: (type: 'details' | 'history', task: SyncTaskRxDBDTO) => void
-  statusMap: Map<string, SyncMetadataItem>
-  priorityMap: Map<string, SyncMetadataItem>
-}) {
-  const statusInfo = statusMap.get(task.status.id)
-  const priorityInfo = priorityMap.get(task.priority?.id || '')
-  const StatusIcon = statusInfo ? iconMap[statusInfo.icon] : Timer
-  const PriorityIcon = priorityInfo ? iconMap[priorityInfo.icon] : Flag
-
-  return (
-    <TableRow
-      onClick={() => onTaskClick('details', task)}
-      className="cursor-pointer"
-    >
-      <TableCell className="w-[100px] py-2">
-        {task.url ? (
-          <a
-            href={task.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 font-mono text-xs font-medium text-zinc-600 brightness-95 filter hover:underline dark:text-zinc-400 dark:brightness-105"
-          >
-            #{task.id} <ExternalLink className="h-3 w-3" />
-          </a>
-        ) : (
-          <span className="font-mono text-xs font-medium">#{task.id}</span>
-        )}
-      </TableCell>
-      <TableCell
-        className="max-w-xs truncate py-2 font-medium"
-        title={task.title}
-      >
-        {task.title}
-      </TableCell>
-      <TableCell className="w-[150px] py-2">
-        {statusInfo ? (
-          <Badge className={statusInfo.colors.badge}>
-            <StatusIcon className={`mr-2 h-3 w-3 ${statusInfo.colors.text}`} />
-            {task.status.name}
-          </Badge>
-        ) : (
-          <Badge variant="outline">{task.status.name}</Badge>
-        )}
-      </TableCell>
-      <TableCell className="w-[120px] py-2">
-        <div className="flex items-center gap-2">
-          {priorityInfo && (
-            <PriorityIcon className={`h-4 w-4 ${priorityInfo.colors.text}`} />
-          )}
-          <span>{task.priority?.name ?? 'Não definida'}</span>
-        </div>
-      </TableCell>
-      <TableCell className="w-[180px] py-2 font-mono text-sm">
-        {formatTime((task.spentHours ?? 0) * 3600)}
-      </TableCell>
-      <TableCell
-        className="w-[64px] py-2 text-right"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              aria-label="Abrir menu"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-            <DropdownMenuItem onSelect={() => onTaskClick('details', task)}>
-              <FileText className="mr-2 h-4 w-4" />
-              <span>Ver Detalhes</span>
-            </DropdownMenuItem>
-            {task.url && (
-              <DropdownMenuItem asChild>
-                <a
-                  href={task.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex cursor-pointer items-center"
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" /> Ver no Redmine
-                </a>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => onTaskClick('history', task)}>
-              <History className="mr-2 h-4 w-4" /> Ver Histórico
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </TableCell>
-    </TableRow>
-  )
-}
-export function Activities() {
-  const db = useSyncStore((state) => state?.db)
-  const { user } = useAuth()
-
-  const [tasks, setTasks] = useState<SyncTaskRxDBDTO[]>([])
-  const [metadata, setMetadata] = useState<SyncMetadataRxDBDTO | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [newTaskTitle, setNewTaskTitle] = useState('')
-  const [newTaskId, setNewTaskId] = useState('')
-  const [modalState, setModalState] = useState<{
-    isOpen: boolean
-    type: 'details' | 'history' | null
-    task: SyncTaskRxDBDTO | null
-  }>({ isOpen: false, type: null, task: null })
-  const [fullTaskDetails, setFullTaskDetails] = useState<
-    SyncTaskRxDBDTO | undefined
-  >(undefined)
-  const [isModalLoading, setIsModalLoading] = useState(false)
-
-  const openModal = useCallback(
-    async (type: 'details' | 'history', task: SyncTaskRxDBDTO) => {
-      if (!db?.tasks) return
-      setModalState({ isOpen: true, type, task })
-      setIsModalLoading(true)
-      setFullTaskDetails(undefined)
-      try {
-        const fullDoc = await db.tasks.findOne(task._id).exec()
-        if (fullDoc) {
-          setFullTaskDetails(fullDoc.toJSON() as SyncTaskRxDBDTO)
-        }
-      } catch (error) {
-        console.error('Falha ao buscar detalhes da tarefa:', error)
-      } finally {
-        setIsModalLoading(false)
-      }
+  const { data: tasks = [], isLoading: areTasksLoading } = useQuery({
+    queryKey: ['tasks', user?.id],
+    queryFn: async () => {
+      if (!db?.tasks || !user?.id) return []
+      const tasksFromDb = await db.tasks
+        .find({
+          selector: {
+            $or: [
+              { participants: { $elemMatch: { id: user.id.toString() } } },
+              { 'assignedTo.id': user.id.toString() },
+            ],
+          },
+          sort: [{ updatedAt: 'desc' }],
+        })
+        .exec()
+      return tasksFromDb.map((doc) => doc.toJSON()) as SyncTaskRxDBDTO[]
     },
-    [db],
-  )
+    enabled: !!db && !!user?.id,
+  })
 
-  const closeModal = useCallback(() => {
-    setModalState({ isOpen: false, type: null, task: null })
-    setFullTaskDetails(undefined)
-  }, [])
+  const { data: fullTaskDetails, isLoading: isModalLoading } = useQuery({
+    queryKey: ['task-details', modalState.task?._id],
+    queryFn: async () => {
+      if (!db?.tasks || !modalState.task?._id) return null
+      const fullDoc = await db.tasks.findOne(modalState.task._id).exec()
+      return fullDoc ? (fullDoc.toJSON() as SyncTaskRxDBDTO) : null
+    },
+    enabled: !!modalState.task,
+  })
 
-  useEffect(() => {
-    if (!db) return
-    const metaSub = db.metadata.findOne().$.subscribe((metaDoc) => {
-      if (metaDoc) setMetadata(metaDoc.toJSON() as SyncMetadataRxDBDTO)
-    })
-    return () => metaSub.unsubscribe()
-  }, [db])
+  const addTaskMutation = useMutation({
+    mutationFn: async (newTask: SyncTaskRxDBDTO) => {
+      if (!db?.tasks) throw new Error('DB não disponível.')
+      return db.tasks.insert(newTask)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', user?.id] })
+      setNewTaskTitle('')
+      setNewTaskId('')
+      setIsNewTaskDialogOpen(false)
+    },
+    onError: (error) => console.error('Erro ao adicionar tarefa:', error),
+  })
 
-  useEffect(() => {
-    if (!db || !user?.id) {
-      setTasks([])
-      return
-    }
-    const tasksSub = db.tasks
-      .find({
-        selector: {
-          $or: [
-            { participants: { $elemMatch: { id: user.id.toString() } } },
-            { 'assignedTo.id': user.id.toString() },
-          ],
-        },
-        sort: [{ updatedAt: 'desc' }],
+  const updateTaskStatusMutation = useMutation({
+    mutationFn: async ({
+      taskId,
+      newStatus,
+    }: {
+      taskId: string
+      newStatus: { id: string; name: string }
+    }) => {
+      if (!db?.tasks) throw new Error('DB não está pronto.')
+      return db.tasks.findOne(taskId).update({
+        $set: { status: newStatus, updatedAt: new Date().toISOString() },
       })
-      .$.subscribe((tasksFromDb) => {
-        const tasksData = tasksFromDb.map((doc) =>
-          doc.toJSON(),
-        ) as SyncTaskRxDBDTO[]
-        setTasks(tasksData)
-      })
-    return () => tasksSub.unsubscribe()
-  }, [db, user?.id])
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['tasks', user?.id] }),
+    onError: (error) =>
+      console.error('Falha ao atualizar o status da tarefa:', error),
+  })
 
-  const { statusMap, priorityMap, estimationTypeMap } = useMemo(() => {
+  const { statusMap, priorityMap, taskStatuses } = useMemo(() => {
     if (!metadata)
-      return {
-        statusMap: new Map(),
-        priorityMap: new Map(),
-        estimationTypeMap: new Map(),
-      }
+      return { statusMap: new Map(), priorityMap: new Map(), taskStatuses: [] }
     return {
       statusMap: new Map(metadata.taskStatuses.map((item) => [item.id, item])),
       priorityMap: new Map(
         metadata.taskPriorities.map((item) => [item.id, item]),
       ),
-      estimationTypeMap: new Map(
-        metadata.estimationTypes.map((item) => [item.id, item]),
-      ),
+      taskStatuses: metadata.taskStatuses || [],
     }
   }, [metadata])
 
   const filteredTasks = useMemo(
     () =>
-      searchTerm.length > 0
+      searchTerm
         ? tasks.filter(
             (task) =>
               task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -729,36 +434,15 @@ export function Activities() {
     [tasks, searchTerm],
   )
 
-  const groupedTasks = useMemo(() => {
-    const groups: { [key: string]: SyncTaskRxDBDTO[] } = {
-      pending: [],
-      inProgress: [],
-      completed: [],
-    }
-    const inProgressStatus = Array.from(statusMap.values()).find(
-      (s) => s.icon === 'ZapIcon',
-    )
-    const completedStatuses = new Set(
-      Array.from(statusMap.values())
-        .filter((s) => ['CheckCircle2', 'CircleX', 'ArchiveX'].includes(s.icon))
-        .map((s) => s.id),
-    )
-
-    for (const task of filteredTasks) {
-      if (task.status.id === inProgressStatus?.id) {
-        groups.inProgress.push(task)
-      } else if (completedStatuses.has(task.status.id)) {
-        groups.completed.push(task)
-      } else {
-        groups.pending.push(task)
-      }
-    }
-    return groups as {
-      pending: SyncTaskRxDBDTO[]
-      inProgress: SyncTaskRxDBDTO[]
-      completed: SyncTaskRxDBDTO[]
-    }
-  }, [filteredTasks, statusMap])
+  const groupedTasksByStatus = useMemo(() => {
+    const grouped = new Map<string, SyncTaskRxDBDTO[]>()
+    taskStatuses.forEach((status) => grouped.set(status.id, []))
+    filteredTasks.forEach((task) => {
+      const taskList = grouped.get(task.status.id)
+      if (taskList) taskList.push(task)
+    })
+    return grouped
+  }, [filteredTasks, taskStatuses])
 
   const autoCompleteItems = useMemo(
     () =>
@@ -769,16 +453,27 @@ export function Activities() {
     [filteredTasks],
   )
 
-  const handleAddTask = async (e: React.FormEvent) => {
+  const handleOpenModal = useCallback((task: SyncTaskRxDBDTO) => {
+    setModalState({ type: 'details', task })
+  }, [])
+  const handleCloseModal = () => setModalState({ type: 'details', task: null })
+
+  const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!db?.tasks || !newTaskTitle.trim() || !newTaskId.trim() || !user) return
-    const newTask: SyncTaskRxDBDTO = {
+    if (!newTaskTitle.trim() || !newTaskId.trim() || !user) return
+
+    const firstStatus = taskStatuses[0]
+    const newStatus = firstStatus
+      ? { id: firstStatus.id, name: firstStatus.name }
+      : { id: '1', name: 'Nova' }
+
+    const newTask: Omit<SyncTaskRxDBDTO, '_rev'> = {
       _id: crypto.randomUUID(),
       _deleted: false,
       id: newTaskId.trim(),
       url: '',
       title: newTaskTitle.trim(),
-      status: { id: '1', name: 'Nova' },
+      status: newStatus,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       author: { id: user.id.toString(), name: user.firstname },
@@ -786,14 +481,39 @@ export function Activities() {
         { id: user.id.toString(), name: user.firstname, role: { id: '1' } },
       ],
     }
-    try {
-      await db.tasks.insert(newTask)
-      setNewTaskTitle('')
-      setNewTaskId('')
-    } catch (error) {
-      console.error('Erro ao adicionar tarefa:', error)
-    }
+    addTaskMutation.mutate(newTask as SyncTaskRxDBDTO)
   }
+
+  const handleDragStart = (event: DragStartEvent) => {
+    if (event.active.data.current?.type === 'Task')
+      setActiveTask(event.active.data.current.task)
+  }
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      setActiveTask(null)
+      const { active, over } = event
+      if (!over || !active) return
+
+      const taskToMove = tasks.find((t) => t._id === active.id)
+      if (!taskToMove || active.id === over.id) return
+
+      const overContainerId =
+        over.data.current?.sortable?.containerId ?? over.id.toString()
+      const newStatusId = overContainerId
+
+      if (newStatusId && newStatusId !== taskToMove.status.id) {
+        const newStatus = statusMap.get(newStatusId)
+        if (newStatus) {
+          updateTaskStatusMutation.mutate({
+            taskId: taskToMove._id,
+            newStatus: { id: newStatus.id, name: newStatus.name },
+          })
+        }
+      }
+    },
+    [tasks, statusMap, updateTaskStatusMutation],
+  )
 
   if (!metadata) {
     return (
@@ -805,10 +525,13 @@ export function Activities() {
   }
 
   return (
-    <div className="bg-background flex h-screen flex-col p-4 pt-2">
-      <div className="flex items-center justify-between pb-4">
+    <div className="bg-background flex h-screen flex-col overflow-hidden p-4 pt-2">
+      <header className="flex items-center justify-between pb-4">
         <h1 className="text-2xl font-bold tracking-tight">Minhas Tarefas</h1>
-        <Dialog>
+        <Dialog
+          open={isNewTaskDialogOpen}
+          onOpenChange={setIsNewTaskDialogOpen}
+        >
           <DialogTrigger asChild>
             <Button>
               <PlusIcon className="mr-2 h-4 w-4" /> Nova Tarefa
@@ -851,12 +574,17 @@ export function Activities() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">Salvar</Button>
+                <Button type="submit" disabled={addTaskMutation.isPending}>
+                  {addTaskMutation.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}{' '}
+                  Salvar
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </header>
 
       <Tabs
         defaultValue="board"
@@ -866,9 +594,6 @@ export function Activities() {
           <TabsList>
             <TabsTrigger value="board">
               <KanbanSquare className="mr-2 h-4 w-4" /> Quadro
-            </TabsTrigger>
-            <TabsTrigger value="list">
-              <List className="mr-2 h-4 w-4" /> Lista
             </TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2 p-1">
@@ -892,46 +617,58 @@ export function Activities() {
             </DropdownMenu>
           </div>
         </div>
-        <TabsContent value="board" className="flex-1 overflow-auto">
-          <BoardView
-            tasks={filteredTasks}
-            groupedTasks={groupedTasks}
-            priorityMap={priorityMap}
-            onTaskClick={openModal}
-            statusMap={statusMap}
-          />
-        </TabsContent>
-        <TabsContent value="list" className="flex-1 overflow-auto">
-          <div className="space-y-4 p-4">
-            <TaskSection
-              title="Pendentes"
-              tasks={groupedTasks.pending}
-              onTaskClick={openModal}
-              statusMap={statusMap}
-              priorityMap={priorityMap}
-            />
-            <TaskSection
-              title="Em Andamento"
-              tasks={groupedTasks.inProgress}
-              onTaskClick={openModal}
-              statusMap={statusMap}
-              priorityMap={priorityMap}
-            />
-            <TaskSection
-              title="Concluídas"
-              tasks={groupedTasks.completed}
-              onTaskClick={openModal}
-              statusMap={statusMap}
-              priorityMap={priorityMap}
-            />
-          </div>
+
+        <TabsContent value="board" className="flex min-h-0 flex-1 flex-col">
+          {areTasksLoading ? (
+            <div className="flex flex-1 items-center justify-center p-4">
+              <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+              <p className="text-muted-foreground ml-2">
+                Carregando tarefas...
+              </p>
+            </div>
+          ) : (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <ScrollArea className="w-full flex-1 whitespace-nowrap">
+                <div className="flex h-full w-max space-x-4 p-4">
+                  {taskStatuses.map((status) => (
+                    <BoardColumn
+                      key={status.id}
+                      status={status}
+                      tasks={groupedTasksByStatus.get(status.id) || []}
+                      priorityMap={priorityMap}
+                      onTaskClick={handleOpenModal}
+                    />
+                  ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+              <DragOverlay>
+                {activeTask ? (
+                  <div className="w-[304px]">
+                    <TaskCard
+                      task={activeTask}
+                      priorityMap={priorityMap}
+                      onTaskClick={() => {}}
+                    />
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
+          )}
         </TabsContent>
       </Tabs>
-      <div className="text-muted-foreground flex w-full items-center justify-between border-t pt-2 text-xs">
+      <footer className="text-muted-foreground flex w-full items-center justify-between border-t pt-2 text-xs">
         <span>Total de {filteredTasks.length} tarefa(s)</span>
-      </div>
-      <Dialog open={modalState.isOpen} onOpenChange={closeModal}>
-        <DialogContent className="sm:max-w-6xl">
+      </footer>
+
+      {/* MODAL DE DETALHES/HISTÓRICO */}
+      <Dialog open={!!modalState.task} onOpenChange={handleCloseModal}>
+        <DialogContent className="max-h-[90vh] sm:max-w-5xl">
           <DialogHeader>
             <DialogTitle>
               {modalState.task
@@ -940,18 +677,18 @@ export function Activities() {
             </DialogTitle>
           </DialogHeader>
           {isModalLoading ? (
-            <div className="flex h-[65vh] items-center justify-center">
+            <div className="flex h-[60vh] items-center justify-center">
               <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
             </div>
           ) : (
             fullTaskDetails && (
-              <Tabs defaultValue={modalState.type ?? 'details'}>
+              <Tabs defaultValue={modalState.type} className="flex flex-col">
                 <TabsList>
                   <TabsTrigger value="details">Detalhes</TabsTrigger>
                   <TabsTrigger value="history">Histórico</TabsTrigger>
                 </TabsList>
-                <TabsContent value="details">
-                  <ScrollArea className="h-[65vh] rounded-md border">
+                <ScrollArea className="max-h-[65vh]">
+                  <TabsContent value="details" className="mt-4">
                     <div className="prose prose-sm dark:prose-invert max-w-none p-4">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
@@ -989,43 +726,9 @@ export function Activities() {
                         {fullTaskDetails.description ||
                           'Nenhuma descrição fornecida.'}
                       </ReactMarkdown>
-                      {(fullTaskDetails.estimatedTimes?.length ?? 0) > 0 && (
-                        <>
-                          <hr />
-                          <h4 className="not-prose font-semibold">
-                            Tempos Estimados
-                          </h4>
-                          <ul className="not-prose list-none p-0">
-                            {fullTaskDetails.estimatedTimes?.map((est) => {
-                              const estType = estimationTypeMap.get(est.id)
-                              const Icon = estType
-                                ? iconMap[estType.icon] || Timer
-                                : Timer
-                              return (
-                                <li
-                                  key={est.id}
-                                  className="bg-muted/50 mb-2 flex items-center justify-between rounded-md border p-2 text-sm"
-                                >
-                                  <span className="flex items-center gap-2 font-medium">
-                                    <Icon
-                                      className={`h-4 w-4 ${estType?.colors.text ?? 'text-muted-foreground'}`}
-                                    />
-                                    {estType?.name ?? est.name}
-                                  </span>
-                                  <span className="font-mono text-sm font-medium">
-                                    {formatTime(est.hours * 3600)}
-                                  </span>
-                                </li>
-                              )
-                            })}
-                          </ul>
-                        </>
-                      )}
                     </div>
-                  </ScrollArea>
-                </TabsContent>
-                <TabsContent value="history">
-                  <ScrollArea className="h-[65vh]">
+                  </TabsContent>
+                  <TabsContent value="history" className="mt-4">
                     <div className="p-4">
                       {(fullTaskDetails.statusChanges?.length ?? 0) > 0 ? (
                         <div className="relative space-y-6">
@@ -1094,8 +797,8 @@ export function Activities() {
                         </p>
                       )}
                     </div>
-                  </ScrollArea>
-                </TabsContent>
+                  </TabsContent>
+                </ScrollArea>
               </Tabs>
             )
           )}
