@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
+import { AddonInstaller, AddonManifest } from '@timelapse/application'
 import { Download, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { AddonInstaller, AddonManifest } from '@/client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
