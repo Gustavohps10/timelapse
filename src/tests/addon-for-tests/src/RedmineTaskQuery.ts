@@ -184,6 +184,55 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
         }
       }
 
+      const estimatedTimes = [
+        {
+          id: '1',
+          name: 'Produção',
+          activities: [
+            { id: '8', name: 'Design' },
+            { id: '9', name: 'Desenvolvimento' },
+            { id: '10', name: 'Analise' },
+            { id: '11', name: 'Planejamento' },
+            { id: '14', name: 'Revisão Código' },
+            { id: '16', name: 'Correção' },
+          ],
+          hours:
+            Number(
+              (fullIssue.custom_fields as any[]).find((c) => c.id === 57)
+                ?.value,
+            ) || 0,
+        },
+        {
+          id: '2',
+          name: 'Validação',
+          activities: [
+            { id: '13', name: 'Teste' },
+            { id: '19', name: 'Homologação' },
+          ],
+          hours:
+            Number(
+              (fullIssue.custom_fields as any[]).find((c) => c.id === 58)
+                ?.value,
+            ) || 0,
+        },
+        {
+          id: '3',
+          name: 'Documentação',
+          activities: [{ id: '25', name: 'Documentação' }],
+          hours:
+            Number(
+              (fullIssue.custom_fields as any[]).find((c) => c.id === 59)
+                ?.value,
+            ) || 0,
+        },
+        {
+          id: '4',
+          name: 'Genérico / Outras',
+          activities: [],
+          hours: Number(fullIssue.estimated_hours) || 0,
+        },
+      ].filter((item) => item.hours > 0)
+
       const task: TaskDTO = {
         id: fullIssue.id.toString(),
         url: `${this.context?.config?.apiUrl}/issues/${fullIssue.id}`,
@@ -225,54 +274,7 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
         dueDate: fullIssue.due_date ? new Date(fullIssue.due_date) : undefined,
         doneRatio: fullIssue.done_ratio,
         spentHours: fullIssue.spent_hours,
-        estimatedTimes: [
-          {
-            id: '1', // Produção
-            name: 'Tempo de Produção',
-            activities: [
-              { id: '8', name: 'Design' },
-              { id: '9', name: 'Desenvolvimento' },
-              { id: '10', name: 'Analise' },
-              { id: '11', name: 'Planejamento' },
-              { id: '14', name: 'Revisão Código' },
-              { id: '16', name: 'Correção' },
-            ],
-            hours:
-              Number(
-                (fullIssue.custom_fields as any[]).find((c) => c.id === 57)
-                  ?.value,
-              ) || 0,
-          },
-          {
-            id: '2', // Validação
-            name: 'Tempo de Validação',
-            activities: [
-              { id: '13', name: 'Teste' },
-              { id: '19', name: 'Homologação' },
-            ],
-            hours:
-              Number(
-                (fullIssue.custom_fields as any[]).find((c) => c.id === 58)
-                  ?.value,
-              ) || 0,
-          },
-          {
-            id: '3', // Documentação
-            name: 'Tempo de Documentação',
-            activities: [{ id: '25', name: 'Documentação' }],
-            hours:
-              Number(
-                (fullIssue.custom_fields as any[]).find((c) => c.id === 59)
-                  ?.value,
-              ) || 0,
-          },
-          {
-            id: '4', // Genérico / Outras
-            name: 'Tempo Genérico / Outras',
-            activities: [],
-            hours: Number(fullIssue.estimated_hours) || 0,
-          },
-        ],
+        estimatedTimes: estimatedTimes,
         statusChanges: statusChanges.length > 0 ? statusChanges : undefined,
         participants: participants.length > 0 ? participants : undefined,
       }

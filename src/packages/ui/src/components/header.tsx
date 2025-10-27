@@ -35,7 +35,7 @@ export function Header() {
   const replicationNames = statuses ? Object.keys(statuses) : []
 
   return (
-    <header className="absolute top-0 left-0 z-50 mt-2 flex w-full justify-center bg-transparent p-2">
+    <header className="absolute top-0 left-0 z-50 mt-2 flex w-full justify-center border-t-1 bg-transparent p-2">
       <div className="border-border bg-background/60 flex items-center justify-between gap-2 rounded-md border px-2 py-1 shadow-md backdrop-blur-md">
         <img
           src={logoAtak}
