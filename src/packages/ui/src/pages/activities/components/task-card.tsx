@@ -125,7 +125,7 @@ export const TaskCard = memo(function TaskCard({
   return (
     <Card
       style={style}
-      className="group relative w-full cursor-pointer border border-zinc-200 transition-shadow duration-200 hover:shadow-md dark:border-zinc-700 dark:hover:shadow-lg"
+      className="group relative w-full cursor-pointer rounded-md border border-zinc-200 transition-shadow duration-200 hover:shadow-md dark:border-zinc-700 dark:hover:shadow-lg"
       onClick={() => onTaskClick?.(task)}
     >
       <CardHeader className="flex flex-row items-start justify-between p-2">

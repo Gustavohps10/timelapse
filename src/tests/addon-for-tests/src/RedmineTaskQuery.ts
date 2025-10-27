@@ -27,7 +27,12 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
       while (keepFetching) {
         try {
           const response = await client.get('issues.json', {
-            params: { ...queryParams, limit: limitPerRequest, offset },
+            params: {
+              ...queryParams,
+              status_id: '*',
+              limit: limitPerRequest,
+              offset,
+            },
           })
 
           const receivedIssues = response.data.issues
@@ -48,7 +53,7 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
       return allIssuesForFilter
     }
 
-    const customFieldIds = [8, 9, 16, 24] // Teste, Revisao, Tarefa, Analise
+    const customFieldIds = [8, 9, 16, 24] // Responsaveis Teste, Revisao, Tarefa, Analise
     const baseSearchParams = {
       updated_on: `>=${checkpointDate}`,
       sort: 'updated_on:asc,id:asc',
@@ -90,9 +95,10 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
     ])
 
     for (const issue of sortedUniqueIssues) {
-      const { issue: fullIssue } = await client
-        .get(`issues/${issue.id}.json`, { params: { include: 'journals' } })
-        .then((r) => r.data)
+      const fullIssue = issue
+      // const { issue: fullIssue } = await client
+      //   .get(`issues/${issue.id}.json`, { params: { include: 'journals' } }) // Tentativa de resolver N+1
+      //   .then((r) => r.data)
 
       if (
         fullIssue.updated_on === checkpointDate &&
