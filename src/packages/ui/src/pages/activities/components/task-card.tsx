@@ -335,7 +335,7 @@ export const TaskCard = memo(function TaskCard({
                   <Button
                     size="icon"
                     variant="secondary"
-                    className="h-6 w-6 p-3.5"
+                    className="h-6 w-6 p-3.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
                   >
                     <LucideIcons.PlayIcon className="h-3.5 w-3.5" />
                   </Button>
