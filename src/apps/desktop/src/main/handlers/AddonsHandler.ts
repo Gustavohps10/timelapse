@@ -24,15 +24,21 @@ export class AddonsHandler {
       this.addonsFacade.listInstalled(),
     ])
 
-    if (availableResult.isFailure()) {
-      return []
-    }
+    /*
+     *
+     * REFATORAR POIS LOGICA ESTA ERRADA
+     *
+     *
+     */
+    // if (availableResult.isFailure()) {
+    //   return []
+    // }
 
     const installedIds: string[] = installedResult.isSuccess()
       ? installedResult.success.map((i) => i.id)
       : []
 
-    return availableResult.success.map((a) => ({
+    return installedResult.success.map((a) => ({
       id: a.id,
       version: a.version,
       name: a.name,
