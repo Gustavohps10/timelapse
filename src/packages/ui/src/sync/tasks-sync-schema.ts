@@ -1,5 +1,7 @@
 import { RxJsonSchema } from 'rxdb'
 
+import { SyncTimeEntryRxDBDTO } from '@/sync/time-entries-sync-schema'
+
 export interface SyncParticipantsRxDBDTO {
   id: string
   name: string
@@ -63,18 +65,20 @@ export interface SyncTaskRxDBDTO {
     changedAt: string
   }[]
   participants?: SyncParticipantsRxDBDTO[]
-
   conflicted?: boolean
   conflictData?: { server?: any; local?: any }
   validationError?: any
   syncedAt?: string
   assumedMasterState?: any
+
+  timeEntryIds: string[]
+  timeEntries?: SyncTimeEntryRxDBDTO[]
 }
 
 export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
   title: 'tasks schema',
   version: 0,
-  description: 'Tasks with sync metadata',
+  description: 'Tasks with sync metadata and time entry relation',
   type: 'object',
   primaryKey: '_id',
   properties: {
@@ -85,7 +89,6 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
     description: { type: 'string' },
     url: { type: 'string' },
     projectName: { type: 'string' },
-
     status: {
       type: 'object',
       properties: {
@@ -204,6 +207,15 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
     validationError: { type: 'object' },
     syncedAt: { type: 'string', format: 'date-time' },
     assumedMasterState: { type: 'object' },
+    timeEntryIds: {
+      type: 'array',
+      default: [],
+      items: { type: 'string' },
+    },
+    timeEntries: {
+      type: 'array',
+      items: { type: 'object' },
+    },
   },
   required: ['_id', 'id', 'title', 'status', 'createdAt', 'updatedAt'],
 }

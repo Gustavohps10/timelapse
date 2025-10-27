@@ -1,10 +1,13 @@
 import { RxJsonSchema } from 'rxdb'
 
+import { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
+
 export interface SyncTimeEntryRxDBDTO {
   _id: string
   _deleted: boolean
   id?: string
   task: { id: string }
+  taskData?: SyncTaskRxDBDTO
   activity: { id: string; name?: string }
   user: { id: string; name?: string }
   startDate?: string
@@ -23,7 +26,7 @@ export interface SyncTimeEntryRxDBDTO {
 export const timeEntriesSyncSchema: RxJsonSchema<SyncTimeEntryRxDBDTO> = {
   title: 'timeEntries schema',
   version: 0,
-  description: 'Time entries with sync metadata',
+  description: 'Time entries with sync metadata and task relation',
   type: 'object',
   primaryKey: '_id',
   properties: {
@@ -33,6 +36,9 @@ export const timeEntriesSyncSchema: RxJsonSchema<SyncTimeEntryRxDBDTO> = {
       type: 'object',
       properties: { id: { type: 'string' } },
       required: ['id'],
+    },
+    taskData: {
+      type: 'object',
     },
     activity: {
       type: 'object',
@@ -50,7 +56,6 @@ export const timeEntriesSyncSchema: RxJsonSchema<SyncTimeEntryRxDBDTO> = {
     comments: { type: 'string' },
     createdAt: { type: 'string', format: 'date-time' },
     updatedAt: { type: 'string', format: 'date-time' },
-
     _deleted: { type: 'boolean' },
     conflicted: { type: 'boolean' },
     conflictData: {
