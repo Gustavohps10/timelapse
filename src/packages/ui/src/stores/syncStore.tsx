@@ -23,6 +23,7 @@ import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie'
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv'
 import { createStore, type StoreApi, useStore } from 'zustand'
 
+import { useWorkspace } from '@/hooks'
 import { useClient } from '@/hooks/use-client'
 import {
   metadataSyncSchema,
@@ -357,19 +358,18 @@ const SyncStoreContext = createContext<StoreApi<SyncStore> | undefined>(
 
 interface SyncProviderProps {
   children: ReactNode
-  workspaceId: string
 }
 
-export const SyncProvider: React.FC<SyncProviderProps> = ({
-  children,
-  workspaceId,
-}) => {
+export const SyncProvider: React.FC<SyncProviderProps> = ({ children }) => {
+  const { workspace } = useWorkspace()
   const client = useClient()
-  const storeRef = useRef<StoreApi<SyncStore> | null>(null)
+  const storeRef = useRef<StoreApi<SyncStore> | undefined>(undefined)
 
-  if (!storeRef.current) {
-    storeRef.current = createSyncStore(workspaceId, client)
+  if (workspace && !storeRef.current) {
+    storeRef.current = createSyncStore(workspace.id, client)
   }
+
+  if (!storeRef.current) return <>{children}</>
 
   return (
     <SyncStoreContext.Provider value={storeRef.current}>
@@ -382,16 +382,12 @@ export const useSyncStore = <T,>(
   selector: (store: SyncStore) => T,
 ): T | undefined => {
   const storeApi = useContext(SyncStoreContext)
-  if (!storeApi) {
-    return undefined
-  }
+  if (!storeApi) return undefined
   return useStore(storeApi, selector)
 }
 
 export const useSyncActions = () => {
   const storeApi = useContext(SyncStoreContext)
-  if (!storeApi) {
-    throw new Error('useSyncActions must be used within a SyncProvider')
-  }
+  if (!storeApi) return {} as SyncStore
   return storeApi.getState()
 }

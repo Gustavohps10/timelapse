@@ -16,9 +16,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useWorkspace } from '@/hooks'
 import { useSyncStore } from '@/stores/syncStore'
 
 export function Header() {
+  const { workspace } = useWorkspace()
   const statuses = useSyncStore((s) => s?.statuses)
   const dbName = useSyncStore((s) => s?.db?.name)
   const isInitialized = useSyncStore((s) => s?.isInitialized)
@@ -44,10 +46,10 @@ export function Header() {
         />
         <div className="flex flex-col">
           <span className="text-uppercase text-sm font-semibold tracking-tight">
-            Atak Sistemas
+            {workspace?.name}
           </span>
           <span className="text-muted-foreground font-mono text-xs">
-            ws-123-123-123-123-123
+            {workspace?.id}
           </span>
         </div>
 
