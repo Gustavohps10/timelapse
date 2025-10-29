@@ -8,7 +8,8 @@ import React, {
   useState,
 } from 'react'
 
-import { User } from '@/contexts/session/User'
+import { User } from '@/@types/session/User'
+import { useWorkspace } from '@/hooks'
 import { useClient } from '@/hooks/use-client'
 import { useSyncActions } from '@/stores/syncStore'
 
@@ -25,13 +26,10 @@ export interface AuthContextType {
 
 interface AuthProviderProps {
   children: ReactNode
-  workspaceId: string
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({
-  children,
-  workspaceId,
-}) => {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const { workspace, isLoading: workspaceIsLoading } = useWorkspace()
   const client = useClient()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
@@ -40,8 +38,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
   const login = useCallback(
     async (user: User, token: string) => {
+      if (!workspace?.id) return
       await client.modules.tokenStorage.saveToken({
-        body: { service: 'timelapse', account: `jwt-${workspaceId}`, token },
+        body: { service: 'timelapse', account: `jwt-${workspace.id}`, token },
       })
       client.modules.headers.setDefaultHeaders({
         authorization: `Bearer ${token}`,
@@ -49,7 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       setIsAuthenticated(true)
       setUser(user)
     },
-    [client, workspaceId],
+    [client, workspace?.id],
   )
 
   const changeAvatar = useCallback((avatarUrl: string) => {
@@ -59,18 +58,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   }, [])
 
   const logout = useCallback(async () => {
+    if (!workspace?.id) return
     await client.modules.tokenStorage.deleteToken({
-      body: { service: 'timelapse', account: `jwt-${workspaceId}` },
+      body: { service: 'timelapse', account: `jwt-${workspace.id}` },
     })
     setIsAuthenticated(false)
     setUser(null)
-  }, [client, workspaceId])
+  }, [client, workspace?.id])
 
   useEffect(() => {
+    if (!workspace?.id) return
+
     const autoLogin = async () => {
       try {
         const res = await client.modules.tokenStorage.getToken({
-          body: { service: 'timelapse', account: `jwt-${workspaceId}` },
+          body: { service: 'timelapse', account: `jwt-${workspace.id}` },
         })
 
         if (!res.isSuccess || !res.data) {
@@ -84,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         })
 
         const response = await client.services.session.getCurrentUser({
-          body: { workspaceId },
+          body: { workspaceId: workspace.id },
         })
 
         if (response.isSuccess && response.data) {
@@ -103,7 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     }
 
     autoLogin()
-  }, [workspaceId, client])
+  }, [workspace?.id, client])
 
   useEffect(() => {
     const handleForceLogout = () => logout()
@@ -114,20 +116,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   }, [logout])
 
   useEffect(() => {
-    if (isLoading) {
-      return
-    }
+    if (isLoading || workspaceIsLoading) return
 
     if (isAuthenticated) {
       init()
     } else {
       destroy()
     }
-  }, [isAuthenticated, isLoading, init, destroy])
+  }, [isAuthenticated, isLoading, workspaceIsLoading, init, destroy])
 
   return (
     <AuthContext.Provider
-      value={{ isLoading, isAuthenticated, user, login, logout, changeAvatar }}
+      value={{
+        isLoading: isLoading || workspaceIsLoading,
+        isAuthenticated,
+        user,
+        login,
+        logout,
+        changeAvatar,
+      }}
     >
       {children}
     </AuthContext.Provider>
