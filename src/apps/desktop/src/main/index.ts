@@ -6,6 +6,9 @@ import {
 } from '@timelapse/infra/data'
 import { KeytarTokenStorage } from '@timelapse/infra/storage'
 import { app, BrowserWindow, Menu, screen, shell, Tray } from 'electron'
+import installExtension, {
+  REACT_DEVELOPER_TOOLS,
+} from 'electron-devtools-installer'
 import { join } from 'path'
 
 import {
@@ -19,8 +22,6 @@ import { AddonsHandler } from '@/main/handlers/AddonsHandler'
 import { MetadataHandler } from '@/main/handlers/MetadataHandler'
 import { WorkspacesHandler } from '@/main/handlers/WorkspacesHandler'
 import { openIpcRoutes } from '@/main/routes/openIpcRoutes'
-
-import timerIcon from './assets/timer-icon.png'
 
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
@@ -52,6 +53,7 @@ const createWindow = () => {
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    mainWindow.webContents.openDevTools()
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
@@ -73,7 +75,7 @@ const createSecondaryWindow = () => {
     width: 400,
     height: 420,
     show: false,
-    frame: false,
+    frame: true,
     transparent: true,
     skipTaskbar: true,
     alwaysOnTop: true,
@@ -98,15 +100,19 @@ const createSecondaryWindow = () => {
     secondaryWindow = null
   })
 
-  is.dev && process.env['ELECTRON_RENDERER_URL']
-    ? secondaryWindow.loadURL(
-        `${process.env['ELECTRON_RENDERER_URL']}/widgets/timer`,
-      )
-    : secondaryWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    secondaryWindow.loadURL(
+      `${process.env['ELECTRON_RENDERER_URL']}/widgets/timer`,
+    )
+    // Opcional: abrir o DevTools para a janela secundária
+    // secondaryWindow.webContents.openDevTools({ mode: 'detach' });
+  } else {
+    secondaryWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
 }
 
 const createTray = () => {
-  tray = new Tray(join(__dirname, timerIcon))
+  tray = new Tray(join(__dirname, './assets/timer-icon.png'))
 
   const buildContextMenu = () =>
     Menu.buildFromTemplate([
@@ -152,7 +158,6 @@ app.whenReady().then(async () => {
     .addPlatformDependencies(platformDeps)
     .addInfrastructure()
     .addApplicationServices()
-    // .addFromPath('out/main/handlers')
     .addScoped<IHandlersScope>({
       connectionHandler: ConnectionHandler,
       sessionHandler: SessionHandler,
@@ -170,6 +175,19 @@ app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.electron')
 
   app.on('browser-window-created', (_, w) => optimizer.watchWindowShortcuts(w))
+
+  if (is.dev) {
+    try {
+      const name = await installExtension(REACT_DEVELOPER_TOOLS, {
+        loadExtensionOptions: { allowFileAccess: true },
+        // Se o problema persistir, descomente a linha abaixo para forçar o download
+        // forceDownload: true,
+      })
+      console.log(`✅ Extensão instalada com sucesso: ${name}`)
+    } catch (err) {
+      console.error('❌ Erro ao instalar a extensão React DevTools:', err)
+    }
+  }
 
   createWindow()
   createTray()
