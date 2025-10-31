@@ -1,5 +1,6 @@
 'use client'
 
+import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import {
   AlertCircle,
   Bookmark,
@@ -10,7 +11,7 @@ import {
   GripVertical,
 } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
-import React, { memo, useMemo, useState } from 'react'
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -35,7 +36,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useAuth } from '@/hooks'
-import { timeMask } from '@/pages/time-entries'
 import type { SyncMetadataRxDBDTO } from '@/sync/metadata-sync-schema'
 import type { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
 
@@ -84,19 +84,38 @@ export const TaskCard = memo(function TaskCard({
   task,
   metadata,
   onTaskClick,
-  dragHandleProps,
-  style,
+  index,
+  columnId,
 }: {
   task: SyncTaskRxDBDTO
   metadata: SyncMetadataRxDBDTO
   onTaskClick?: (task: SyncTaskRxDBDTO) => void
-  dragHandleProps?: React.HTMLAttributes<HTMLDivElement> | null
-  style?: React.CSSProperties
+  index: number
+  columnId: string
 }) {
   const { user } = useAuth()
   const [timeEntryType, setTimeEntryType] = useState<
     'increasing' | 'decreasing'
   >('increasing')
+
+  const cardRef = useRef<HTMLDivElement>(null)
+  const handleRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = cardRef.current
+    const handle = handleRef.current
+    if (!el || !handle) return
+
+    return draggable({
+      element: el,
+      dragHandle: handle,
+      getInitialData: () => ({
+        taskId: task.id,
+        index,
+        columnId,
+      }),
+    })
+  }, [task.id, index, columnId])
 
   const statusMeta = useMemo(
     () => metadata.taskStatuses.find((s) => s.id === task.status?.id),
@@ -162,21 +181,19 @@ export const TaskCard = memo(function TaskCard({
 
   return (
     <Card
-      style={style}
+      ref={cardRef}
       className="group relative w-full cursor-pointer rounded-md border border-zinc-200 transition-shadow duration-200 hover:shadow-md dark:border-zinc-700 dark:hover:shadow-lg"
       onClick={() => onTaskClick?.(task)}
     >
       <CardHeader className="flex flex-row items-start justify-between p-2">
         <div className="flex items-start gap-1">
-          {dragHandleProps && (
-            <div
-              {...dragHandleProps}
-              onClick={(e) => e.stopPropagation()}
-              className="cursor-grab text-zinc-500 select-none hover:text-zinc-700 dark:hover:text-zinc-300"
-            >
-              <GripVertical className="h-4 w-4" />
-            </div>
-          )}
+          <div
+            ref={handleRef}
+            onClick={(e) => e.stopPropagation()}
+            className="cursor-grab text-zinc-500 select-none hover:text-zinc-700 dark:hover:text-zinc-300"
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
 
           {statusMeta && (
             <div className="mb-1 flex w-full justify-end">
@@ -327,7 +344,7 @@ export const TaskCard = memo(function TaskCard({
 
                   <Input
                     defaultValue="00:00:00"
-                    maskOptions={timeMask}
+                    // maskOptions={timeMask}
                     style={{ fontSize: 14 }}
                     className="w-20 px-2 py-1 text-center font-mono text-sm tracking-tight"
                   />
