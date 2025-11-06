@@ -53,7 +53,7 @@ const createWindow = () => {
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-    mainWindow.webContents.openDevTools()
+    // mainWindow.webContents.openDevTools()
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
@@ -180,7 +180,6 @@ app.whenReady().then(async () => {
     try {
       const name = await installExtension(REACT_DEVELOPER_TOOLS, {
         loadExtensionOptions: { allowFileAccess: true },
-        // Se o problema persistir, descomente a linha abaixo para forçar o download
         // forceDownload: true,
       })
       console.log(`✅ Extensão instalada com sucesso: ${name}`)

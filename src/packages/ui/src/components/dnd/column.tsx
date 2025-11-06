@@ -10,7 +10,7 @@ import { preserveOffsetOnSource } from '@atlaskit/pragmatic-drag-and-drop/elemen
 import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview'
 import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element'
 import { unsafeOverflowAutoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/unsafe-overflow/element'
-import { Copy, Ellipsis, Plus } from 'lucide-react'
+import { Ellipsis } from 'lucide-react'
 import { memo, useContext, useEffect, useRef, useState } from 'react'
 import invariant from 'tiny-invariant'
 
@@ -48,7 +48,7 @@ type TColumnState =
 
 const stateStyles: { [Key in TColumnState['type']]: string } = {
   idle: 'cursor-grab',
-  'is-card-over': 'outline outline-2 outline-neutral-50',
+  'is-card-over': 'outline outline-2 outline-primary',
   'is-dragging': 'opacity-40',
   'is-column-over': 'bg-slate-900',
 }
@@ -61,8 +61,8 @@ const idle = { type: 'idle' } satisfies TColumnState
  * Created so that state changes to the column don't require all cards to be rendered
  */
 const CardList = memo(function CardList({ column }: { column: TColumn }) {
-  return column.cards.map((card) => (
-    <Card key={card.id} card={card} columnId={column.id} />
+  return column.cards.map((card, index) => (
+    <Card key={index} card={card} columnId={column.id} />
   ))
 })
 
@@ -242,7 +242,7 @@ export function Column({ column }: { column: TColumn }) {
       ref={outerFullHeightRef}
     >
       <div
-        className={`flex max-h-full flex-col rounded-lg bg-slate-800 text-neutral-50 ${stateStyles[state.type]}`}
+        className={`flex max-h-full flex-col rounded-lg bg-zinc-100 text-neutral-50 dark:bg-zinc-900 ${stateStyles[state.type]}`}
         ref={innerRef}
         {...{ [blockBoardPanningAttr]: true }}
       >
@@ -254,7 +254,9 @@ export function Column({ column }: { column: TColumn }) {
             className="flex flex-row items-center justify-between p-3 pb-2"
             ref={headerRef}
           >
-            <div className="pl-2 leading-4 font-bold">{column.title}</div>
+            <div className="text-foreground pl-2 leading-4 font-bold">
+              {column.title}
+            </div>
             <button
               type="button"
               className="rounded p-2 hover:bg-slate-700 active:bg-slate-600"
@@ -273,22 +275,6 @@ export function Column({ column }: { column: TColumn }) {
                 <CardShadow dragging={state.dragging} />
               </div>
             ) : null}
-          </div>
-          <div className="flex flex-row gap-2 p-3">
-            <button
-              type="button"
-              className="flex flex-grow flex-row gap-1 rounded p-2 hover:bg-slate-700 active:bg-slate-600"
-            >
-              <Plus size={16} />
-              <div className="leading-4">Add a card</div>
-            </button>
-            <button
-              type="button"
-              className="rounded p-2 hover:bg-slate-700 active:bg-slate-600"
-              aria-label="Create card from template"
-            >
-              <Copy size={16} />
-            </button>
           </div>
         </div>
       </div>

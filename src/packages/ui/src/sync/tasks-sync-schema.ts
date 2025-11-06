@@ -5,18 +5,13 @@ import { SyncTimeEntryRxDBDTO } from '@/sync/time-entries-sync-schema'
 export interface SyncParticipantsRxDBDTO {
   id: string
   name: string
-  role: {
-    id: string
-  }
+  role: { id: string }
 }
 
 export interface SyncEstimatedTimeRxDBDTO {
   id: string
   name: string
-  activities: {
-    id: string
-    name: string
-  }[]
+  activities: { id: string; name: string }[]
   hours: number
 }
 
@@ -28,25 +23,11 @@ export interface SyncTaskRxDBDTO {
   description?: string
   url?: string
   projectName?: string
-  status: {
-    id: string
-    name: string
-  }
-  tracker?: {
-    id: string
-  }
-  priority?: {
-    id: string
-    name: string
-  }
-  author?: {
-    id: string
-    name: string
-  }
-  assignedTo?: {
-    id: string
-    name: string
-  }
+  status: { id: string; name: string }
+  tracker?: { id: string }
+  priority?: { id: string; name: string }
+  author?: { id: string; name: string }
+  assignedTo?: { id: string; name: string }
   createdAt: string
   updatedAt: string
   startDate?: string
@@ -58,10 +39,7 @@ export interface SyncTaskRxDBDTO {
     fromStatus: string
     toStatus: string
     description?: string
-    changedBy: {
-      id: string
-      name: string
-    }
+    changedBy: { id: string; name: string }
     changedAt: string
   }[]
   participants?: SyncParticipantsRxDBDTO[]
@@ -70,7 +48,6 @@ export interface SyncTaskRxDBDTO {
   validationError?: any
   syncedAt?: string
   assumedMasterState?: any
-
   timeEntryIds: string[]
   timeEntries?: SyncTimeEntryRxDBDTO[]
 }
@@ -85,53 +62,53 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
     _id: { type: 'string', maxLength: 100 },
     _deleted: { type: 'boolean' },
     id: { type: 'string', maxLength: 100 },
-    title: { type: 'string' },
+    title: { type: 'string', maxLength: 250 },
     description: { type: 'string' },
     url: { type: 'string' },
     projectName: { type: 'string' },
     status: {
       type: 'object',
       properties: {
-        id: { type: 'string' },
-        name: { type: 'string' },
+        id: { type: 'string', maxLength: 100 },
+        name: { type: 'string', maxLength: 250 },
       },
       required: ['id', 'name'],
     },
     tracker: {
       type: 'object',
       properties: {
-        id: { type: 'string' },
+        id: { type: 'string', maxLength: 100 },
       },
       required: ['id'],
     },
     priority: {
       type: 'object',
       properties: {
-        id: { type: 'string' },
-        name: { type: 'string' },
+        id: { type: 'string', maxLength: 100 },
+        name: { type: 'string', maxLength: 250 },
       },
       required: ['id', 'name'],
     },
     author: {
       type: 'object',
       properties: {
-        id: { type: 'string' },
-        name: { type: 'string' },
+        id: { type: 'string', maxLength: 100 },
+        name: { type: 'string', maxLength: 250 },
       },
       required: ['id', 'name'],
     },
     assignedTo: {
       type: 'object',
       properties: {
-        id: { type: 'string' },
-        name: { type: 'string' },
+        id: { type: 'string', maxLength: 100 },
+        name: { type: 'string', maxLength: 250 },
       },
       required: ['id', 'name'],
     },
-    createdAt: { type: 'string', format: 'date-time' },
-    updatedAt: { type: 'string', format: 'date-time' },
-    startDate: { type: 'string', format: 'date-time' },
-    dueDate: { type: 'string', format: 'date-time' },
+    createdAt: { type: 'string', format: 'date-time', maxLength: 30 },
+    updatedAt: { type: 'string', format: 'date-time', maxLength: 30 },
+    startDate: { type: 'string', format: 'date-time', maxLength: 30 },
+    dueDate: { type: 'string', format: 'date-time', maxLength: 30 },
     doneRatio: { type: 'number' },
     spentHours: { type: 'number' },
     estimatedTimes: {
@@ -139,15 +116,15 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
       items: {
         type: 'object',
         properties: {
-          id: { type: 'string' },
-          name: { type: 'string' },
+          id: { type: 'string', maxLength: 100 },
+          name: { type: 'string', maxLength: 250 },
           activities: {
             type: 'array',
             items: {
               type: 'object',
               properties: {
-                id: { type: 'string' },
-                name: { type: 'string' },
+                id: { type: 'string', maxLength: 100 },
+                name: { type: 'string', maxLength: 250 },
               },
               required: ['id', 'name'],
             },
@@ -162,18 +139,18 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
       items: {
         type: 'object',
         properties: {
-          fromStatus: { type: 'string' },
-          toStatus: { type: 'string' },
+          fromStatus: { type: 'string', maxLength: 250 },
+          toStatus: { type: 'string', maxLength: 250 },
           description: { type: 'string' },
           changedBy: {
             type: 'object',
             properties: {
-              id: { type: 'string' },
-              name: { type: 'string' },
+              id: { type: 'string', maxLength: 100 },
+              name: { type: 'string', maxLength: 250 },
             },
             required: ['id', 'name'],
           },
-          changedAt: { type: 'string', format: 'date-time' },
+          changedAt: { type: 'string', format: 'date-time', maxLength: 30 },
         },
         required: ['fromStatus', 'toStatus', 'changedBy', 'changedAt'],
       },
@@ -183,13 +160,11 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
       items: {
         type: 'object',
         properties: {
-          id: { type: 'string' },
-          name: { type: 'string' },
+          id: { type: 'string', maxLength: 100 },
+          name: { type: 'string', maxLength: 250 },
           role: {
             type: 'object',
-            properties: {
-              id: { type: 'string' },
-            },
+            properties: { id: { type: 'string', maxLength: 100 } },
             required: ['id'],
           },
         },
@@ -199,23 +174,26 @@ export const tasksSyncSchema: RxJsonSchema<SyncTaskRxDBDTO> = {
     conflicted: { type: 'boolean' },
     conflictData: {
       type: 'object',
-      properties: {
-        server: { type: 'object' },
-        local: { type: 'object' },
-      },
+      properties: { server: { type: 'object' }, local: { type: 'object' } },
     },
     validationError: { type: 'object' },
-    syncedAt: { type: 'string', format: 'date-time' },
+    syncedAt: { type: 'string', format: 'date-time', maxLength: 30 },
     assumedMasterState: { type: 'object' },
     timeEntryIds: {
       type: 'array',
       default: [],
-      items: { type: 'string' },
+      items: { type: 'string', maxLength: 100 },
     },
-    timeEntries: {
-      type: 'array',
-      items: { type: 'object' },
-    },
+    timeEntries: { type: 'array', items: { type: 'object' } },
   },
   required: ['_id', 'id', 'title', 'status', 'createdAt', 'updatedAt'],
+  indexes: [
+    'status.name',
+    'priority.name',
+    'createdAt',
+    'updatedAt',
+    'title',
+    'author.id',
+    'assignedTo.id',
+  ],
 }

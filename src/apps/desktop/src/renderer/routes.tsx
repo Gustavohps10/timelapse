@@ -1,5 +1,7 @@
 import {
   Activities,
+  Backlog,
+  // Backlog,
   Docs,
   Error,
   Metrics,
@@ -8,7 +10,7 @@ import {
   TimerWidget,
   WorkspaceSettings,
 } from '@timelapse/ui'
-import { HomeLayout, WorkspaceLayout } from '@timelapse/ui'
+import { ActivitiesLayout, HomeLayout, WorkspaceLayout } from '@timelapse/ui'
 import { createHashRouter } from 'react-router-dom'
 
 export const router = createHashRouter([
@@ -30,7 +32,14 @@ export const router = createHashRouter([
       { index: true, element: <Metrics /> },
       { path: 'docs', element: <Docs /> },
       { path: 'time-entries', element: <TimeEntries /> },
-      { path: 'activities', element: <Activities /> },
+      {
+        path: 'activities',
+        element: <ActivitiesLayout />,
+        children: [
+          { index: true, element: <Activities /> }, // Área de Trabalho
+          { path: 'backlog', element: <Backlog /> },
+        ],
+      },
       { path: 'settings', element: <WorkspaceSettings /> },
       {
         path: 'widgets',

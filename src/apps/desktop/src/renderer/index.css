@@ -4,3 +4,31 @@
 @plugin "@tailwindcss/typography";
 
 @import "@timelapse/ui/globals.css";
+
+/* Firefox */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(100, 100, 100, 0.5) transparent !important;
+}
+
+/* Webkit (Chrome, Edge, Safari) */
+*::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent !important;
+  border-radius: 4px !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.5) !important;
+  border-radius: 4px !important;
+  border: 2px solid transparent !important;
+  background-clip: content-box !important;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 100, 100, 0.8) !important;
+}

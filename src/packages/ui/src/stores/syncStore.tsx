@@ -278,6 +278,7 @@ export const createSyncStore = (
         name: `${workspaceId}-data`,
         storage: wrappedValidateAjvStorage({ storage: getRxStorageDexie() }),
         ignoreDuplicate: true,
+        allowSlowCount: true,
       })
       const collectionsToCreate = replicationConfigs.reduce(
         (acc, config) => ({ ...acc, [config.name]: { schema: config.schema } }),

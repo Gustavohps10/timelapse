@@ -1,6 +1,9 @@
+import { SyncMetadataRxDBDTO } from '@/sync/metadata-sync-schema'
+import { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
+
 export type TCard = {
-  id: string
-  description: string
+  task: SyncTaskRxDBDTO
+  metadata: SyncMetadataRxDBDTO
 }
 
 export type TColumn = {

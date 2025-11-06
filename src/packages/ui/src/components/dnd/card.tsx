@@ -1,5 +1,6 @@
 'use client'
 
+// --- Imports do Modelo Definitivo (Lógica DnD) ---
 import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine'
 import {
   draggable,
@@ -12,6 +13,7 @@ import {
   type Edge,
   extractClosestEdge,
 } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
+// --- Imports do Modelo de Estilização (Shadcn/UI e Lógica do TaskCard) ---
 import {
   AlertCircle,
   Bookmark,
@@ -22,25 +24,18 @@ import {
   GripVertical,
 } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
-import {
-  memo,
-  MutableRefObject,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { MutableRefObject, useEffect, useMemo, useRef, useState } from 'react'
+import React from 'react' // 'memo' foi removido pois CardDisplay não é mais memoizado
 import { createPortal } from 'react-dom'
 import invariant from 'tiny-invariant'
 
 import { isSafari } from '@/components/dnd/is-safari'
-// Importações de componentes de UI e hooks (assumindo que estão corretos)
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
-  Card as CardShadCn,
-  CardContent,
-  CardHeader,
+  Card as ShadcnCard, // Renomeado para evitar conflito
+  CardContent as ShadcnCardContent,
+  CardHeader as ShadcnCardHeader,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
@@ -62,64 +57,18 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useAuth } from '@/hooks'
-// Mantenha os tipos de dados do Card antigo
-import type { SyncMetadataRxDBDTO } from '@/sync/metadata-sync-schema'
-import type { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
 
-// Adapte os imports de data conforme o novo componente Card:
+// import type { SyncMetadataRxDBDTO } from '@/sync/metadata-sync-schema' // Removido, metadata vem de TCard
 import {
   getCardData,
   getCardDropTargetData,
   isCardData,
-  isDraggingACard, // Usado para tipagem base do drag/drop, será CardProps
+  isDraggingACard,
+  TCard, // TCard agora inclui { task, metadata }
 } from './data'
 import { isShallowEqual } from './is-shallow-equal'
 
-// Definições de Funções Auxiliares (mantidas do Card antigo)
-// --- formatTime ---
-function formatTime(seconds: number): string | React.ReactNode {
-  if (seconds < 0) {
-    return (
-      <span className="rounded bg-zinc-200 px-1 py-[1px] text-[10px] font-medium text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300">
-        N/R
-      </span>
-    )
-  }
-  const h = Math.floor(seconds / 3600)
-    .toString()
-    .padStart(2, '0')
-  const m = Math.floor((seconds % 3600) / 60)
-    .toString()
-    .padStart(2, '0')
-  const s = Math.floor(seconds % 60)
-    .toString()
-    .padStart(2, '0')
-  return `${h}:${m}:${s}`
-}
-// --- iconMap ---
-const iconMap: { [key: string]: React.ElementType } = {
-  Code: LucideIcons.Code,
-  Wrench: LucideIcons.Wrench,
-  FlaskConical: LucideIcons.FlaskConical,
-  LifeBuoy: LucideIcons.LifeBuoy,
-  Palette: LucideIcons.Palette,
-  BarChart2: LucideIcons.BarChart2,
-  CalendarCheck: LucideIcons.CalendarCheck,
-  CheckCircle: LucideIcons.CheckCircle,
-  SearchCode: LucideIcons.SearchCode,
-  Settings: LucideIcons.Settings,
-  Handshake: LucideIcons.Handshake,
-  ClipboardCheck: LucideIcons.ClipboardCheck,
-  FileText: LucideIcons.FileText,
-  GraduationCap: LucideIcons.GraduationCap,
-  Users: LucideIcons.Users,
-  Briefcase: LucideIcons.Briefcase,
-  ShieldCheck: LucideIcons.ShieldCheck,
-  Activity: LucideIcons.Activity,
-}
-// ---
-
-// Estados do Drag-and-Drop (Mantidos do Card NOVO)
+// --- Tipos de Estado (do Modelo Definitivo) ---
 type TCardState =
   | {
       type: 'idle'
@@ -143,72 +92,104 @@ type TCardState =
 
 const idle: TCardState = { type: 'idle' }
 
-// ESTILOS DE ESTADO (Tailwind - Adaptados para o Card)
-// Estilos aplicados no div que é o draggable (o CardContent/Card)
+// --- Estilos de Estado (do Modelo Definitivo) ---
 const innerStyles: { [Key in TCardState['type']]?: string } = {
-  // 'idle' já tem hover no CardDisplay, vamos apenas garantir o cursor.
-  idle: 'cursor-grab',
-  // Reduzir opacidade no item original enquanto arrasta
+  // 'cursor-grab' foi movido para o 'handleRef'
+  idle: 'transition-shadow duration-200 hover:shadow-md dark:hover:shadow-lg',
   'is-dragging': 'opacity-40',
 }
 
-// Estilos aplicados no div que é o dropTarget (o container do Card)
 const outerStyles: { [Key in TCardState['type']]?: string } = {
-  // Esconder quando o item está sendo arrastado para fora dele mesmo
   'is-dragging-and-left-self': 'hidden',
-  // Podemos adicionar um outline para o item que está por cima, se necessário,
-  // mas o 'is-over' será manipulado por um "shadow" (CardShadow)
 }
 
-// O CardDisplay precisa de props adicionais do Card original
-type CardProps = {
-  task: SyncTaskRxDBDTO
-  metadata: SyncMetadataRxDBDTO
-  onTaskClick?: (task: SyncTaskRxDBDTO) => void
-  index: number // Não usado no display, mas é bom manter na prop
-  columnId: string
-  state: TCardState
-  outerRef?: MutableRefObject<HTMLDivElement | null>
-  innerRef?: MutableRefObject<HTMLDivElement | null>
+// --- Helpers (do Modelo de Estilização) ---
+function formatTime(seconds: number): string | React.ReactNode {
+  if (seconds < 0) {
+    return (
+      <span className="rounded bg-zinc-200 px-1 py-[1px] text-[10px] font-medium text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300">
+        N/R
+      </span>
+    )
+  }
+  const h = Math.floor(seconds / 3600)
+    .toString()
+    .padStart(2, '0')
+  const m = Math.floor((seconds % 3600) / 60)
+    .toString()
+    .padStart(2, '0')
+  const s = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, '0')
+  return `${h}:${m}:${s}`
 }
 
-// Componente Sombra (CardShadow - Mantido do Card NOVO)
+const iconMap: { [key: string]: React.ElementType } = {
+  Code: LucideIcons.Code,
+  Wrench: LucideIcons.Wrench,
+  FlaskConical: LucideIcons.FlaskConical,
+  LifeBuoy: LucideIcons.LifeBuoy,
+  Palette: LucideIcons.Palette,
+  BarChart2: LucideIcons.BarChart2,
+  CalendarCheck: LucideIcons.CalendarCheck,
+  CheckCircle: LucideIcons.CheckCircle,
+  SearchCode: LucideIcons.SearchCode,
+  Settings: LucideIcons.Settings,
+  Handshake: LucideIcons.Handshake,
+  ClipboardCheck: LucideIcons.ClipboardCheck,
+  FileText: LucideIcons.FileText,
+  GraduationCap: LucideIcons.GraduationCap,
+  Users: LucideIcons.Users,
+  Briefcase: LucideIcons.Briefcase,
+  ShieldCheck: LucideIcons.ShieldCheck,
+  Activity: LucideIcons.Activity,
+}
+
+// --- Componente de Sombra (do Modelo Definitivo) ---
 export function CardShadow({ dragging }: { dragging: DOMRect }) {
-  // Adapte a cor da sombra para combinar com o tema escuro/claro
   return (
     <div
-      className="flex-shrink-0 rounded bg-blue-500/20 transition-all duration-200 dark:bg-blue-500/30"
+      className="flex-shrink-0 rounded bg-zinc-200 dark:bg-zinc-950"
       style={{ height: dragging.height }}
     />
   )
 }
 
-// O CardDisplay usa a marcação (JSX) do Card antigo
+// --- Componente de Display (Mesclado) ---
 export function CardDisplay({
-  task,
-  metadata,
+  card,
   onTaskClick,
   state,
   outerRef,
   innerRef,
-  index, // Não usado, mas mantido na prop para consistência
-  columnId, // Não usado, mas mantido na prop para consistência
-}: CardProps) {
+  handleRef,
+}: {
+  card: TCard
+  onTaskClick?: (task: TCard['task']) => void
+  state: TCardState
+  outerRef?: React.MutableRefObject<HTMLDivElement | null>
+  innerRef?: MutableRefObject<HTMLDivElement | null> // Será anexado ao ShadcnCard
+  handleRef?: MutableRefObject<HTMLDivElement | null> // Será anexado ao GripVertical
+}) {
+  // Extrai 'task' e 'metadata' do 'card'
+  const { task, metadata } = card
+
+  // --- Lógica de Hooks (do Modelo de Estilização) ---
   const { user } = useAuth()
   const [timeEntryType, setTimeEntryType] = useState<
     'increasing' | 'decreasing'
   >('increasing')
-  const handleRef = useRef<HTMLDivElement>(null) // Mantenha a ref do handle aqui, será usada no useEffect do Card
 
-  // UseMemos (mantidos do Card antigo)
   const statusMeta = useMemo(
     () => metadata.taskStatuses.find((s) => s.id === task.status?.id),
     [metadata.taskStatuses, task.status?.id],
   )
+
   const otherParticipants = useMemo(
     () => task.participants?.filter((p) => p.id !== task.assignedTo?.id) || [],
     [task.participants, task.assignedTo?.id],
   )
+
   const isTimeNotRegistered = useMemo(
     () =>
       (!task.timeEntries || task.timeEntries.length === 0) &&
@@ -216,6 +197,7 @@ export function CardDisplay({
       task.spentHours > 0,
     [task.timeEntries, task.spentHours],
   )
+
   const estimationBreakdown = useMemo(() => {
     const uid = user?.id?.toString()
     if (!uid || !task.estimatedTimes) return []
@@ -259,28 +241,29 @@ export function CardDisplay({
   }, [task.timeEntries, user?.id, isTimeNotRegistered])
 
   const activities = useMemo(() => metadata.activities || [], [metadata])
-  // ---
 
-  // O outerRef é o dropTarget. Ele deve ser um div **ao redor** do Card.
-  // O innerRef é o draggable. Ele deve ser o próprio Card.
-
+  // --- JSX (Mesclado) ---
   return (
     <div
-      ref={outerRef} // Drop target
-      className={`flex flex-shrink-0 flex-col gap-2 px-3 py-1 ${outerStyles[state.type]}`}
+      ref={outerRef}
+      className={`flex flex-shrink-0 flex-col gap-2 px-3 py-1 ${
+        outerStyles[state.type] ?? ''
+      }`}
     >
-      {/* 1. Sombra Superior (se is-over e closestEdge for 'top') */}
+      {/* Lógica de Sombra (do Modelo Definitivo) */}
       {state.type === 'is-over' && state.closestEdge === 'top' ? (
         <CardShadow dragging={state.dragging} />
       ) : null}
 
-      {/* 2. O Card (elemento arrastável - draggable) */}
-      <CardShadCn
-        ref={innerRef} // Draggable
-        className={`group relative w-full cursor-pointer rounded-md border border-zinc-200 transition-shadow duration-200 hover:shadow-md dark:border-zinc-700 dark:hover:shadow-lg ${innerStyles[state.type]}`}
+      {/* Conteúdo do Card (do Modelo de Estilização) */}
+      <ShadcnCard
+        ref={innerRef} // Ref do draggable anexado aqui
+        className={`group relative w-full cursor-pointer rounded-md border border-zinc-200 dark:border-zinc-700 ${
+          innerStyles[state.type] ?? ''
+        }`}
         onClick={() => onTaskClick?.(task)}
-        // Estilos para o preview nativo (rotação e dimensões)
         style={
+          // Estilos de Preview (do Modelo Definitivo)
           state.type === 'preview'
             ? {
                 width: state.dragging.width,
@@ -290,10 +273,10 @@ export function CardDisplay({
             : undefined
         }
       >
-        <CardHeader className="flex flex-row items-start justify-between p-2">
+        <ShadcnCardHeader className="flex flex-row items-start justify-between p-2">
           <div className="flex items-start gap-1">
             <div
-              ref={handleRef} // Drag Handle
+              ref={handleRef} // Ref do drag handle anexado aqui
               onClick={(e) => e.stopPropagation()}
               className="cursor-grab text-zinc-500 select-none hover:text-zinc-700 dark:hover:text-zinc-300"
             >
@@ -314,7 +297,7 @@ export function CardDisplay({
                       const Icon = (LucideIcons as any)[statusMeta.icon]
                       return Icon ? <Icon className="h-3 w-3" /> : null
                     })()}
-                  {task.status?.name}
+                  {task.status.name}
                 </div>
               </div>
             )}
@@ -517,8 +500,8 @@ export function CardDisplay({
               </PopoverContent>
             </Popover>
           </div>
-        </CardHeader>
-        <CardContent className="px-2 pt-0 pb-2">
+        </ShadcnCardHeader>
+        <ShadcnCardContent className="px-2 pt-0 pb-2">
           <div className="mb-1 flex gap-1">
             <Bookmark className="h-4 w-4 shrink-0 text-zinc-500 dark:text-zinc-300" />
             <div className="flex items-center gap-2 overflow-hidden">
@@ -555,7 +538,7 @@ export function CardDisplay({
                             ? user?.avatarUrl
                             : undefined
                         }
-                        alt={`Foto de perfil (${task.assignedTo.name})`}
+                        alt={`Foto de perfil (${user?.firstname})`}
                       />
                       <AvatarFallback>
                         {task.assignedTo.name.charAt(0)}
@@ -591,9 +574,10 @@ export function CardDisplay({
               </div>
             </div>
           </div>
-        </CardContent>
-      </CardShadCn>
-      {/* 3. Sombra Inferior (se is-over e closestEdge for 'bottom') */}
+        </ShadcnCardContent>
+      </ShadcnCard>
+
+      {/* Lógica de Sombra (do Modelo Definitivo) */}
       {state.type === 'is-over' && state.closestEdge === 'bottom' ? (
         <CardShadow dragging={state.dragging} />
       ) : null}
@@ -601,53 +585,40 @@ export function CardDisplay({
   )
 }
 
-// Card Principal (com a lógica de DND)
-export const Card = memo(function Card({
-  task,
-  metadata,
-  onTaskClick,
-  index,
+// --- Componente Principal (do Modelo Definitivo, com lógica de DnD) ---
+export function Card({
+  card,
   columnId,
+  onTaskClick,
 }: {
-  task: SyncTaskRxDBDTO
-  metadata: SyncMetadataRxDBDTO
-  onTaskClick?: (task: SyncTaskRxDBDTO) => void
-  index: number
+  card: TCard
   columnId: string
+  onTaskClick?: (task: TCard['task']) => void
 }) {
   const outerRef = useRef<HTMLDivElement | null>(null)
-  const innerRef = useRef<HTMLDivElement | null>(null)
-  // O dragHandle é o GripVertical
-  const handleRef = useRef<HTMLDivElement>(null)
+  const innerRef = useRef<HTMLDivElement | null>(null) // Anexado ao ShadcnCard
+  const handleRef = useRef<HTMLDivElement | null>(null) // Anexado ao GripVertical
   const [state, setState] = useState<TCardState>(idle)
 
   useEffect(() => {
     const outer = outerRef.current
     const inner = innerRef.current
-    const handle = handleRef.current
-
-    invariant(outer && inner && handle)
+    const handle = handleRef.current // Adicionado
+    invariant(outer && inner && handle) // Modificado
 
     return combine(
       draggable({
-        // Elemento arrastável: O Card propriamente dito
         element: inner,
-        // Alça de arrasto: O ícone GripVertical
-        dragHandle: handle,
+        dragHandle: handle, // Adicionado para travar o arraste ao ícone
         getInitialData: ({ element }) =>
           getCardData({
-            // Dados da Task para o drag
-            card: { description: task.title, id: task.id }, // Adapte TCard conforme o Card
+            card,
             columnId,
             rect: element.getBoundingClientRect(),
-            // Adicione os dados do Card antigo aqui
-            // taskId: task.id,
-            // index,
           }),
         onGenerateDragPreview({ nativeSetDragImage, location, source }) {
           const data = source.data
-          invariant(isCardData(data)) // Assumindo que isCardData foi adaptado
-
+          invariant(isCardData(data))
           setCustomNativeDragPreview({
             nativeSetDragImage,
             getOffset: preserveOffsetOnSource({
@@ -671,15 +642,11 @@ export const Card = memo(function Card({
         },
       }),
       dropTargetForElements({
-        // Elemento drop target: O wrapper do Card
         element: outer,
         getIsSticky: () => true,
-        canDrop: isDraggingACard, // Assumindo que isDraggingACard foi adaptado
+        canDrop: isDraggingACard,
         getData: ({ element, input }) => {
-          const data = getCardDropTargetData({
-            card: { description: task.title, id: task.id },
-            columnId,
-          }) // Adapte os dados de drop target
+          const data = getCardDropTargetData({ card, columnId })
           return attachClosestEdge(data, {
             element,
             input,
@@ -690,7 +657,8 @@ export const Card = memo(function Card({
           if (!isCardData(source.data)) {
             return
           }
-          if (source.data.card.id === task.id) {
+          // Comparando 'card.task.id'
+          if (source.data.card.task.id === card.task.id) {
             return
           }
           const closestEdge = extractClosestEdge(self.data)
@@ -704,14 +672,13 @@ export const Card = memo(function Card({
           if (!isCardData(source.data)) {
             return
           }
-          if (source.data.card.id === task.id) {
+          if (source.data.card.task.id === card.task.id) {
             return
           }
           const closestEdge = extractClosestEdge(self.data)
           if (!closestEdge) {
             return
           }
-
           const proposed: TCardState = {
             type: 'is-over',
             dragging: source.data.rect,
@@ -728,7 +695,7 @@ export const Card = memo(function Card({
           if (!isCardData(source.data)) {
             return
           }
-          if (source.data.card.id === task.id) {
+          if (source.data.card.task.id === card.task.id) {
             setState({ type: 'is-dragging-and-left-self' })
             return
           }
@@ -739,41 +706,29 @@ export const Card = memo(function Card({
         },
       }),
     )
-  }, [task, columnId, index])
+  }, [card, columnId])
 
-  // A prop 'state' do CardDisplay precisa passar o handleRef para que
-  // ele possa ser usado no useEffect de DND
   return (
     <>
       <CardDisplay
         outerRef={outerRef}
         innerRef={innerRef}
-        // Repassando o handleRef para a exibição, para ser anexado ao GripVertical
+        handleRef={handleRef} // Passando o handle ref
         state={state}
-        task={task}
-        metadata={metadata}
-        onTaskClick={onTaskClick}
-        index={index}
-        columnId={columnId}
+        card={card}
+        onTaskClick={onTaskClick} // Prop 'metadata' removida
       />
-      {/* Portal para o Preview Nativo */}
       {state.type === 'preview'
         ? createPortal(
+            // O preview usa o mesmo CardDisplay, mas sem as refs
             <CardDisplay
-              // O preview usa os dados do estado de preview, mas não refs
-              state={{
-                type: 'preview',
-                container: state.container,
-                dragging: state.dragging,
-              }}
-              task={task}
-              metadata={metadata}
-              index={index}
-              columnId={columnId}
+              state={state}
+              card={card}
+              onTaskClick={onTaskClick} // Prop 'metadata' removida
             />,
             state.container,
           )
         : null}
     </>
   )
-})
+}

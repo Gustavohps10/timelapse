@@ -1,3 +1,4 @@
+// src/renderer/main.tsx (ou onde você monta o App)
 import '@/renderer/index.css'
 
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -9,6 +10,7 @@ import {
   TimeEntriesContextProvider,
   TooltipProvider,
 } from '@timelapse/ui'
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v6'
 import { RouterProvider } from 'react-router-dom'
 
 import { ipcClient } from '@/renderer/client'
@@ -22,7 +24,9 @@ export function AppDesktop() {
           <TimeEntriesContextProvider>
             <SidebarProvider>
               <QueryClientProvider client={queryClient}>
-                <RouterProvider router={router} />
+                <NuqsAdapter>
+                  <RouterProvider router={router} />
+                </NuqsAdapter>
               </QueryClientProvider>
             </SidebarProvider>
           </TimeEntriesContextProvider>

@@ -26,6 +26,7 @@
     "@timelapse/ui": "workspace:*",
     "electron-updater": "^6.1.7",
     "keytar": "^7.9.0",
+    "nuqs": "^2.7.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^6.29.0",

@@ -57,7 +57,7 @@ export function Board({ initial }: { initial: TBoard }) {
             return
           }
           const cardIndexInHome = home.cards.findIndex(
-            (card) => card.id === dragging.card.id,
+            (card) => card.task.id === dragging.card.task.id,
           )
 
           // dropping on a card
@@ -69,7 +69,7 @@ export function Board({ initial }: { initial: TBoard }) {
             // reordering in home column
             if (home === destination) {
               const cardFinishIndex = home.cards.findIndex(
-                (card) => card.id === dropTargetData.card.id,
+                (card) => card.task.id === dropTargetData.card.task.id,
               )
 
               // could not find cards needed
@@ -110,7 +110,7 @@ export function Board({ initial }: { initial: TBoard }) {
             }
 
             const indexOfTarget = destination.cards.findIndex(
-              (card) => card.id === dropTargetData.card.id,
+              (card) => card.task.id === dropTargetData.card.task.id,
             )
 
             const closestEdge = extractClosestEdge(dropTargetData)
