@@ -23,17 +23,20 @@ import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie'
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv'
 import { createStore, type StoreApi, useStore } from 'zustand'
 
-import { useWorkspace } from '@/hooks'
-import { useClient } from '@/hooks/use-client'
 import {
   metadataSyncSchema,
   SyncMetadataRxDBDTO,
-} from '@/sync/metadata-sync-schema'
-import { SyncTaskRxDBDTO, tasksSyncSchema } from '@/sync/tasks-sync-schema'
+} from '@/db/schemas/metadata-sync-schema'
+import {
+  SyncTaskRxDBDTO,
+  tasksSyncSchema,
+} from '@/db/schemas/tasks-sync-schema'
 import {
   SyncTimeEntryRxDBDTO,
   timeEntriesSyncSchema,
-} from '@/sync/time-entries-sync-schema'
+} from '@/db/schemas/time-entries-sync-schema'
+import { useWorkspace } from '@/hooks'
+import { useClient } from '@/hooks/use-client'
 
 export type ReplicationCheckpoint = {
   updatedAt: string

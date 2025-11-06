@@ -1,11 +1,11 @@
 import { MangoQuery, MangoQuerySortPart } from 'rxdb'
 
-import { AppDatabase } from '@/stores/syncStore'
 import {
   SyncMetadataItem,
   SyncMetadataRxDBDTO,
-} from '@/sync/metadata-sync-schema'
-import { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
+} from '@/db/schemas/metadata-sync-schema'
+import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
+import { AppDatabase } from '@/stores/syncStore'
 
 type SortDescriptor = {
   id: keyof SyncTaskRxDBDTO

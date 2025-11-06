@@ -68,9 +68,9 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { TimeEntriesContext } from '@/contexts/TimeEntriesContext'
+import { SyncMetadataItem } from '@/db/schemas/metadata-sync-schema'
 import { TimeEntry as TimeEntryReducer } from '@/reducers/time-entries/reducer'
 import { useSyncStore } from '@/stores/syncStore'
-import { SyncMetadataItem } from '@/sync/metadata-sync-schema'
 
 const iconMap: { [key: string]: ElementType } = {
   Palette,

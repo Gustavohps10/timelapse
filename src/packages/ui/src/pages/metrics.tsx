@@ -69,9 +69,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { SyncTimeEntryRxDBDTO } from '@/db/schemas/time-entries-sync-schema'
 import { useWorkspace } from '@/hooks'
 import { useSyncStore } from '@/stores/syncStore'
-import { SyncTimeEntryRxDBDTO } from '@/sync/time-entries-sync-schema'
 
 // #region Helper Functions and Constants
 const chartSettings = {

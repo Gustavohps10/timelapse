@@ -2,24 +2,41 @@ import { Outlet } from 'react-router'
 import { Toaster } from 'sonner'
 
 import { AppSidebarHomeContent, AppSidebarHomeFooter } from '@/components'
-import { AppSidebar } from '@/components/app-sidebar'
+import {
+  AppSidebar,
+  AppSidebarContent,
+  AppSidebarFooter,
+  AppSidebarHeader,
+} from '@/components/app-sidebar'
+import { AppSidebarDefaultHeader } from '@/components/app-sidebar/app-sidebar-default-header'
 import { Footer } from '@/components/footer'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 export function HomeLayout() {
   return (
     <>
-      <AppSidebar
-        content={<AppSidebarHomeContent />}
-        footer={<AppSidebarHomeFooter />}
-      />
-      <main className="h-[100vh] flex-1 overflow-hidden">
+      <AppSidebar>
+        <AppSidebarHeader>
+          <AppSidebarDefaultHeader />
+        </AppSidebarHeader>
+
+        <AppSidebarContent>
+          <AppSidebarHomeContent />
+        </AppSidebarContent>
+
+        <AppSidebarFooter>
+          <AppSidebarHomeFooter />
+        </AppSidebarFooter>
+      </AppSidebar>
+
+      <main className="h-full overflow-hidden">
         <ScrollArea className="h-full">
           <section className="p-4">
             <Outlet />
           </section>
           <Footer />
         </ScrollArea>
+
         <Toaster />
       </main>
     </>

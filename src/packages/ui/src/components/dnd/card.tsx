@@ -58,7 +58,7 @@ import {
 } from '@/components/ui/tooltip'
 import { useAuth } from '@/hooks'
 
-// import type { SyncMetadataRxDBDTO } from '@/sync/metadata-sync-schema' // Removido, metadata vem de TCard
+// import type { SyncMetadataRxDBDTO } from '@/db/schemas/metadata-sync-schema' // Removido, metadata vem de TCard
 import {
   getCardData,
   getCardDropTargetData,

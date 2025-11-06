@@ -9,7 +9,7 @@
 //   Timer,
 // } from 'lucide-react'
 
-// import { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
+// import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 
 // export function getStatusIcon(status: SyncTaskRxDBDTO['status']) {
 //   const statusIcons = {

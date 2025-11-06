@@ -9,8 +9,8 @@ import { DataTableFilterList } from '@/components/data-table/data-table-filter-l
 import { DataTableFilterMenu } from '@/components/data-table/data-table-filter-menu'
 import { DataTableSortList } from '@/components/data-table/data-table-sort-list'
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar'
+import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 import { useDataTable } from '@/hooks/use-data-table'
-import { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
 
 // Presumindo que você tenha queries para buscar todas as opções
 import type {

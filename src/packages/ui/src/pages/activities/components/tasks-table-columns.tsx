@@ -31,8 +31,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 import { formatDate } from '@/lib/format'
-import { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
 
 // import { updateTask } from '../lib/actions'
 // import { getPriorityIcon, getStatusIcon } from '../lib/utils'

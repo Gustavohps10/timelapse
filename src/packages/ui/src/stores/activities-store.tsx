@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-import type { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
+import type { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 
 type ColumnsMap = Map<string, SyncTaskRxDBDTO[]>
 

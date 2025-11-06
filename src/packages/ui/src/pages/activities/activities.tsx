@@ -5,11 +5,11 @@ import { useMemo } from 'react'
 
 import { Board } from '@/components/dnd/board'
 import { TBoard, TCard, TColumn } from '@/components/dnd/data'
+import { SyncMetadataRxDBDTO } from '@/db/schemas/metadata-sync-schema'
+import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 import { useAuth } from '@/hooks'
 // 1. Importe o Board (componente de UI) e os Tipos (da sua definição)
 import { useSyncStore } from '@/stores/syncStore'
-import { SyncMetadataRxDBDTO } from '@/sync/metadata-sync-schema'
-import { SyncTaskRxDBDTO } from '@/sync/tasks-sync-schema'
 
 // Tipo para seu useQuery (tarefa com time entries)
 type TaskWithTimeEntries = SyncTaskRxDBDTO & { timeEntries: any[] }
