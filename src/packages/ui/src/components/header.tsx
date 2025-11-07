@@ -37,18 +37,17 @@ export function Header() {
   const replicationNames = statuses ? Object.keys(statuses) : []
 
   return (
-    <header className="pointer-events-none absolute top-0 left-0 z-50 mt-2 flex w-full justify-center border-t-1 bg-transparent p-2">
-      <div className="border-border bg-background/60 pointer-events-auto flex items-center justify-between gap-2 rounded-md border px-2 py-1 shadow-md backdrop-blur-md">
-        <img
-          src={logoAtak}
-          className="h-8 w-8 rounded-lg bg-zinc-200 p-2"
-          alt="Logo"
-        />
+    <header className="pointer-events-none absolute top-0 left-0 z-50 flex w-full justify-center bg-transparent p-2">
+      <div className="border-border bg-background/60 pointer-events-auto flex items-center justify-between gap-2 rounded-md border px-1.5 py-1 shadow-md backdrop-blur-md">
+        <div className="inline-block rounded-sm bg-zinc-200 p-1">
+          <img src={logoAtak} className="h-3 w-3" alt="Logo" />
+        </div>
+
         <div className="flex flex-col">
-          <span className="text-uppercase text-sm font-semibold tracking-tight">
+          <span className="text-uppercase text-sm leading-3 font-semibold tracking-tight">
             {workspace?.name}
           </span>
-          <span className="text-muted-foreground font-mono text-xs">
+          <span className="text-muted-foreground font-mono text-xs leading-3">
             {workspace?.id}
           </span>
         </div>
@@ -62,12 +61,12 @@ export function Header() {
                     size="icon"
                     variant="ghost"
                     aria-label="Status da Sincronização"
-                    className="hover:bg-accent/50 relative"
+                    className="hover:bg-accent/50 relative h-6 w-6"
                   >
                     <AiOutlineCloudSync
                       style={{
-                        width: 20,
-                        height: 20,
+                        width: 16,
+                        height: 16,
                         color: 'rgb(var(--foreground))',
                       }}
                     />
@@ -144,12 +143,12 @@ export function Header() {
                 size="icon"
                 variant="ghost"
                 aria-label="Compartilhar"
-                className="hover:bg-accent/50"
+                className="hover:bg-accent/50 h-6 w-6"
               >
                 <Share2Icon
                   style={{
-                    width: 16,
-                    height: 16,
+                    width: 14,
+                    height: 14,
                     color: 'rgb(var(--foreground))',
                   }}
                 />

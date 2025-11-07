@@ -1,8 +1,17 @@
 import { Outlet } from 'react-router'
 import { Toaster } from 'sonner'
 
+import {
+  AppSidebar,
+  AppSidebarContent,
+  AppSidebarFooter,
+  AppSidebarHeader,
+  AppSidebarWorkspacesContent,
+  AppSidebarWorkspacesFooter,
+  Header,
+} from '@/components'
+import { AppSidebarDefaultHeader } from '@/components/app-sidebar/app-sidebar-default-header'
 import { Footer } from '@/components/footer'
-import { Header } from '@/components/header'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext'
@@ -13,18 +22,33 @@ export function WorkspaceLayout() {
     <WorkspaceProvider>
       <SyncProvider>
         <AuthProvider>
-          <main className="flex h-full flex-col">
-            <Header />
+          <>
+            <AppSidebar>
+              <AppSidebarHeader>
+                <AppSidebarDefaultHeader />
+              </AppSidebarHeader>
 
-            <ScrollArea className="flex-1">
-              <section className="p-4">
-                <Outlet />
-              </section>
-              <Footer />
-            </ScrollArea>
+              <AppSidebarContent>
+                <AppSidebarWorkspacesContent />
+              </AppSidebarContent>
 
-            <Toaster />
-          </main>
+              <AppSidebarFooter>
+                <AppSidebarWorkspacesFooter />
+              </AppSidebarFooter>
+            </AppSidebar>
+
+            <main className="relative h-full flex-1 overflow-hidden">
+              <Header />
+              <ScrollArea className="h-full">
+                <section className="px-4 pt-12">
+                  <Outlet />
+                </section>
+                <Footer />
+              </ScrollArea>
+
+              <Toaster />
+            </main>
+          </>
         </AuthProvider>
       </SyncProvider>
     </WorkspaceProvider>

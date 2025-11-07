@@ -6,6 +6,7 @@ import { Outlet, useLocation } from 'react-router'
 import { NavLink } from 'react-router-dom'
 
 import { NewWorkspaceDialog } from '@/components/new-workspace-dialog'
+import { Toaster } from '@/components/ui/sonner'
 import { useClient } from '@/hooks'
 import { cn } from '@/lib'
 
@@ -57,11 +58,11 @@ export function AppLayout() {
         setIsOpen={setWorkspaceDialogIsOpen}
       />
 
-      <main className="flex h-screen overflow-hidden">
+      <main className="flex h-screen w-screen overflow-hidden pt-4">
         {/* Menu lateral fixo */}
         <nav
           ref={navRef}
-          className="relative flex w-[72px] flex-col items-center space-y-3 border-r bg-zinc-50 p-3 dark:bg-zinc-900/50"
+          className="relative flex w-[72px] flex-col items-center space-y-3"
         >
           {activeTop !== null && (
             <span
@@ -115,18 +116,11 @@ export function AppLayout() {
         </nav>
 
         {/* Área principal do app */}
-        <section className="mt-4 ml-4 flex flex-1 overflow-hidden rounded-tl-md border-1">
-          {/* Sidebar contextual (HomeSidebar / WorkspaceSidebar) */}
-          <aside className="bg-background w-[280px] border-r">
-            <Outlet context={{ region: 'sidebar' }} />
-          </aside>
-
-          {/* Conteúdo scrollável */}
-          <div className="flex-1 overflow-y-auto">
-            <Outlet context={{ region: 'content' }} />
-          </div>
+        <section className="flex flex-1 overflow-hidden rounded-tl-md border-t-1 border-l-1">
+          <Outlet />
         </section>
       </main>
+      <Toaster />
     </>
   )
 }

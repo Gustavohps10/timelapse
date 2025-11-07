@@ -29,7 +29,7 @@ export function HomeLayout() {
         </AppSidebarFooter>
       </AppSidebar>
 
-      <main className="h-full overflow-hidden">
+      <main className="h-full flex-1 overflow-hidden">
         <ScrollArea className="h-full">
           <section className="p-4">
             <Outlet />
