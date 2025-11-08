@@ -1,5 +1,4 @@
 import { Outlet } from 'react-router'
-import { Toaster } from 'sonner'
 
 import { AppSidebarHomeContent, AppSidebarHomeFooter } from '@/components'
 import {
@@ -36,8 +35,6 @@ export function HomeLayout() {
           </section>
           <Footer />
         </ScrollArea>
-
-        <Toaster />
       </main>
     </>
   )

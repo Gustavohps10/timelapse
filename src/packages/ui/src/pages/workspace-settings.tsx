@@ -29,6 +29,14 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -276,375 +284,392 @@ export function WorkspaceSettings() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit((data) => connectMutation.mutate(data))}
-      className="space-y-6 pb-12"
-    >
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">
-          Configurações do Workspace
-        </h2>
-        <p className="text-muted-foreground">
-          Gerencie as informações gerais e integrações do seu workspace.
-        </p>
-      </div>
+    <>
+      <h1 className="text-2xl font-semibold tracking-tight">Configurações</h1>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Workspace</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Configurações</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações Gerais</CardTitle>
-            <CardDescription>
-              Detalhes básicos do seu espaço de trabalho.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome do Workspace</Label>
-              <Input
-                id="name"
-                placeholder="Ex: Minha Empresa"
-                {...register('name')}
-              />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                placeholder="Descreva o propósito deste workspace."
-                {...register('description')}
-              />
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <hr className="mt-2" />
+
+      <form
+        onSubmit={handleSubmit((data) => connectMutation.mutate(data))}
+        className="mt-6 space-y-6 pb-12"
+      >
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações Gerais</CardTitle>
+              <CardDescription>
+                Detalhes básicos do seu espaço de trabalho.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="defaultHourlyRate">Valor Hora Padrão</Label>
+                <Label htmlFor="name">Nome do Workspace</Label>
                 <Input
-                  id="defaultHourlyRate"
-                  type="number"
-                  step="0.01"
-                  {...register('defaultHourlyRate')}
+                  id="name"
+                  placeholder="Ex: Minha Empresa"
+                  {...register('name')}
                 />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name.message}</p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label>Moeda</Label>
-                <Controller
-                  name="currency"
-                  control={control}
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="BRL">Real (BRL)</SelectItem>
-                        <SelectItem value="USD">Dólar (USD)</SelectItem>
-                        <SelectItem value="EUR">Euro (EUR)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Descreva o propósito deste workspace."
+                  {...register('description')}
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="weeklyHourGoal">Meta de Horas Semanal</Label>
-              <Input
-                id="weeklyHourGoal"
-                type="number"
-                {...register('weeklyHourGoal')}
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button type="button">Salvar Alterações</Button>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-1">
-              <DatabaseZapIcon size={20} /> Provedor de dados
-            </CardTitle>
-            <CardDescription>
-              Vincule a um serviço externo para sincronizar os dados.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {!workspace?.dataSource ||
-              (workspace?.dataSource == 'local' && (
-                <>
-                  <FileUploadButton
-                    size="sm"
-                    accept=".tladdon"
-                    onFileSelect={(files) => {
-                      handleDataSourceImport(files)
-                    }}
-                  >
-                    <UploadIcon />
-                    Importar
-                  </FileUploadButton>
-                  <DataSourceList
-                    onSelectDataSource={(ds) => setDataSourceToLink(ds)}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="defaultHourlyRate">Valor Hora Padrão</Label>
+                  <Input
+                    id="defaultHourlyRate"
+                    type="number"
+                    step="0.01"
+                    {...register('defaultHourlyRate')}
                   />
-                  <AlertDialog
-                    open={!!dataSourceToLink}
-                    onOpenChange={(isOpen) =>
-                      !isOpen && setDataSourceToLink(null)
-                    }
-                  >
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Confirmar vinculação
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={dataSourceToLink?.logo}
-                              alt={dataSourceToLink?.name}
-                              className="h-10 w-10 rounded-lg border bg-white object-contain p-1"
-                            />
-                            <div>
-                              <p className="font-semibold">
-                                {dataSourceToLink?.name}
-                              </p>
-                              <p className="text-muted-foreground text-sm">
-                                <span className="text-xs font-semibold">
-                                  <span className="font-normal">by</span>{' '}
-                                  {dataSourceToLink?.creator}
-                                </span>
-                              </p>
-                            </div>
-                          </div>
-                          <br />
-                          Você está prestes a vincular este workspace a um
-                          provedor de dados.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          disabled={linkMutation.isPending}
-                          onClick={() =>
-                            dataSourceToLink &&
-                            linkMutation.mutate(dataSourceToLink)
-                          }
-                        >
-                          {linkMutation.isPending
-                            ? 'Vinculando...'
-                            : 'Sim, vincular'}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </>
-              ))}
+                </div>
+                <div className="space-y-2">
+                  <Label>Moeda</Label>
+                  <Controller
+                    name="currency"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="BRL">Real (BRL)</SelectItem>
+                          <SelectItem value="USD">Dólar (USD)</SelectItem>
+                          <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="weeklyHourGoal">Meta de Horas Semanal</Label>
+                <Input
+                  id="weeklyHourGoal"
+                  type="number"
+                  {...register('weeklyHourGoal')}
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button type="button">Salvar Alterações</Button>
+            </CardFooter>
+          </Card>
 
-            {workspace?.dataSource && workspace?.dataSource != 'local' && (
-              <div>
-                <div className="flex items-center justify-between rounded-md border p-4">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <img
-                        src={localAddon?.logo}
-                        alt={localAddon?.name}
-                        className="h-10 w-10 rounded-lg border bg-white object-contain p-1"
-                      />
-                      <div className="flex flex-col">
-                        <div className="flex items-center space-x-2">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {localAddon?.name}
-                          </p>
-                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                            v{localAddon?.version}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-1">
+                <DatabaseZapIcon size={20} /> Provedor de dados
+              </CardTitle>
+              <CardDescription>
+                Vincule a um serviço externo para sincronizar os dados.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!workspace?.dataSource ||
+                (workspace?.dataSource == 'local' && (
+                  <>
+                    <FileUploadButton
+                      size="sm"
+                      accept=".tladdon"
+                      onFileSelect={(files) => {
+                        handleDataSourceImport(files)
+                      }}
+                    >
+                      <UploadIcon />
+                      Importar
+                    </FileUploadButton>
+                    <DataSourceList
+                      onSelectDataSource={(ds) => setDataSourceToLink(ds)}
+                    />
+                    <AlertDialog
+                      open={!!dataSourceToLink}
+                      onOpenChange={(isOpen) =>
+                        !isOpen && setDataSourceToLink(null)
+                      }
+                    >
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Confirmar vinculação
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={dataSourceToLink?.logo}
+                                alt={dataSourceToLink?.name}
+                                className="h-10 w-10 rounded-lg border bg-white object-contain p-1"
+                              />
+                              <div>
+                                <p className="font-semibold">
+                                  {dataSourceToLink?.name}
+                                </p>
+                                <p className="text-muted-foreground text-sm">
+                                  <span className="text-xs font-semibold">
+                                    <span className="font-normal">by</span>{' '}
+                                    {dataSourceToLink?.creator}
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
+                            <br />
+                            Você está prestes a vincular este workspace a um
+                            provedor de dados.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            disabled={linkMutation.isPending}
+                            onClick={() =>
+                              dataSourceToLink &&
+                              linkMutation.mutate(dataSourceToLink)
+                            }
+                          >
+                            {linkMutation.isPending
+                              ? 'Vinculando...'
+                              : 'Sim, vincular'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
+                ))}
+
+              {workspace?.dataSource && workspace?.dataSource != 'local' && (
+                <div>
+                  <div className="flex items-center justify-between rounded-md border p-4">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <img
+                          src={localAddon?.logo}
+                          alt={localAddon?.name}
+                          className="h-10 w-10 rounded-lg border bg-white object-contain p-1"
+                        />
+                        <div className="flex flex-col">
+                          <div className="flex items-center space-x-2">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                              {localAddon?.name}
+                            </p>
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                              v{localAddon?.version}
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            <span className="font-normal">by</span>{' '}
+                            {localAddon?.creator}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          <span className="font-normal">by</span>{' '}
-                          {localAddon?.creator}
-                        </span>
                       </div>
+                      <Badge className="flex w-fit items-center gap-1 rounded-md border-green-600 bg-green-100 px-2 py-1 text-green-600 dark:bg-transparent">
+                        <CheckCircle2 size={16} className="stroke-[3]" />
+                        Vinculado
+                      </Badge>
                     </div>
-                    <Badge className="flex w-fit items-center gap-1 rounded-md border-green-600 bg-green-100 px-2 py-1 text-green-600 dark:bg-transparent">
-                      <CheckCircle2 size={16} className="stroke-[3]" />
-                      Vinculado
-                    </Badge>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm" type="button">
+                          Desvincular <UnlinkIcon />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta ação é irreversível e irá desvincular seu
+                            provedor de dados
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            disabled={unlinkMutation.isPending}
+                            onClick={() => unlinkMutation.mutate()}
+                          >
+                            Sim, desvincular
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm" type="button">
-                        Desvincular <UnlinkIcon />
+
+                  {isAuthenticated && (
+                    <div className="mt-4 space-y-4 border-t pt-4">
+                      {workspace?.dataSourceConfiguration &&
+                        dynamicFields.configuration.length > 0 && (
+                          <div className="rounded-md border p-4">
+                            <h4 className="mb-2 flex items-center gap-1 font-semibold tracking-tighter">
+                              <UserCogIcon size={20} /> Sessão Ativa
+                            </h4>
+                            <ul className="list-none space-y-1 pl-5 text-sm">
+                              {dynamicFields.configuration
+                                .flatMap((group) => group.fields)
+                                .map((field) => {
+                                  const value =
+                                    workspace?.dataSourceConfiguration?.[
+                                      field.id
+                                    ]
+
+                                  if (!value) return null
+
+                                  return (
+                                    <li key={field.id}>
+                                      <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
+                                        {field.label}:
+                                      </strong>{' '}
+                                      <span className="font-mono tracking-tight">{`${String(value)}`}</span>
+                                    </li>
+                                  )
+                                })}
+                              <li>
+                                <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
+                                  ID:
+                                </strong>{' '}
+                                <span className="font-mono tracking-tight">
+                                  {user?.id}
+                                </span>
+                              </li>
+                              <li>
+                                <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
+                                  Nome:
+                                </strong>{' '}
+                                <span className="font-mono tracking-tight">
+                                  {user?.firstname} {user?.lastname}
+                                </span>
+                              </li>
+                              <li>
+                                <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
+                                  Login:
+                                </strong>{' '}
+                                <span className="font-mono tracking-tight">
+                                  {user?.login}
+                                </span>
+                              </li>
+                            </ul>
+                          </div>
+                        )}
+
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        onClick={() => disconnectMutation.mutate()}
+                        disabled={disconnectMutation.isPending}
+                        className="ml-auto"
+                      >
+                        {disconnectMutation.isPending
+                          ? 'Desconectando...'
+                          : 'Desconectar'}
+                        <UnplugIcon />
                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Esta ação é irreversível e irá desvincular seu
-                          provedor de dados
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          disabled={unlinkMutation.isPending}
-                          onClick={() => unlinkMutation.mutate()}
-                        >
-                          Sim, desvincular
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-
-                {isAuthenticated && (
-                  <div className="mt-4 space-y-4 border-t pt-4">
-                    {workspace?.dataSourceConfiguration &&
-                      dynamicFields.configuration.length > 0 && (
-                        <div className="rounded-md border p-4">
-                          <h4 className="mb-2 flex items-center gap-1 font-semibold tracking-tighter">
-                            <UserCogIcon size={20} /> Sessão Ativa
-                          </h4>
-                          <ul className="list-none space-y-1 pl-5 text-sm">
-                            {dynamicFields.configuration
-                              .flatMap((group) => group.fields)
-                              .map((field) => {
-                                const value =
-                                  workspace?.dataSourceConfiguration?.[field.id]
-
-                                if (!value) return null
-
-                                return (
-                                  <li key={field.id}>
-                                    <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
-                                      {field.label}:
-                                    </strong>{' '}
-                                    <span className="font-mono tracking-tight">{`${String(value)}`}</span>
-                                  </li>
-                                )
-                              })}
-                            <li>
-                              <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
-                                ID:
-                              </strong>{' '}
-                              <span className="font-mono tracking-tight">
-                                {user?.id}
-                              </span>
-                            </li>
-                            <li>
-                              <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
-                                Nome:
-                              </strong>{' '}
-                              <span className="font-mono tracking-tight">
-                                {user?.firstname} {user?.lastname}
-                              </span>
-                            </li>
-                            <li>
-                              <strong className="font-semibold tracking-tighter text-zinc-700 dark:text-zinc-500">
-                                Login:
-                              </strong>{' '}
-                              <span className="font-mono tracking-tight">
-                                {user?.login}
-                              </span>
-                            </li>
-                          </ul>
-                        </div>
-                      )}
-
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="sm"
-                      onClick={() => disconnectMutation.mutate()}
-                      disabled={disconnectMutation.isPending}
-                      className="ml-auto"
-                    >
-                      {disconnectMutation.isPending
-                        ? 'Desconectando...'
-                        : 'Desconectar'}
-                      <UnplugIcon />
-                    </Button>
-                  </div>
-                )}
-
-                {!isAuthenticated && (
-                  <div className="mt-4 space-y-8 border-t pt-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">
-                        Conectar com {localAddon?.name}
-                      </h3>
-                      <p className="text-muted-foreground mt-1 text-sm">
-                        Preencha suas credenciais.
-                      </p>
                     </div>
+                  )}
 
-                    {dynamicFields.configuration.map((group) => (
-                      <div key={group.id} className="space-y-4">
-                        <h4 className="font-medium">{group.label}</h4>
-                        {group.fields.map((field) => (
-                          <div key={field.id} className="space-y-2">
-                            <Label htmlFor={field.id}>{field.label}</Label>
-                            <Input
-                              id={field.id}
-                              type={field.type}
-                              placeholder={field.placeholder}
-                              {...register(
-                                `configuration.${field.id}` as const,
+                  {!isAuthenticated && (
+                    <div className="mt-4 space-y-8 border-t pt-4">
+                      <div>
+                        <h3 className="text-lg font-semibold">
+                          Conectar com {localAddon?.name}
+                        </h3>
+                        <p className="text-muted-foreground mt-1 text-sm">
+                          Preencha suas credenciais.
+                        </p>
+                      </div>
+
+                      {dynamicFields.configuration.map((group) => (
+                        <div key={group.id} className="space-y-4">
+                          <h4 className="font-medium">{group.label}</h4>
+                          {group.fields.map((field) => (
+                            <div key={field.id} className="space-y-2">
+                              <Label htmlFor={field.id}>{field.label}</Label>
+                              <Input
+                                id={field.id}
+                                type={field.type}
+                                placeholder={field.placeholder}
+                                {...register(
+                                  `configuration.${field.id}` as const,
+                                )}
+                                required={field.required}
+                              />
+                              {errors.configuration?.[field.id] && (
+                                <p className="text-sm text-red-500">
+                                  {
+                                    errors.configuration[field.id]
+                                      ?.message as string
+                                  }
+                                </p>
                               )}
-                              required={field.required}
-                            />
-                            {errors.configuration?.[field.id] && (
-                              <p className="text-sm text-red-500">
-                                {
-                                  errors.configuration[field.id]
-                                    ?.message as string
-                                }
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ))}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
 
-                    {dynamicFields.credentials.map((group) => (
-                      <div key={group.id} className="space-y-4">
-                        <h4 className="font-medium">{group.label}</h4>
-                        {group.fields.map((field) => (
-                          <div key={field.id} className="space-y-2">
-                            <Label htmlFor={field.id}>{field.label}</Label>
-                            <Input
-                              id={field.id}
-                              type={field.type}
-                              placeholder={field.placeholder}
-                              {...register(`credentials.${field.id}` as const)}
-                              required={field.required}
-                            />
-                            {errors.credentials?.[field.id] && (
-                              <p className="text-sm text-red-500">
-                                {
-                                  errors.credentials[field.id]
-                                    ?.message as string
-                                }
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                    <Button
-                      type="submit"
-                      disabled={connectMutation.isPending || isFormSubmitting}
-                    >
-                      {connectMutation.isPending ? 'Conectando...' : 'Conectar'}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </form>
+                      {dynamicFields.credentials.map((group) => (
+                        <div key={group.id} className="space-y-4">
+                          <h4 className="font-medium">{group.label}</h4>
+                          {group.fields.map((field) => (
+                            <div key={field.id} className="space-y-2">
+                              <Label htmlFor={field.id}>{field.label}</Label>
+                              <Input
+                                id={field.id}
+                                type={field.type}
+                                placeholder={field.placeholder}
+                                {...register(
+                                  `credentials.${field.id}` as const,
+                                )}
+                                required={field.required}
+                              />
+                              {errors.credentials?.[field.id] && (
+                                <p className="text-sm text-red-500">
+                                  {
+                                    errors.credentials[field.id]
+                                      ?.message as string
+                                  }
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                      <Button
+                        type="submit"
+                        disabled={connectMutation.isPending || isFormSubmitting}
+                      >
+                        {connectMutation.isPending
+                          ? 'Conectando...'
+                          : 'Conectar'}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </form>
+    </>
   )
 }

@@ -119,13 +119,8 @@ export function Activities() {
 
   // 5. Renderiza o Board (como no exemplo oficial)
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <h1 className="px-6 py-4 text-2xl font-semibold tracking-tight">
-        Atividades
-      </h1>
-      <div className="flex-1 overflow-hidden rounded-md border p-4">
-        <Board initial={initialBoard} />
-      </div>
+    <div className="flex-1 overflow-hidden rounded-md border">
+      <Board initial={initialBoard} />
     </div>
   )
 }

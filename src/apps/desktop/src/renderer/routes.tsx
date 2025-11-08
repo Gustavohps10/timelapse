@@ -1,9 +1,9 @@
 import {
   Activities,
   Backlog,
-  Docs,
   Error,
   Metrics,
+  Notes,
   NotFound,
   TimeEntries,
   TimerWidget,
@@ -37,7 +37,7 @@ export const router = createHashRouter([
         element: <WorkspaceLayout />, // sidebar + conteúdo do workspace
         children: [
           { index: true, element: <Metrics /> },
-          { path: 'docs', element: <Docs /> },
+          { path: 'notes', element: <Notes /> },
           { path: 'time-entries', element: <TimeEntries /> },
           {
             path: 'activities',

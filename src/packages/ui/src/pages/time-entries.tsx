@@ -262,14 +262,11 @@ export function TimeEntries() {
 
   return (
     <>
+      <h1 className="text-2xl font-semibold tracking-tight">Apontamento</h1>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/">Home</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/components">Menu</BreadcrumbLink>
+            <BreadcrumbLink href="/">Workspace</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -277,175 +274,169 @@ export function TimeEntries() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <h1 className="my-2 mb-4 scroll-m-20 text-2xl font-bold tracking-tight lg:text-3xl">
-        Apontamento
-      </h1>
+      <hr className="mt-2" />
 
-      <Card className="rounded-md">
-        <CardContent className="p-6">
-          <Card className="shadow-0">
-            <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
-              <div className="flex min-w-0 flex-1 items-center gap-2">
-                <div className="relative">
-                  <Hash
-                    className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2"
-                    style={{ width: 14 }}
-                  />
-                  <Input
-                    placeholder="Ticket"
-                    className="bg-background w-34 pl-7 font-mono tracking-tighter"
-                  />
-                </div>
+      <Card className="shadow-0 mt-6 rounded-md">
+        <CardContent className="flex flex-wrap items-center justify-between gap-4 p-1.5">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <div className="relative">
+              <Hash
+                className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2"
+                style={{ width: 14 }}
+              />
+              <Input
+                placeholder="Ticket"
+                className="bg-background w-34 pl-7 font-mono tracking-tighter"
+              />
+            </div>
 
-                <Select>
-                  <SelectTrigger className="w-[180px] cursor-pointer">
-                    <SelectValue
-                      placeholder={
-                        activities.length > 0 ? 'Atividade' : 'Carregando...'
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="-" className="cursor-pointer">
-                      --- Selecione ---
-                    </SelectItem>
-                    {activities.map((activity) => {
-                      const IconComponent = iconMap[activity.icon]
-                      return (
-                        <SelectItem
-                          key={activity.id}
-                          value={activity.id}
-                          className="cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2">
-                            {IconComponent && <IconComponent size={16} />}
-                            <span>{activity.name}</span>
-                          </div>
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
-
-                <Input placeholder="Descrição" className="flex-1" />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Input
-                  disabled={activeTimeEntry?.status === 'running'}
-                  defaultValue="00:00:00"
-                  maskOptions={timeMask}
-                  style={{ fontSize: 16 }}
-                  className="w-24 text-center font-mono text-lg tracking-tight"
-                />
-                <Button
-                  className="font-semibold"
-                  onClick={handlePlayPauseTimer}
-                  variant={
-                    activeTimeEntry?.status === 'running'
-                      ? 'destructive'
-                      : 'default'
+            <Select>
+              <SelectTrigger className="w-[180px] cursor-pointer">
+                <SelectValue
+                  placeholder={
+                    activities.length > 0 ? 'Atividade' : 'Carregando...'
                   }
-                >
-                  {activeTimeEntry?.status === 'running' ? (
-                    <Pause className="h-4" />
-                  ) : (
-                    <Play className="h-4" />
-                  )}
-                  {activeTimeEntry?.status === 'running' ? 'Parar' : 'Iniciar'}
-                </Button>
-                {!activeTimeEntry && (
-                  <ToggleGroup
-                    type="single"
-                    onValueChange={(value) => {
-                      if (value === 'increasing') setTimeEntryType('increasing')
-                      if (value === 'decreasing') setTimeEntryType('decreasing')
-                    }}
-                    value={timeEntryType}
-                  >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <ToggleGroupItem
-                          value="increasing"
-                          className="h-6 w-6 cursor-pointer border bg-transparent p-0"
-                          aria-label="Tempo Crescente"
-                        >
-                          <ClockArrowUpIcon
-                            className={
-                              timeEntryType === 'increasing'
-                                ? 'text-foreground'
-                                : 'text-muted-foreground'
-                            }
-                          />
-                        </ToggleGroupItem>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="font-semibold">Tempo Crescente</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <ToggleGroupItem
-                          value="decreasing"
-                          className="h-6 w-6 cursor-pointer border bg-transparent p-0"
-                          aria-label="Tempo Decrescente"
-                        >
-                          <ClockArrowDownIcon
-                            className={
-                              timeEntryType === 'decreasing'
-                                ? 'text-foreground'
-                                : 'text-muted-foreground'
-                            }
-                          />
-                        </ToggleGroupItem>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="font-semibold">Tempo Decrescente</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </ToggleGroup>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="-" className="cursor-pointer">
+                  --- Selecione ---
+                </SelectItem>
+                {activities.map((activity) => {
+                  const IconComponent = iconMap[activity.icon]
+                  return (
+                    <SelectItem
+                      key={activity.id}
+                      value={activity.id}
+                      className="cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        {IconComponent && <IconComponent size={16} />}
+                        <span>{activity.name}</span>
+                      </div>
+                    </SelectItem>
+                  )
+                })}
+              </SelectContent>
+            </Select>
 
-          <div className="container mx-auto py-16">
-            <div className="flex items-center gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="secondary"
-                    className="bg-background flex items-center gap-2 border font-sans tracking-tighter"
-                  >
-                    <CalendarDaysIcon />
-                    {date ? (
-                      <>
-                        <span>{format(date, 'EEEE')}</span>
-                        <span className="font-mono">
-                          {format(date, 'dd/MM/yyyy')}
-                        </span>
-                      </>
-                    ) : (
-                      'Selecione uma data'
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-1">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    className="m-none"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="container mx-auto py-4">
-              <DataTable columns={columns} data={groupedEntries} />
-            </div>
+            <Input placeholder="Descrição" className="flex-1" />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Input
+              disabled={activeTimeEntry?.status === 'running'}
+              defaultValue="00:00:00"
+              maskOptions={timeMask}
+              style={{ fontSize: 16 }}
+              className="w-24 text-center font-mono text-lg tracking-tight"
+            />
+            <Button
+              className="font-semibold"
+              onClick={handlePlayPauseTimer}
+              variant={
+                activeTimeEntry?.status === 'running'
+                  ? 'destructive'
+                  : 'default'
+              }
+            >
+              {activeTimeEntry?.status === 'running' ? (
+                <Pause className="h-4" />
+              ) : (
+                <Play className="h-4" />
+              )}
+              {activeTimeEntry?.status === 'running' ? 'Parar' : 'Iniciar'}
+            </Button>
+            {!activeTimeEntry && (
+              <ToggleGroup
+                type="single"
+                onValueChange={(value) => {
+                  if (value === 'increasing') setTimeEntryType('increasing')
+                  if (value === 'decreasing') setTimeEntryType('decreasing')
+                }}
+                value={timeEntryType}
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ToggleGroupItem
+                      value="increasing"
+                      className="h-6 w-6 cursor-pointer border bg-transparent p-0"
+                      aria-label="Tempo Crescente"
+                    >
+                      <ClockArrowUpIcon
+                        className={
+                          timeEntryType === 'increasing'
+                            ? 'text-foreground'
+                            : 'text-muted-foreground'
+                        }
+                      />
+                    </ToggleGroupItem>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="font-semibold">Tempo Crescente</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ToggleGroupItem
+                      value="decreasing"
+                      className="h-6 w-6 cursor-pointer border bg-transparent p-0"
+                      aria-label="Tempo Decrescente"
+                    >
+                      <ClockArrowDownIcon
+                        className={
+                          timeEntryType === 'decreasing'
+                            ? 'text-foreground'
+                            : 'text-muted-foreground'
+                        }
+                      />
+                    </ToggleGroupItem>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="font-semibold">Tempo Decrescente</p>
+                  </TooltipContent>
+                </Tooltip>
+              </ToggleGroup>
+            )}
           </div>
         </CardContent>
       </Card>
+
+      <div className="container py-16">
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="secondary"
+                className="bg-background flex items-center gap-2 border font-sans tracking-tighter"
+              >
+                <CalendarDaysIcon />
+                {date ? (
+                  <>
+                    <span>{format(date, 'EEEE')}</span>
+                    <span className="font-mono">
+                      {format(date, 'dd/MM/yyyy')}
+                    </span>
+                  </>
+                ) : (
+                  'Selecione uma data'
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-1">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                className="m-none"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="container mx-auto py-4">
+          <DataTable columns={columns} data={groupedEntries} />
+        </div>
+      </div>
     </>
   )
 }

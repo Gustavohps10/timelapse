@@ -1,6 +1,6 @@
 import {
   ChartColumnBig,
-  FileText,
+  FileEditIcon,
   ListTodoIcon,
   Settings,
   Timer,
@@ -20,7 +20,7 @@ const mainItems = [
   { title: 'Atividades', path: 'activities', icon: ListTodoIcon },
   { title: 'Apontamento', path: 'time-entries', icon: Timer },
   { title: 'Métricas', path: '', icon: ChartColumnBig },
-  { title: 'Documentação', path: 'docs', icon: FileText },
+  { title: 'Anotações', path: 'notes', icon: FileEditIcon },
   { title: 'Configuração', path: 'settings', icon: Settings },
 ]
 

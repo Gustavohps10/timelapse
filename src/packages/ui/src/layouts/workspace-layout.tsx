@@ -1,5 +1,4 @@
 import { Outlet } from 'react-router'
-import { Toaster } from 'sonner'
 
 import {
   AppSidebar,
@@ -45,8 +44,6 @@ export function WorkspaceLayout() {
                 </section>
                 <Footer />
               </ScrollArea>
-
-              <Toaster />
             </main>
           </>
         </AuthProvider>

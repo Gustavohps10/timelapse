@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Calendar as CalendarIcon } from 'lucide-react'
+import { CalendarDaysIcon } from 'lucide-react'
 import * as React from 'react'
 import { DateRange } from 'react-day-picker'
 
@@ -26,27 +26,41 @@ export function DatePickerWithRange({
   date,
   setDate,
 }: DatePickerWithRangeProps) {
+  function formatDateDisplay(date: Date) {
+    const weekday = format(date, 'EEE', { locale: ptBR })
+    const day = format(date, 'dd/MM/yyyy', { locale: ptBR })
+    return (
+      <span className="flex items-center gap-1">
+        <span className="text-muted-foreground italic">
+          {weekday.replace('.', '').slice(0, 3)}.
+        </span>
+        <span className="font-mono">{day}</span>
+      </span>
+    )
+  }
+
   return (
     <div className={cn('grid gap-2', className)}>
       <Popover>
         <PopoverTrigger asChild>
           <Button
             id="date"
-            variant={'outline'}
+            variant="outline"
             className={cn(
-              'w-[280px] justify-start text-left font-normal',
+              'w-fit justify-start text-left font-sans tracking-tighter',
               !date && 'text-muted-foreground',
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <CalendarDaysIcon className="mr-2 h-4 w-4" />
             {date?.from ? (
               date.to ? (
-                <>
-                  {format(date.from, 'dd/MM/yy', { locale: ptBR })} -{' '}
-                  {format(date.to, 'dd/MM/yy', { locale: ptBR })}
-                </>
+                <div className="flex items-center gap-1">
+                  {formatDateDisplay(date.from)}
+                  <span>-</span>
+                  {formatDateDisplay(date.to)}
+                </div>
               ) : (
-                format(date.from, 'dd/MM/yy', { locale: ptBR })
+                formatDateDisplay(date.from)
               )
             ) : (
               <span>Escolha um período</span>
@@ -55,7 +69,7 @@ export function DatePickerWithRange({
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="end">
           <Calendar
-            initialFocus
+            autoFocus
             mode="range"
             defaultMonth={date?.from}
             selected={date}

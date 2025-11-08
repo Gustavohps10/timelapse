@@ -18,7 +18,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
 }
 
 export function AppSidebarHeader({ children }: { children?: React.ReactNode }) {
-  return <SidebarHeader className="z-40">{children}</SidebarHeader>
+  return <SidebarHeader className="z-40 p-0">{children}</SidebarHeader>
 }
 
 export function AppSidebarContent({

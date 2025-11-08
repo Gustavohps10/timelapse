@@ -64,10 +64,6 @@ export function Backlog() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <h1 className="px-6 py-4 text-2xl font-semibold tracking-tight">
-        Atividades
-      </h1>
-
       <Shell>
         <Suspense
           fallback={

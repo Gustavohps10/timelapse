@@ -440,251 +440,154 @@ export function Metrics() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              {' '}
-              <BreadcrumbLink href="/">Home</BreadcrumbLink>{' '}
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              {' '}
-              <BreadcrumbPage>Dashboard</BreadcrumbPage>{' '}
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div className="mt-2 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <DatePickerWithRange date={date} setDate={setDate} />
-        </div>
-      </div>
+    <>
+      <h1 className="text-2xl font-semibold tracking-tight">Métricas</h1>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Workspace</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Métricas</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <hr className="mt-2" />
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Horas (Hoje)</CardTitle>
-            <CalendarCheck2 className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            {' '}
-            <div className="text-2xl font-bold">
-              {' '}
-              {formatHours(summary.today)}{' '}
-            </div>{' '}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Horas (Semana)
-            </CardTitle>
-            <CalendarClock className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            {' '}
-            <div className="text-2xl font-bold">
-              {formatHours(summary.week)}
-            </div>{' '}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Horas (Mês)</CardTitle>
-            <Calendar className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            {' '}
-            <div className="text-2xl font-bold">
-              {formatHours(summary.month)}
-            </div>{' '}
-          </CardContent>
-        </Card>
-      </div>
+      <div className="mt-6 flex flex-col gap-6">
+        <DatePickerWithRange
+          date={date}
+          setDate={setDate}
+          className="ml-auto"
+        />
 
-      {/* Main Content with Loading State */}
-      {isLoadingMetrics && (
-        <div className="flex h-96 items-center justify-center">
-          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
-        </div>
-      )}
-
-      {!isLoadingMetrics && metrics && (
-        <>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Timeline de Horas</CardTitle>
-              <CardDescription>
-                Horas apontadas no período de{' '}
-                {date?.from ? format(date.from, 'dd/MM/yy') : ''} a{' '}
-                {date?.to ? format(date.to, 'dd/MM/yy') : ''}.
-              </CardDescription>
+            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Horas (Hoje)
+              </CardTitle>
+              <CalendarCheck2 className="text-muted-foreground h-4 w-4" />
             </CardHeader>
-            <CardContent className="pl-2">
-              <ChartContainer
-                config={{
-                  dailyHours: { label: 'Horas', color: 'var(--primary)' },
-                }}
-                className="h-[250px] w-full"
-              >
-                <LineChart
-                  data={metrics.timelineData}
-                  margin={{ top: 5, right: 20, left: 0, bottom: 20 }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="day"
-                    tickLine={false}
-                    axisLine={false}
-                    height={50}
-                    interval="preserveStartEnd"
-                  />
-                  <YAxis
-                    tickFormatter={(value) => `${value.toFixed(1)}h`}
-                    width={40}
-                    domain={[0, yAxisMax]}
-                    ticks={yAxisTicks}
-                  />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent indicator="dot" />}
-                  />
-                  <ReferenceLine
-                    y={chartSettings.hoursGoal}
-                    label={{
-                      value: `Meta ${chartSettings.hoursGoal}h`,
-                      position: 'insideTopRight',
-                      fill: 'orange',
-                      fontSize: 12,
-                    }}
-                    stroke="orange"
-                    strokeDasharray="3 3"
-                  />
-                  <ReferenceLine
-                    y={acceptableHours}
-                    label={{
-                      value: `Aceitável ${acceptableHours.toFixed(1)}h`,
-                      position: 'insideTopRight',
-                      fill: 'var(--muted-foreground)',
-                      fontSize: 12,
-                      dy: 20,
-                    }}
-                    stroke="var(--muted-foreground)"
-                    strokeDasharray="4 4"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="dailyHours"
-                    stroke="var(--color-dailyHours)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ChartContainer>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatHours(summary.today)}
+              </div>
             </CardContent>
           </Card>
+          <Card>
+            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Horas (Semana)
+              </CardTitle>
+              <CalendarClock className="text-muted-foreground h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatHours(summary.week)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Horas (Mês)</CardTitle>
+              <Calendar className="text-muted-foreground h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatHours(summary.month)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Horas (Mês)</CardTitle>
+              <Calendar className="text-muted-foreground h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatHours(summary.month)}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Main Content with Loading State */}
+        {isLoadingMetrics && (
+          <div className="flex h-96 items-center justify-center">
+            <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+          </div>
+        )}
+
+        {!isLoadingMetrics && metrics && (
+          <>
             <Card>
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <BarChartHorizontal className="h-5 w-5" />
-                  <CardTitle>Média de Horas por Dia da Semana</CardTitle>
-                </div>
+                <CardTitle>Timeline de Horas</CardTitle>
                 <CardDescription>
-                  Qual dia da semana você é mais produtivo?
-                </CardDescription>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
-                  {WEEK_DAYS_CONFIG.map(({ id, label }) => (
-                    <div key={id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`day-${id}`}
-                        checked={selectedDays[label]}
-                        onCheckedChange={() => handleDayToggle(label)}
-                      />
-                      <Label
-                        htmlFor={`day-${id}`}
-                        className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {label}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 text-center">
-                  <p className="text-muted-foreground text-sm">
-                    Média geral (dias selecionados)
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {formatHours(avgHoursAnalysis.overallAverage)}
-                  </p>
-                </div>
-                <ChartContainer
-                  config={avgHoursChartConfig}
-                  className="h-[300px] w-full"
-                >
-                  <BarChart
-                    data={avgHoursAnalysis.chartData}
-                    margin={{ left: -20 }}
-                  >
-                    <CartesianGrid vertical={false} />
-                    <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                    <YAxis tickFormatter={(value) => `${value}h`} />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent />}
-                    />
-                    <Bar
-                      dataKey="averageHours"
-                      fill="var(--color-averageHours)"
-                      radius={4}
-                    />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <AlarmClockOff className="h-5 w-5" />
-                  <CardTitle>Análise de Horas Extras</CardTitle>
-                </div>
-                <CardDescription>
-                  Você teve{' '}
-                  <span className="text-primary font-bold">
-                    {metrics.overtimeData.daysWithOvertime}
-                  </span>{' '}
-                  dia(s) com horas extras no período.
+                  Horas apontadas no período de
+                  {date?.from ? format(date.from, 'dd/MM/yy') : ''} a
+                  {date?.to ? format(date.to, 'dd/MM/yy') : ''}.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pl-2">
                 <ChartContainer
-                  config={overtimeChartConfig}
-                  className="h-[300px] w-full"
+                  config={{
+                    dailyHours: { label: 'Horas', color: 'var(--primary)' },
+                  }}
+                  className="h-[250px] w-full"
                 >
                   <LineChart
-                    data={metrics.overtimeData.chartData}
-                    margin={{ left: -20, right: 10 }}
+                    data={metrics.timelineData}
+                    margin={{ top: 5, right: 20, left: 0, bottom: 20 }}
                   >
                     <CartesianGrid vertical={false} />
-                    <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                    <YAxis tickFormatter={(value) => `${value.toFixed(1)}h`} />
+                    <XAxis
+                      dataKey="day"
+                      tickLine={false}
+                      axisLine={false}
+                      height={50}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis
+                      tickFormatter={(value) => `${value.toFixed(1)}h`}
+                      width={40}
+                      domain={[0, yAxisMax]}
+                      ticks={yAxisTicks}
+                    />
                     <ChartTooltip
                       cursor={false}
-                      content={
-                        <ChartTooltipContent
-                          formatter={(value) => formatHours(Number(value))}
-                        />
-                      }
+                      content={<ChartTooltipContent indicator="dot" />}
+                    />
+                    <ReferenceLine
+                      y={chartSettings.hoursGoal}
+                      label={{
+                        value: `Meta ${chartSettings.hoursGoal}h`,
+                        position: 'insideTopRight',
+                        fill: 'orange',
+                        fontSize: 12,
+                      }}
+                      stroke="orange"
+                      strokeDasharray="3 3"
+                    />
+                    <ReferenceLine
+                      y={acceptableHours}
+                      label={{
+                        value: `Aceitável ${acceptableHours.toFixed(1)}h`,
+                        position: 'insideTopRight',
+                        fill: 'var(--muted-foreground)',
+                        fontSize: 12,
+                        dy: 20,
+                      }}
+                      stroke="var(--muted-foreground)"
+                      strokeDasharray="4 4"
                     />
                     <Line
                       type="monotone"
-                      dataKey="overtimeHours"
-                      stroke="var(--primary)"
+                      dataKey="dailyHours"
+                      stroke="var(--color-dailyHours)"
                       strokeWidth={2}
                       dot={false}
                     />
@@ -692,204 +595,318 @@ export function Metrics() {
                 </ChartContainer>
               </CardContent>
             </Card>
-          </div>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Grid className="h-5 w-5" />
-                <CardTitle>Mapa de Calor de Produtividade</CardTitle>
-              </div>
-              <CardDescription>
-                Seus horários de pico de trabalho no período selecionado.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[60px]">Dia</TableHead>
-                    {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
-                      <TableHead
-                        key={hour}
-                        className="p-1 text-center text-xs"
-                      >{`${String(hour).padStart(2, '0')}h`}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {heatmapDayMapping.map(({ key, display }) => (
-                    <TableRow key={key}>
-                      <TableCell className="font-medium">{display}</TableCell>
-                      {Array.from({ length: 24 }, (_, i) => {
-                        const hourStr = String(i).padStart(2, '0')
-                        const hoursValue = metrics.heatmapData[key]?.[hourStr]
-                        return (
-                          <TableCell
-                            key={`${key}-${i}`}
-                            className="p-0 text-center"
-                          >
-                            <div
-                              className="m-0.5 h-8 rounded-md"
-                              style={getHeatmapStyle(hoursValue)}
-                              title={
-                                hoursValue
-                                  ? `${formatHours(hoursValue)} em ${display} às ${hourStr}h`
-                                  : 'Nenhuma atividade'
-                              }
-                            />
-                          </TableCell>
-                        )
-                      })}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Distribuição por Atividade</CardTitle>
-                <CardDescription>Top 5 atividades no período.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex justify-center">
-                <ChartContainer
-                  config={activityChartConfig}
-                  className="mx-auto aspect-square h-[300px] max-h-[300px]"
-                >
-                  <RechartsPieChart>
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent
-                          nameKey="hours"
-                          formatter={(value) => formatHours(Number(value))}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <BarChartHorizontal className="h-5 w-5" />
+                    <CardTitle>Média de Horas por Dia da Semana</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Qual dia da semana você é mais produtivo?
+                  </CardDescription>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
+                    {WEEK_DAYS_CONFIG.map(({ id, label }) => (
+                      <div key={id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`day-${id}`}
+                          checked={selectedDays[label]}
+                          onCheckedChange={() => handleDayToggle(label)}
                         />
-                      }
-                    />
-                    <Pie
-                      data={metrics.activityData}
-                      dataKey="hours"
-                      nameKey="activity"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={5}
-                    />
-                  </RechartsPieChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Qualidade e Hábitos de Apontamento</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-8">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <CalendarClock className="h-5 w-5 text-amber-500" />
-                    <span className="ml-3 font-medium">
-                      Dias Úteis Esquecidos
-                    </span>
-                  </div>
-                  <Badge
-                    variant={
-                      metrics.quality.forgottenDays > 0
-                        ? 'destructive'
-                        : 'secondary'
-                    }
-                  >
-                    {metrics.quality.forgottenDays} dia(s)
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <MessageSquareWarning className="h-5 w-5 text-amber-500" />
-                    <span className="ml-3 font-medium">
-                      Apontamentos sem Comentários
-                    </span>
-                  </div>
-                  <div className="w-32 text-right">
-                    <span className="font-bold">
-                      {metrics.quality.noCommentPercent.toFixed(0)}%
-                    </span>
-                    <Progress
-                      value={metrics.quality.noCommentPercent}
-                      className="mt-1 h-2"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Clock4 className="h-5 w-5 text-amber-500" />
-                    <span className="ml-3 font-medium">
-                      Pontualidade dos Apontamentos
-                    </span>
-                  </div>
-                  <div className="w-40">
-                    <ChartContainer
-                      config={punctualityChartConfig}
-                      className="h-[100px] w-full"
-                    >
-                      <RechartsPieChart accessibilityLayer>
-                        <ChartTooltip
-                          cursor={false}
-                          content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                              const total = metrics.punctualityData.reduce(
-                                (acc, curr) => acc + curr.value,
-                                0,
-                              )
-                              const data = payload[0]
-                              const percentage =
-                                total > 0
-                                  ? (data.payload.value / total) * 100
-                                  : 0
-                              return (
-                                <div className="bg-background min-w-[12rem] rounded-lg border p-2 text-sm shadow-sm">
-                                  <div className="flex items-center gap-2 font-medium">
-                                    <div
-                                      className="h-2.5 w-2.5 shrink-0 rounded-sm"
-                                      style={{
-                                        backgroundColor: data.payload.fill,
-                                      }}
-                                    />
-                                    {data.name}
-                                  </div>
-                                  <div className="text-muted-foreground flex justify-between">
-                                    <span>Contagem: {data.payload.value}</span>
-                                    <span>{percentage.toFixed(0)}%</span>
-                                  </div>
-                                </div>
-                              )
-                            }
-                            return null
-                          }}
-                        />
-                        <Pie
-                          data={metrics.punctualityData}
-                          dataKey="value"
-                          nameKey="name"
-                          innerRadius={30}
-                          outerRadius={40}
-                          strokeWidth={2}
+                        <Label
+                          htmlFor={`day-${id}`}
+                          className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
-                          {metrics.punctualityData.map((entry) => (
-                            <Cell
-                              key={`cell-${entry.name}`}
-                              fill={entry.fill}
-                            />
-                          ))}
-                        </Pie>
-                      </RechartsPieChart>
-                    </ChartContainer>
+                          {label}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4 text-center">
+                    <p className="text-muted-foreground text-sm">
+                      Média geral (dias selecionados)
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {formatHours(avgHoursAnalysis.overallAverage)}
+                    </p>
+                  </div>
+                  <ChartContainer
+                    config={avgHoursChartConfig}
+                    className="h-[300px] w-full"
+                  >
+                    <BarChart
+                      data={avgHoursAnalysis.chartData}
+                      margin={{ left: -20 }}
+                    >
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="day" tickLine={false} axisLine={false} />
+                      <YAxis tickFormatter={(value) => `${value}h`} />
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent />}
+                      />
+                      <Bar
+                        dataKey="averageHours"
+                        fill="var(--color-averageHours)"
+                        radius={4}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <AlarmClockOff className="h-5 w-5" />
+                    <CardTitle>Análise de Horas Extras</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Você teve
+                    <span className="text-primary font-bold">
+                      {metrics.overtimeData.daysWithOvertime}
+                    </span>
+                    dia(s) com horas extras no período.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer
+                    config={overtimeChartConfig}
+                    className="h-[300px] w-full"
+                  >
+                    <LineChart
+                      data={metrics.overtimeData.chartData}
+                      margin={{ left: -20, right: 10 }}
+                    >
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="day" tickLine={false} axisLine={false} />
+                      <YAxis
+                        tickFormatter={(value) => `${value.toFixed(1)}h`}
+                      />
+                      <ChartTooltip
+                        cursor={false}
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value) => formatHours(Number(value))}
+                          />
+                        }
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="overtimeHours"
+                        stroke="var(--primary)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Grid className="h-5 w-5" />
+                  <CardTitle>Mapa de Calor de Produtividade</CardTitle>
                 </div>
+                <CardDescription>
+                  Seus horários de pico de trabalho no período selecionado.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[60px]">Dia</TableHead>
+                      {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
+                        <TableHead
+                          key={hour}
+                          className="p-1 text-center text-xs"
+                        >{`${String(hour).padStart(2, '0')}h`}</TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {heatmapDayMapping.map(({ key, display }) => (
+                      <TableRow key={key}>
+                        <TableCell className="font-medium">{display}</TableCell>
+                        {Array.from({ length: 24 }, (_, i) => {
+                          const hourStr = String(i).padStart(2, '0')
+                          const hoursValue = metrics.heatmapData[key]?.[hourStr]
+                          return (
+                            <TableCell
+                              key={`${key}-${i}`}
+                              className="p-0 text-center"
+                            >
+                              <div
+                                className="m-0.5 h-8 rounded-md"
+                                style={getHeatmapStyle(hoursValue)}
+                                title={
+                                  hoursValue
+                                    ? `${formatHours(hoursValue)} em ${display} às ${hourStr}h`
+                                    : 'Nenhuma atividade'
+                                }
+                              />
+                            </TableCell>
+                          )
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
-          </div>
-        </>
-      )}
-    </div>
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Distribuição por Atividade</CardTitle>
+                  <CardDescription>
+                    Top 5 atividades no período.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center">
+                  <ChartContainer
+                    config={activityChartConfig}
+                    className="mx-auto aspect-square h-[300px] max-h-[300px]"
+                  >
+                    <RechartsPieChart>
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            nameKey="hours"
+                            formatter={(value) => formatHours(Number(value))}
+                          />
+                        }
+                      />
+                      <Pie
+                        data={metrics.activityData}
+                        dataKey="hours"
+                        nameKey="activity"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={5}
+                      />
+                    </RechartsPieChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Qualidade e Hábitos de Apontamento</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <CalendarClock className="h-5 w-5 text-amber-500" />
+                      <span className="ml-3 font-medium">
+                        Dias Úteis Esquecidos
+                      </span>
+                    </div>
+                    <Badge
+                      variant={
+                        metrics.quality.forgottenDays > 0
+                          ? 'destructive'
+                          : 'secondary'
+                      }
+                    >
+                      {metrics.quality.forgottenDays} dia(s)
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <MessageSquareWarning className="h-5 w-5 text-amber-500" />
+                      <span className="ml-3 font-medium">
+                        Apontamentos sem Comentários
+                      </span>
+                    </div>
+                    <div className="w-32 text-right">
+                      <span className="font-bold">
+                        {metrics.quality.noCommentPercent.toFixed(0)}%
+                      </span>
+                      <Progress
+                        value={metrics.quality.noCommentPercent}
+                        className="mt-1 h-2"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Clock4 className="h-5 w-5 text-amber-500" />
+                      <span className="ml-3 font-medium">
+                        Pontualidade dos Apontamentos
+                      </span>
+                    </div>
+                    <div className="w-40">
+                      <ChartContainer
+                        config={punctualityChartConfig}
+                        className="h-[100px] w-full"
+                      >
+                        <RechartsPieChart accessibilityLayer>
+                          <ChartTooltip
+                            cursor={false}
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const total = metrics.punctualityData.reduce(
+                                  (acc, curr) => acc + curr.value,
+                                  0,
+                                )
+                                const data = payload[0]
+                                const percentage =
+                                  total > 0
+                                    ? (data.payload.value / total) * 100
+                                    : 0
+                                return (
+                                  <div className="bg-background min-w-[12rem] rounded-lg border p-2 text-sm shadow-sm">
+                                    <div className="flex items-center gap-2 font-medium">
+                                      <div
+                                        className="h-2.5 w-2.5 shrink-0 rounded-sm"
+                                        style={{
+                                          backgroundColor: data.payload.fill,
+                                        }}
+                                      />
+                                      {data.name}
+                                    </div>
+                                    <div className="text-muted-foreground flex justify-between">
+                                      <span>
+                                        Contagem: {data.payload.value}
+                                      </span>
+                                      <span>{percentage.toFixed(0)}%</span>
+                                    </div>
+                                  </div>
+                                )
+                              }
+                              return null
+                            }}
+                          />
+                          <Pie
+                            data={metrics.punctualityData}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={30}
+                            outerRadius={40}
+                            strokeWidth={2}
+                          >
+                            {metrics.punctualityData.map((entry) => (
+                              <Cell
+                                key={`cell-${entry.name}`}
+                                fill={entry.fill}
+                              />
+                            ))}
+                          </Pie>
+                        </RechartsPieChart>
+                      </ChartContainer>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+      </div>
+    </>
   )
 }

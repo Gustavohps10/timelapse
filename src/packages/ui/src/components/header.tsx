@@ -38,13 +38,13 @@ export function Header() {
 
   return (
     <header className="pointer-events-none absolute top-0 left-0 z-50 flex w-full justify-center bg-transparent p-2">
-      <div className="border-border bg-background/60 pointer-events-auto flex items-center justify-between gap-2 rounded-md border px-1.5 py-1 shadow-md backdrop-blur-md">
+      <div className="border-border bg-background/60 pointer-events-auto flex items-center justify-between gap-2 rounded-md border px-2 py-1 shadow-md backdrop-blur-md">
         <div className="inline-block rounded-sm bg-zinc-200 p-1">
           <img src={logoAtak} className="h-3 w-3" alt="Logo" />
         </div>
 
         <div className="flex flex-col">
-          <span className="text-uppercase text-sm leading-3 font-semibold tracking-tight">
+          <span className="text-uppercase font-sans text-xs leading-3 font-semibold tracking-tight">
             {workspace?.name}
           </span>
           <span className="text-muted-foreground font-mono text-xs leading-3">
