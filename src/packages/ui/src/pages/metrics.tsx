@@ -1,23 +1,32 @@
+// src/pages/Metrics.tsx (Exemplo de caminho)
+
 import { useQuery } from '@tanstack/react-query'
 import {
   eachDayOfInterval,
   endOfDay,
   endOfMonth,
   format,
+  isAfter,
+  parseISO,
   startOfMonth,
+  startOfToday,
   startOfWeek,
 } from 'date-fns'
 import { enUS, ptBR } from 'date-fns/locale'
 import {
   AlarmClockOff,
   BarChartHorizontal,
+  Briefcase,
   Calendar,
-  CalendarCheck2,
   CalendarClock,
+  CheckSquare,
+  Clock,
   Clock4,
+  Flame,
   Grid,
-  Loader2,
   MessageSquareWarning,
+  Timer,
+  TrendingUp,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { DateRange } from 'react-day-picker'
@@ -29,11 +38,14 @@ import {
   Line,
   LineChart,
   Pie,
+  PieChart,
   PieChart as RechartsPieChart,
   ReferenceLine,
+  ResponsiveContainer,
   XAxis,
   YAxis,
 } from 'recharts'
+import { RxDatabase } from 'rxdb'
 
 import { DatePickerWithRange } from '@/components'
 import { Badge } from '@/components/ui/badge'
@@ -61,6 +73,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -77,6 +90,7 @@ import { useSyncStore } from '@/stores/syncStore'
 const chartSettings = {
   hoursGoal: 8.5,
   acceptablePercentage: 0.85,
+  minHours: 7.2, // Meta mínima de 7.2h, como visto no JSX
 }
 
 const WEEK_DAYS_CONFIG = [
@@ -96,6 +110,14 @@ const formatHours = (hours: number): string => {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
 }
 
+// Formata 7.5 para "07h 30m"
+const formatHoursMinutes = (hours: number): string => {
+  if (isNaN(hours) || hours < 0.01) return '00h 00m'
+  const h = Math.floor(hours)
+  const m = Math.round((hours - h) * 60)
+  return `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m`
+}
+
 const parseUTCDate = (dateString: string | undefined): Date => {
   if (!dateString) return new Date(NaN)
   const date = new Date(dateString)
@@ -108,45 +130,14 @@ const parseUTCDate = (dateString: string | undefined): Date => {
     date.getUTCSeconds(),
   )
 }
-// #endregion
 
-// #region Data Fetching and Processing Functions (for useQuery)
-async function fetchSummaryData(db: any) {
-  if (!db?.timeEntries) return { today: 0, week: 0, month: 0 }
-
-  const today = new Date()
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 })
-  const monthStart = startOfMonth(today)
-  const todayStr = format(today, 'yyyy-MM-dd')
-
-  const entries = await db.timeEntries
-    .find({ selector: { startDate: { $gte: monthStart.toISOString() } } })
-    .exec()
-
-  return entries.reduce(
-    (acc: { today: number; week: number; month: number }, entry: any) => {
-      if (!entry.startDate) return acc
-      const entryDate = parseUTCDate(entry.startDate)
-      const hours = entry.timeSpent ?? 0
-
-      if (format(entryDate, 'yyyy-MM-dd') === todayStr) acc.today += hours
-      if (entryDate >= weekStart) acc.week += hours
-      acc.month += hours // All entries are from the current month
-      return acc
-    },
-    { today: 0, week: 0, month: 0 },
-  )
-}
-
-async function fetchMetricsData(db: any, dateRange: DateRange) {
-  if (!db?.timeEntries || !dateRange.from) return null
-
-  // CHANGE: Usar as datas exatas do date picker, não o mês inteiro.
-  // O endOfDay garante que o último dia selecionado seja incluído por completo.
-  const from = dateRange.from
-  const to = endOfDay(dateRange.to ?? dateRange.from)
-
-  const entries: SyncTimeEntryRxDBDTO[] = await db.timeEntries
+const getEntriesForRange = async (
+  db: RxDatabase,
+  from: Date,
+  to: Date,
+): Promise<SyncTimeEntryRxDBDTO[]> => {
+  if (!db?.timeEntries) return []
+  return db.timeEntries
     .find({
       selector: {
         startDate: {
@@ -156,10 +147,271 @@ async function fetchMetricsData(db: any, dateRange: DateRange) {
       },
     })
     .exec()
+}
+// #endregion
+
+// #region Skeletons
+function SummaryCardSkeleton() {
+  return (
+    <Card className="p-5">
+      <CardContent className="flex items-center justify-between p-0">
+        <div className="flex flex-col justify-between gap-2">
+          <Skeleton className="h-5 w-24" />
+          <div className="mt-3 space-y-2">
+            <Skeleton className="h-7 w-20" />
+            <Skeleton className="h-4 w-28" />
+          </div>
+        </div>
+        <Skeleton className="h-16 w-16 rounded-full" />
+      </CardContent>
+    </Card>
+  )
+}
+
+function PeriodCardSkeleton() {
+  return (
+    <Card className="p-5">
+      <CardContent className="flex w-full items-center justify-between p-0">
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-28" />
+          <div className="mt-3 space-y-2">
+            <Skeleton className="h-7 w-20" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function ChartCardSkeleton({
+  className = 'h-[400px]',
+}: {
+  className?: string
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-1/2" />
+        <Skeleton className="h-4 w-3/4" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className={`w-full ${className}`} />
+      </CardContent>
+    </Card>
+  )
+}
+
+function PieChartSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-1/2" />
+        <Skeleton className="h-4 w-3/4" />
+      </CardHeader>
+      <CardContent className="flex justify-center">
+        <Skeleton className="h-[300px] w-[300px] rounded-full" />
+      </CardContent>
+    </Card>
+  )
+}
+
+function QualityCardSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-1/2" />
+      </CardHeader>
+      <CardContent className="grid gap-8">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-5 w-1/2" />
+          <Skeleton className="h-5 w-1/4" />
+        </div>
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-5 w-1/2" />
+          <Skeleton className="h-5 w-1/4" />
+        </div>
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-5 w-1/2" />
+          <Skeleton className="h-24 w-24 rounded-full" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function HeatmapSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-1/2" />
+        <Skeleton className="h-4 w-3/4" />
+      </CardHeader>
+      <CardContent className="overflow-x-auto">
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-[60px]" />
+            {Array.from({ length: 12 }).map((_, i) => (
+              <Skeleton key={i} className="h-8 w-10 flex-1" />
+            ))}
+          </div>
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className="flex gap-2">
+              <Skeleton className="h-8 w-[60px]" />
+              {Array.from({ length: 12 }).map((_, j) => (
+                <Skeleton key={j} className="h-8 w-10 flex-1" />
+              ))}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+// #endregion
+
+// #region Data Fetching (Dividido por Query)
+
+// Query 1: Status Atual (Hoje, Semana, Mês)
+async function fetchSummaryData(db: any) {
+  if (!db?.timeEntries) return { today: 0, week: 0, month: 0 }
+
+  const today = new Date()
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 })
+  const monthStart = startOfMonth(today)
+  const todayStr = format(today, 'yyyy-MM-dd')
+
+  // Otimizado: Busca apenas o mês atual, que é o escopo máximo necessário
+  const entries = await db.timeEntries
+    .find({ selector: { startDate: { $gte: monthStart.toISOString() } } })
+    .exec()
+
+  return entries.reduce(
+    (acc: { today: number; week: number; month: number }, entry: any) => {
+      if (!entry.startDate) return acc
+      const entryDate = parseUTCDate(entry.startDate)
+      const hours = Number(entry.timeSpent ?? 0)
+
+      if (format(entryDate, 'yyyy-MM-dd') === todayStr) acc.today += hours
+      if (entryDate >= weekStart) acc.week += hours
+      acc.month += hours // Todos já são do mês
+      return acc
+    },
+    { today: 0, week: 0, month: 0 },
+  )
+}
+
+// Query 2: Cards de Análise de Período
+async function fetchPeriodSummaryData(db: any, dateRange: DateRange) {
+  if (!db?.timeEntries || !dateRange.from)
+    return { totalHours: 0, overtimeHours: 0, workedDays: 0, totalEntries: 0 }
+
+  const from = dateRange.from
+  const to = endOfDay(dateRange.to ?? dateRange.from)
+  const entries = await getEntriesForRange(db, from, to)
 
   const dailyHours: Record<string, number> = {}
-  const activityHours: Record<string, number> = {}
-  const heatmapData: Record<string, Record<string, number>> = {}
+  let totalOvertime = 0
+
+  for (const entry of entries) {
+    if (!entry.startDate) continue
+    const startDate = parseUTCDate(entry.startDate)
+    const totalHours = Number(entry.timeSpent ?? 0)
+    if (isNaN(startDate.getTime()) || totalHours <= 0) continue
+
+    const dateKey = format(startDate, 'yyyy-MM-dd')
+    dailyHours[dateKey] = (dailyHours[dateKey] || 0) + totalHours
+  }
+
+  const allDaysInRange = eachDayOfInterval({ start: from, end: to })
+  const workedDays = new Set<string>()
+  let totalHours = 0
+
+  allDaysInRange.forEach((day) => {
+    const dateKey = format(day, 'yyyy-MM-dd')
+    const hours = dailyHours[dateKey] || 0
+    totalHours += hours
+
+    if (hours > 0) {
+      workedDays.add(dateKey)
+    }
+
+    if (hours > chartSettings.hoursGoal) {
+      totalOvertime += hours - chartSettings.hoursGoal
+    }
+  })
+
+  const weekdaysInRange = allDaysInRange.filter(
+    (d) => d.getDay() > 0 && d.getDay() < 6,
+  ).length
+
+  return {
+    totalHours,
+    overtimeHours: totalOvertime,
+    workedDays: workedDays.size,
+    possibleWorkDays: weekdaysInRange,
+    totalEntries: entries.length,
+  }
+}
+
+// Query 3: Timeline e Gráfico de Horas Extras
+async function fetchTimelineData(db: any, dateRange: DateRange) {
+  if (!db?.timeEntries || !dateRange.from)
+    return {
+      timelineData: [],
+      overtimeData: { daysWithOvertime: 0, chartData: [] },
+    }
+
+  const from = dateRange.from
+  const to = endOfDay(dateRange.to ?? dateRange.from)
+  const entries = await getEntriesForRange(db, from, to)
+  const dailyHours: Record<string, number> = {}
+
+  for (const entry of entries) {
+    if (!entry.startDate) continue
+    const startDate = parseUTCDate(entry.startDate)
+    const totalHours = Number(entry.timeSpent ?? 0)
+    if (isNaN(startDate.getTime()) || totalHours <= 0) continue
+
+    const dateKey = format(startDate, 'yyyy-MM-dd')
+    dailyHours[dateKey] = (dailyHours[dateKey] || 0) + totalHours
+  }
+
+  const timelineData = eachDayOfInterval({ start: from, end: to }).map(
+    (day) => ({
+      date: format(day, 'yyyy-MM-dd'),
+      day: format(day, 'EEE', { locale: ptBR }),
+      dailyHours: dailyHours[format(day, 'yyyy-MM-dd')] || 0,
+    }),
+  )
+
+  const overtime = timelineData.reduce(
+    (acc, data) => {
+      const overtimeHours =
+        data.dailyHours > chartSettings.hoursGoal
+          ? data.dailyHours - chartSettings.hoursGoal
+          : 0
+      if (overtimeHours > 0) {
+        acc.daysWithOvertime++
+      }
+      acc.chartData.push({ ...data, overtimeHours })
+      return acc
+    },
+    { daysWithOvertime: 0, chartData: [] as any[] },
+  )
+
+  return { timelineData, overtimeData: overtime }
+}
+
+// Query 4: Média de Horas por Dia
+async function fetchAvgHoursData(db: any, dateRange: DateRange) {
+  if (!db?.timeEntries || !dateRange.from) return []
+
+  const from = dateRange.from
+  const to = endOfDay(dateRange.to ?? dateRange.from)
+  const entries = await getEntriesForRange(db, from, to)
+
+  const dailyHours: Record<string, number> = {}
   const hoursByDayOfWeek: Record<number, number[]> = {
     0: [],
     1: [],
@@ -169,30 +421,49 @@ async function fetchMetricsData(db: any, dateRange: DateRange) {
     5: [],
     6: [],
   }
-  let noCommentCount = 0,
-    punctualCount = 0,
-    delayedCount = 0
+
+  for (const entry of entries) {
+    if (!entry.startDate) continue
+    const startDate = parseUTCDate(entry.startDate)
+    const totalHours = Number(entry.timeSpent ?? 0)
+    if (isNaN(startDate.getTime()) || totalHours <= 0) continue
+    const dateKey = format(startDate, 'yyyy-MM-dd')
+    dailyHours[dateKey] = (dailyHours[dateKey] || 0) + totalHours
+  }
+
+  eachDayOfInterval({ start: from, end: to }).forEach((day) => {
+    const dayOfWeek = day.getDay()
+    const dateKey = format(day, 'yyyy-MM-dd')
+    hoursByDayOfWeek[dayOfWeek].push(dailyHours[dateKey] || 0)
+  })
+
+  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+  const avgData = weekDays.map((day, index) => {
+    const hoursArray = hoursByDayOfWeek[index]
+    const totalHours = hoursArray.reduce((sum, h) => sum + h, 0)
+    return {
+      day,
+      averageHours: hoursArray.length > 0 ? totalHours / hoursArray.length : 0,
+    }
+  })
+
+  return [...avgData.slice(1), avgData[0]] // Reordena para começar com Seg
+}
+
+// Query 5: Heatmap
+async function fetchHeatmapData(db: any, dateRange: DateRange) {
+  if (!db?.timeEntries || !dateRange.from) return {}
+
+  const from = dateRange.from
+  const to = endOfDay(dateRange.to ?? dateRange.from)
+  const entries = await getEntriesForRange(db, from, to)
+  const heatmapData: Record<string, Record<string, number>> = {}
 
   for (const entry of entries) {
     if (!entry.startDate || !entry.endDate) continue
     const startDate = parseUTCDate(entry.startDate)
     const totalHours = Number(entry.timeSpent ?? 0)
-
     if (isNaN(startDate.getTime()) || totalHours <= 0) continue
-
-    const dateKey = format(startDate, 'yyyy-MM-dd')
-    dailyHours[dateKey] = (dailyHours[dateKey] || 0) + totalHours
-    const activityName = entry.activity?.name || 'Não categorizado'
-    activityHours[activityName] =
-      (activityHours[activityName] || 0) + totalHours
-
-    if (!entry.comments?.trim()) noCommentCount++
-    const createdAtDate = parseUTCDate(entry.createdAt)
-    if (!isNaN(createdAtDate.getTime())) {
-      format(createdAtDate, 'yyyy-MM-dd') === dateKey
-        ? punctualCount++
-        : delayedCount++
-    }
 
     const dayOfWeekKey = format(startDate, 'EEEE', {
       locale: enUS,
@@ -217,44 +488,27 @@ async function fetchMetricsData(db: any, dateRange: DateRange) {
       cursorDate = nextHourDate
     }
   }
+  return heatmapData
+}
 
-  const allDaysInRange = eachDayOfInterval({ start: from, end: to })
-  allDaysInRange.forEach((day) => {
-    const dayOfWeek = day.getDay()
-    const dateKey = format(day, 'yyyy-MM-dd')
-    hoursByDayOfWeek[dayOfWeek].push(dailyHours[dateKey] || 0)
-  })
+// Query 6: Atividades (Pie)
+async function fetchActivityData(db: any, dateRange: DateRange) {
+  if (!db?.timeEntries || !dateRange.from) return []
 
-  const timelineData = allDaysInRange.map((day) => ({
-    date: format(day, 'yyyy-MM-dd'),
-    day: format(day, 'EEE', { locale: ptBR }),
-    dailyHours: dailyHours[format(day, 'yyyy-MM-dd')] || 0,
-  }))
+  const from = dateRange.from
+  const to = endOfDay(dateRange.to ?? dateRange.from)
+  const entries = await getEntriesForRange(db, from, to)
+  const activityHours: Record<string, number> = {}
 
-  const overtime = timelineData.reduce(
-    (acc, data) => {
-      const overtimeHours =
-        data.dailyHours > chartSettings.hoursGoal
-          ? data.dailyHours - chartSettings.hoursGoal
-          : 0
-      if (overtimeHours > 0) {
-        acc.daysWithOvertime++
-      }
-      acc.chartData.push({ ...data, overtimeHours })
-      return acc
-    },
-    { daysWithOvertime: 0, chartData: [] as any[] },
-  )
+  for (const entry of entries) {
+    if (!entry.startDate) continue
+    const totalHours = Number(entry.timeSpent ?? 0)
+    if (totalHours <= 0) continue
 
-  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-  const avgData = weekDays.map((day, index) => {
-    const hoursArray = hoursByDayOfWeek[index]
-    const totalHours = hoursArray.reduce((sum, h) => sum + h, 0)
-    return {
-      day,
-      averageHours: hoursArray.length > 0 ? totalHours / hoursArray.length : 0,
-    }
-  })
+    const activityName = entry.activity?.name || 'Não categorizado'
+    activityHours[activityName] =
+      (activityHours[activityName] || 0) + totalHours
+  }
 
   const activityColors = [
     'var(--chart-1)',
@@ -263,7 +517,7 @@ async function fetchMetricsData(db: any, dateRange: DateRange) {
     'var(--chart-4)',
     'var(--chart-5)',
   ]
-  const activityData = Object.entries(activityHours)
+  return Object.entries(activityHours)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5)
     .map(([name, hours], i) => ({
@@ -271,6 +525,43 @@ async function fetchMetricsData(db: any, dateRange: DateRange) {
       hours,
       fill: activityColors[i % activityColors.length],
     }))
+}
+
+// Query 7: Qualidade e Hábitos
+async function fetchQualityData(db: any, dateRange: DateRange) {
+  if (!db?.timeEntries || !dateRange.from)
+    return {
+      punctualityData: [],
+      quality: { forgottenDays: 0, noCommentPercent: 0 },
+    }
+
+  const from = dateRange.from
+  const to = endOfDay(dateRange.to ?? dateRange.from)
+  const entries = await getEntriesForRange(db, from, to)
+
+  let noCommentCount = 0,
+    punctualCount = 0,
+    delayedCount = 0
+  const dailyHours: Record<string, number> = {}
+
+  for (const entry of entries) {
+    if (!entry.startDate) continue
+    const startDate = parseUTCDate(entry.startDate)
+    const totalHours = Number(entry.timeSpent ?? 0)
+    const dateKey = format(startDate, 'yyyy-MM-dd')
+
+    if (totalHours > 0) {
+      dailyHours[dateKey] = (dailyHours[dateKey] || 0) + totalHours
+    }
+
+    if (!entry.comments?.trim()) noCommentCount++
+    const createdAtDate = parseUTCDate(entry.createdAt)
+    if (!isNaN(createdAtDate.getTime())) {
+      format(createdAtDate, 'yyyy-MM-dd') === dateKey
+        ? punctualCount++
+        : delayedCount++
+    }
+  }
 
   const totalPunctuality = punctualCount + delayedCount
   const punctualityData =
@@ -281,7 +572,7 @@ async function fetchMetricsData(db: any, dateRange: DateRange) {
         ]
       : []
 
-  const weekdaysInRange = allDaysInRange.filter(
+  const weekdaysInRange = eachDayOfInterval({ start: from, end: to }).filter(
     (d) => d.getDay() > 0 && d.getDay() < 6,
   )
   const workedWeekdaysCount = weekdaysInRange.filter(
@@ -293,17 +584,9 @@ async function fetchMetricsData(db: any, dateRange: DateRange) {
       entries.length > 0 ? (noCommentCount / entries.length) * 100 : 0,
   }
 
-  return {
-    timelineData,
-    overtimeData: overtime,
-    avgHoursPerDayData: [...avgData.slice(1), avgData[0]],
-    heatmapData,
-    activityData,
-    punctualityData,
-    quality,
-    estimatedData: [],
-  }
+  return { punctualityData, quality }
 }
+
 // #endregion
 
 export function Metrics() {
@@ -324,27 +607,60 @@ export function Metrics() {
     Dom: false,
   })
 
-  // #region Queries
+  const dateRange = useMemo(
+    () => ({
+      from: date?.from ?? startOfToday(),
+      to: endOfDay(date?.to ?? date?.from ?? startOfToday()),
+    }),
+    [date],
+  )
+  const queryKeyBase = [workspace?.id, dateRange.from, dateRange.to]
+  const queryOptions = {
+    enabled: !!db && !!workspace?.id && !!date?.from,
+  }
+
+  // #region Queries (Divididas)
   const summaryQuery = useQuery({
     queryKey: ['metricsSummary', workspace?.id],
     queryFn: () => fetchSummaryData(db),
     enabled: !!db && !!workspace?.id,
   })
 
-  const metricsQuery = useQuery({
-    queryKey: [
-      'metrics',
-      workspace?.id,
-      date?.from?.toISOString(),
-      date?.to?.toISOString(),
-    ],
-    queryFn: () => fetchMetricsData(db, date as DateRange),
-    enabled: !!db && !!workspace?.id && !!date?.from && !!date?.to, // Garante que ambas as datas existam
-    placeholderData: (prevData) => prevData,
+  const periodSummaryQuery = useQuery({
+    queryKey: ['metricsPeriodSummary', ...queryKeyBase],
+    queryFn: () => fetchPeriodSummaryData(db, dateRange),
+    ...queryOptions,
   })
 
-  const { data: summary = { today: 0, week: 0, month: 0 } } = summaryQuery
-  const { data: metrics, isLoading: isLoadingMetrics } = metricsQuery
+  const timelineQuery = useQuery({
+    queryKey: ['metricsTimeline', ...queryKeyBase],
+    queryFn: () => fetchTimelineData(db, dateRange),
+    ...queryOptions,
+  })
+
+  const avgHoursQuery = useQuery({
+    queryKey: ['metricsAvgHours', ...queryKeyBase],
+    queryFn: () => fetchAvgHoursData(db, dateRange),
+    ...queryOptions,
+  })
+
+  const heatmapQuery = useQuery({
+    queryKey: ['metricsHeatmap', ...queryKeyBase],
+    queryFn: () => fetchHeatmapData(db, dateRange),
+    ...queryOptions,
+  })
+
+  const activityQuery = useQuery({
+    queryKey: ['metricsActivity', ...queryKeyBase],
+    queryFn: () => fetchActivityData(db, dateRange),
+    ...queryOptions,
+  })
+
+  const qualityQuery = useQuery({
+    queryKey: ['metricsQuality', ...queryKeyBase],
+    queryFn: () => fetchQualityData(db, dateRange),
+    ...queryOptions,
+  })
   // #endregion
 
   // #region Memos and Derived State
@@ -353,7 +669,7 @@ export function Metrics() {
 
   const { yAxisMax, yAxisTicks } = useMemo(() => {
     const maxHours = Math.max(
-      ...(metrics?.timelineData.map((d) => d.dailyHours) || [0]),
+      ...(timelineQuery.data?.timelineData.map((d) => d.dailyHours) || [0]),
       0,
     )
     const newYAxisMax = Math.max(chartSettings.hoursGoal, maxHours)
@@ -365,19 +681,19 @@ export function Metrics() {
       yAxisMax: newYAxisMax,
       yAxisTicks: Array.from(ticks).sort((a, b) => a - b),
     }
-  }, [metrics?.timelineData, acceptableHours])
+  }, [timelineQuery.data?.timelineData, acceptableHours])
 
   const activityChartConfig = useMemo(
     () =>
-      (metrics?.activityData || []).reduce((acc, { activity, fill }) => {
+      (activityQuery.data || []).reduce((acc, { activity, fill }) => {
         acc[activity] = { label: activity, color: fill }
         return acc
       }, {} as ChartConfig),
-    [metrics?.activityData],
+    [activityQuery.data],
   )
 
   const avgHoursAnalysis = useMemo(() => {
-    const visibleDaysData = (metrics?.avgHoursPerDayData || []).filter(
+    const visibleDaysData = (avgHoursQuery.data || []).filter(
       (data) => selectedDays[data.day],
     )
     if (visibleDaysData.length === 0)
@@ -390,15 +706,99 @@ export function Metrics() {
       chartData: visibleDaysData,
       overallAverage: totalAverageHours / visibleDaysData.length,
     }
-  }, [metrics?.avgHoursPerDayData, selectedDays])
+  }, [avgHoursQuery.data, selectedDays])
 
   const maxHeatmapHours = useMemo(() => {
-    if (!metrics?.heatmapData) return 1
-    const allHourValues = Object.values(metrics.heatmapData).flatMap((day) =>
+    if (!heatmapQuery.data) return 1
+    const allHourValues = Object.values(heatmapQuery.data).flatMap((day) =>
       Object.values(day),
     )
     return allHourValues.length > 0 ? Math.max(...allHourValues) : 1
-  }, [metrics?.heatmapData])
+  }, [heatmapQuery.data])
+
+  const summaryCards = useMemo(() => {
+    const data = summaryQuery.data ?? { today: 0, week: 0, month: 0 }
+    const metas = {
+      today: { meta: chartSettings.hoursGoal, min: chartSettings.minHours },
+      week: {
+        meta: chartSettings.hoursGoal * 5,
+        min: chartSettings.minHours * 5,
+      }, // 5 dias
+      month: {
+        meta: chartSettings.hoursGoal * 21,
+        min: chartSettings.minHours * 21,
+      }, // ~21 dias úteis
+    }
+
+    return [
+      {
+        label: 'Hoje',
+        horas: data.today,
+        meta: metas.today.meta,
+        min: metas.today.min,
+        porcentagem:
+          metas.today.meta > 0 ? (data.today / metas.today.meta) * 100 : 0,
+        Icon: Clock,
+        cor: 'var(--chart-1)',
+      },
+      {
+        label: 'Semana',
+        horas: data.week,
+        meta: metas.week.meta,
+        min: metas.week.min,
+        porcentagem:
+          metas.week.meta > 0 ? (data.week / metas.week.meta) * 100 : 0,
+        Icon: Calendar,
+        cor: 'var(--chart-2)',
+      },
+      {
+        label: 'Mês',
+        horas: data.month,
+        meta: metas.month.meta,
+        min: metas.month.min,
+        porcentagem:
+          metas.month.meta > 0 ? (data.month / metas.month.meta) * 100 : 0,
+        Icon: TrendingUp,
+        cor: 'var(--chart-3)',
+      },
+    ]
+  }, [summaryQuery.data])
+
+  const periodCards = useMemo(() => {
+    const data = periodSummaryQuery.data ?? {
+      totalHours: 0,
+      overtimeHours: 0,
+      workedDays: 0,
+      possibleWorkDays: 0,
+      totalEntries: 0,
+    }
+    return [
+      {
+        title: 'Total de Horas',
+        value: formatHours(data.totalHours),
+        delta: `${formatHoursMinutes(data.totalHours)} no período`,
+        Icon: Timer,
+      },
+      {
+        title: 'Horas Extras',
+        value: `+${formatHours(data.overtimeHours)}`,
+        delta: 'acima da meta',
+        Icon: Flame,
+      },
+      {
+        title: 'Dias Trabalhados',
+        value: `${data.workedDays} dias`,
+        delta: `de ${data.possibleWorkDays} dias úteis`,
+        Icon: Briefcase,
+      },
+      {
+        title: 'Apontamentos',
+        value: data.totalEntries,
+        delta: `Total de registros no período`,
+        Icon: CheckSquare,
+      },
+    ]
+  }, [periodSummaryQuery.data])
   // #endregion
 
   // #region Handlers and Render Functions
@@ -456,80 +856,138 @@ export function Metrics() {
       <hr className="mt-2" />
 
       <div className="mt-6 flex flex-col gap-6">
-        <DatePickerWithRange
-          date={date}
-          setDate={setDate}
-          className="ml-auto"
-        />
+        <div className=" ">
+          <h2 className="font-sans text-lg font-bold tracking-tight">
+            Status Atual
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Resumo do seu desempenho recente.
+          </p>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-          <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Horas (Hoje)
-              </CardTitle>
-              <CalendarCheck2 className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatHours(summary.today)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Horas (Semana)
-              </CardTitle>
-              <CalendarClock className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatHours(summary.week)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Horas (Mês)</CardTitle>
-              <Calendar className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatHours(summary.month)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Horas (Mês)</CardTitle>
-              <Calendar className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatHours(summary.month)}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {summaryQuery.isLoading
+              ? [1, 2, 3].map((i) => <SummaryCardSkeleton key={i} />)
+              : summaryCards.map((item, i) => {
+                  const abaixoDaMeta = item.horas < item.min
+                  return (
+                    <Card
+                      key={i}
+                      className="p-5 transition-all hover:shadow-md"
+                    >
+                      <CardContent className="flex items-center justify-between p-0">
+                        <div className="flex flex-col justify-between">
+                          <h3 className="flex items-center gap-1.5 text-sm font-semibold tracking-tight">
+                            <item.Icon className="text-muted-foreground h-4 w-4" />
+                            Horas ({item.label})
+                          </h3>
+                          <div className="mt-3">
+                            <span
+                              className={`text-foreground text-2xl font-bold`}
+                            >
+                              {formatHoursMinutes(item.horas)}
+                            </span>
+                            <p className="text-muted-foreground text-xs">
+                              Meta: {item.meta.toFixed(1)}h (mín.{' '}
+                              {item.min.toFixed(1)}
+                              h)
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="relative flex h-16 w-16 items-center justify-center">
+                          <PieChart width={64} height={64}>
+                            <Pie
+                              data={[
+                                { name: 'Progresso', value: item.porcentagem },
+                                {
+                                  name: 'Restante',
+                                  value: 100 - item.porcentagem,
+                                },
+                              ]}
+                              dataKey="value"
+                              innerRadius={22}
+                              outerRadius={28}
+                              startAngle={90}
+                              endAngle={-270}
+                              stroke="none"
+                            >
+                              <Cell fill={item.cor} />
+                              <Cell fill="var(--muted)" />
+                            </Pie>
+                          </PieChart>
+
+                          <span
+                            className="absolute text-xs font-semibold"
+                            style={{ color: item.cor }}
+                          >
+                            {item.porcentagem.toFixed(0)}%
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+          </div>
         </div>
 
-        {/* Main Content with Loading State */}
-        {isLoadingMetrics && (
-          <div className="flex h-96 items-center justify-center">
-            <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+        <div className="">
+          <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">
+                Análise de Período
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Métricas que refletem seu esforço e constância.
+              </p>
+            </div>
+            <DatePickerWithRange
+              date={date}
+              setDate={setDate}
+              className="ml-auto"
+            />
           </div>
-        )}
 
-        {!isLoadingMetrics && metrics && (
-          <>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {periodSummaryQuery.isLoading
+              ? [1, 2, 3, 4].map((i) => <PeriodCardSkeleton key={i} />)
+              : periodCards.map((card, i) => (
+                  <Card
+                    key={i}
+                    className="flex items-center justify-between p-5 transition-all hover:shadow-md"
+                  >
+                    <CardContent className="flex w-full items-center justify-between p-0">
+                      <div>
+                        <h3 className="text-foreground/90 flex items-center gap-2 text-sm font-semibold tracking-tight">
+                          <card.Icon className="text-muted-foreground h-4 w-4" />
+                          {card.title}
+                        </h3>
+                        <div className="mt-3">
+                          <span className="text-2xl leading-none font-bold">
+                            {card.value}
+                          </span>
+                          <p className="text-muted-foreground mt-1 text-xs tracking-tight">
+                            {card.delta}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+          </div>
+        </div>
+
+        {/* Gráficos Individuais com Skeletons */}
+        {timelineQuery.isLoading ? (
+          <ChartCardSkeleton className="h-[250px]" />
+        ) : (
+          timelineQuery.data && (
             <Card>
               <CardHeader>
                 <CardTitle>Timeline de Horas</CardTitle>
                 <CardDescription>
                   Horas apontadas no período de
-                  {date?.from ? format(date.from, 'dd/MM/yy') : ''} a
-                  {date?.to ? format(date.to, 'dd/MM/yy') : ''}.
+                  {date?.from ? ` ${format(date.from, 'dd/MM/yy')}` : ''} a
+                  {date?.to ? ` ${format(date.to, 'dd/MM/yy')}` : ''}.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
@@ -539,64 +997,92 @@ export function Metrics() {
                   }}
                   className="h-[250px] w-full"
                 >
-                  <LineChart
-                    data={metrics.timelineData}
-                    margin={{ top: 5, right: 20, left: 0, bottom: 20 }}
-                  >
-                    <CartesianGrid vertical={false} />
-                    <XAxis
-                      dataKey="day"
-                      tickLine={false}
-                      axisLine={false}
-                      height={50}
-                      interval="preserveStartEnd"
-                    />
-                    <YAxis
-                      tickFormatter={(value) => `${value.toFixed(1)}h`}
-                      width={40}
-                      domain={[0, yAxisMax]}
-                      ticks={yAxisTicks}
-                    />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent indicator="dot" />}
-                    />
-                    <ReferenceLine
-                      y={chartSettings.hoursGoal}
-                      label={{
-                        value: `Meta ${chartSettings.hoursGoal}h`,
-                        position: 'insideTopRight',
-                        fill: 'orange',
-                        fontSize: 12,
-                      }}
-                      stroke="orange"
-                      strokeDasharray="3 3"
-                    />
-                    <ReferenceLine
-                      y={acceptableHours}
-                      label={{
-                        value: `Aceitável ${acceptableHours.toFixed(1)}h`,
-                        position: 'insideTopRight',
-                        fill: 'var(--muted-foreground)',
-                        fontSize: 12,
-                        dy: 20,
-                      }}
-                      stroke="var(--muted-foreground)"
-                      strokeDasharray="4 4"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="dailyHours"
-                      stroke="var(--color-dailyHours)"
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </LineChart>
+                  <ResponsiveContainer width="100%" height="100%">
+                    {(() => {
+                      const today = startOfToday()
+                      const adjustedData = timelineQuery.data.timelineData.map(
+                        (item) => {
+                          const itemDate = parseISO(item.date)
+                          if (isAfter(itemDate, today))
+                            return { ...item, dailyHours: null }
+                          return item
+                        },
+                      )
+
+                      return (
+                        <LineChart
+                          data={adjustedData}
+                          margin={{ top: 5, right: 20, left: 0, bottom: 20 }}
+                        >
+                          <CartesianGrid vertical={false} />
+                          <XAxis
+                            dataKey="day"
+                            tickLine={false}
+                            axisLine={false}
+                            height={50}
+                            interval="preserveStartEnd"
+                          />
+                          <YAxis
+                            tickFormatter={(value) => `${value.toFixed(1)}h`}
+                            width={40}
+                            domain={[0, yAxisMax]}
+                            ticks={yAxisTicks}
+                          />
+                          <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent indicator="dot" />}
+                          />
+                          <ReferenceLine
+                            y={chartSettings.hoursGoal}
+                            label={{
+                              value: `Meta ${chartSettings.hoursGoal}h`,
+                              position: 'insideTopRight',
+                              fill: 'orange',
+                              fontSize: 12,
+                            }}
+                            stroke="orange"
+                            strokeDasharray="3 3"
+                          />
+                          <ReferenceLine
+                            y={acceptableHours}
+                            label={{
+                              value: `Aceitável ${acceptableHours.toFixed(1)}h`,
+                              position: 'insideTopRight',
+                              fill: 'var(--muted-foreground)',
+                              fontSize: 12,
+                              dy: 20,
+                            }}
+                            stroke="var(--muted-foreground)"
+                            strokeDasharray="4 4"
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="dailyHours"
+                            stroke="var(--color-dailyHours)"
+                            strokeWidth={2}
+                            dot={{
+                              r: 4,
+                              strokeWidth: 2,
+                              fill: 'var(--primary)',
+                              stroke: 'var(--background)',
+                            }}
+                            connectNulls={false}
+                          />
+                        </LineChart>
+                      )
+                    })()}
+                  </ResponsiveContainer>
                 </ChartContainer>
               </CardContent>
             </Card>
+          )
+        )}
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {avgHoursQuery.isLoading ? (
+            <ChartCardSkeleton className="h-[430px]" />
+          ) : (
+            avgHoursQuery.data && (
               <Card>
                 <CardHeader>
                   <div className="flex items-center gap-2">
@@ -637,26 +1123,39 @@ export function Metrics() {
                     config={avgHoursChartConfig}
                     className="h-[300px] w-full"
                   >
-                    <BarChart
-                      data={avgHoursAnalysis.chartData}
-                      margin={{ left: -20 }}
-                    >
-                      <CartesianGrid vertical={false} />
-                      <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                      <YAxis tickFormatter={(value) => `${value}h`} />
-                      <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent />}
-                      />
-                      <Bar
-                        dataKey="averageHours"
-                        fill="var(--color-averageHours)"
-                        radius={4}
-                      />
-                    </BarChart>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={avgHoursAnalysis.chartData}
+                        margin={{ left: -20 }}
+                      >
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                          dataKey="day"
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <YAxis tickFormatter={(value) => `${value}h`} />
+                        <ChartTooltip
+                          cursor={false}
+                          content={<ChartTooltipContent />}
+                        />
+                        <Bar
+                          dataKey="averageHours"
+                          fill="var(--color-averageHours)"
+                          radius={4}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 </CardContent>
               </Card>
+            )
+          )}
+
+          {timelineQuery.isLoading ? (
+            <ChartCardSkeleton className="h-[430px]" />
+          ) : (
+            timelineQuery.data && (
               <Card>
                 <CardHeader>
                   <div className="flex items-center gap-2">
@@ -666,7 +1165,8 @@ export function Metrics() {
                   <CardDescription>
                     Você teve
                     <span className="text-primary font-bold">
-                      {metrics.overtimeData.daysWithOvertime}
+                      {' '}
+                      {timelineQuery.data.overtimeData.daysWithOvertime}{' '}
                     </span>
                     dia(s) com horas extras no período.
                   </CardDescription>
@@ -676,36 +1176,48 @@ export function Metrics() {
                     config={overtimeChartConfig}
                     className="h-[300px] w-full"
                   >
-                    <LineChart
-                      data={metrics.overtimeData.chartData}
-                      margin={{ left: -20, right: 10 }}
-                    >
-                      <CartesianGrid vertical={false} />
-                      <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                      <YAxis
-                        tickFormatter={(value) => `${value.toFixed(1)}h`}
-                      />
-                      <ChartTooltip
-                        cursor={false}
-                        content={
-                          <ChartTooltipContent
-                            formatter={(value) => formatHours(Number(value))}
-                          />
-                        }
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="overtimeHours"
-                        stroke="var(--primary)"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                    </LineChart>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={timelineQuery.data.overtimeData.chartData}
+                        margin={{ left: -20, right: 10 }}
+                      >
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                          dataKey="day"
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <YAxis
+                          tickFormatter={(value) => `${value.toFixed(1)}h`}
+                        />
+                        <ChartTooltip
+                          cursor={false}
+                          content={
+                            <ChartTooltipContent
+                              formatter={(value) => formatHours(Number(value))}
+                            />
+                          }
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="overtimeHours"
+                          stroke="var(--primary)"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 </CardContent>
               </Card>
-            </div>
+            )
+          )}
+        </div>
 
+        {heatmapQuery.isLoading ? (
+          <HeatmapSkeleton />
+        ) : (
+          heatmapQuery.data && (
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -735,7 +1247,7 @@ export function Metrics() {
                         <TableCell className="font-medium">{display}</TableCell>
                         {Array.from({ length: 24 }, (_, i) => {
                           const hourStr = String(i).padStart(2, '0')
-                          const hoursValue = metrics.heatmapData[key]?.[hourStr]
+                          const hoursValue = heatmapQuery.data[key]?.[hourStr]
                           return (
                             <TableCell
                               key={`${key}-${i}`}
@@ -746,7 +1258,9 @@ export function Metrics() {
                                 style={getHeatmapStyle(hoursValue)}
                                 title={
                                   hoursValue
-                                    ? `${formatHours(hoursValue)} em ${display} às ${hourStr}h`
+                                    ? `${formatHours(
+                                        hoursValue,
+                                      )} em ${display} às ${hourStr}h`
                                     : 'Nenhuma atividade'
                                 }
                               />
@@ -759,8 +1273,14 @@ export function Metrics() {
                 </Table>
               </CardContent>
             </Card>
+          )
+        )}
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {activityQuery.isLoading ? (
+            <PieChartSkeleton />
+          ) : (
+            activityQuery.data && (
               <Card>
                 <CardHeader>
                   <CardTitle>Distribuição por Atividade</CardTitle>
@@ -773,27 +1293,36 @@ export function Metrics() {
                     config={activityChartConfig}
                     className="mx-auto aspect-square h-[300px] max-h-[300px]"
                   >
-                    <RechartsPieChart>
-                      <ChartTooltip
-                        content={
-                          <ChartTooltipContent
-                            nameKey="hours"
-                            formatter={(value) => formatHours(Number(value))}
-                          />
-                        }
-                      />
-                      <Pie
-                        data={metrics.activityData}
-                        dataKey="hours"
-                        nameKey="activity"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                      />
-                    </RechartsPieChart>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPieChart>
+                        <ChartTooltip
+                          content={
+                            <ChartTooltipContent
+                              nameKey="hours"
+                              formatter={(value) => formatHours(Number(value))}
+                            />
+                          }
+                        />
+                        <Pie
+                          data={activityQuery.data}
+                          dataKey="hours"
+                          nameKey="activity"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={5}
+                        />
+                      </RechartsPieChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 </CardContent>
               </Card>
+            )
+          )}
+
+          {qualityQuery.isLoading ? (
+            <QualityCardSkeleton />
+          ) : (
+            qualityQuery.data && (
               <Card>
                 <CardHeader>
                   <CardTitle>Qualidade e Hábitos de Apontamento</CardTitle>
@@ -808,12 +1337,12 @@ export function Metrics() {
                     </div>
                     <Badge
                       variant={
-                        metrics.quality.forgottenDays > 0
+                        qualityQuery.data.quality.forgottenDays > 0
                           ? 'destructive'
                           : 'secondary'
                       }
                     >
-                      {metrics.quality.forgottenDays} dia(s)
+                      {qualityQuery.data.quality.forgottenDays} dia(s)
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
@@ -825,10 +1354,10 @@ export function Metrics() {
                     </div>
                     <div className="w-32 text-right">
                       <span className="font-bold">
-                        {metrics.quality.noCommentPercent.toFixed(0)}%
+                        {qualityQuery.data.quality.noCommentPercent.toFixed(0)}%
                       </span>
                       <Progress
-                        value={metrics.quality.noCommentPercent}
+                        value={qualityQuery.data.quality.noCommentPercent}
                         className="mt-1 h-2"
                       />
                     </div>
@@ -845,67 +1374,72 @@ export function Metrics() {
                         config={punctualityChartConfig}
                         className="h-[100px] w-full"
                       >
-                        <RechartsPieChart accessibilityLayer>
-                          <ChartTooltip
-                            cursor={false}
-                            content={({ active, payload }) => {
-                              if (active && payload && payload.length) {
-                                const total = metrics.punctualityData.reduce(
-                                  (acc, curr) => acc + curr.value,
-                                  0,
-                                )
-                                const data = payload[0]
-                                const percentage =
-                                  total > 0
-                                    ? (data.payload.value / total) * 100
-                                    : 0
-                                return (
-                                  <div className="bg-background min-w-[12rem] rounded-lg border p-2 text-sm shadow-sm">
-                                    <div className="flex items-center gap-2 font-medium">
-                                      <div
-                                        className="h-2.5 w-2.5 shrink-0 rounded-sm"
-                                        style={{
-                                          backgroundColor: data.payload.fill,
-                                        }}
-                                      />
-                                      {data.name}
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RechartsPieChart accessibilityLayer>
+                            <ChartTooltip
+                              cursor={false}
+                              content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                  const total =
+                                    qualityQuery.data.punctualityData.reduce(
+                                      (acc, curr) => acc + curr.value,
+                                      0,
+                                    )
+                                  const data = payload[0]
+                                  const percentage =
+                                    total > 0
+                                      ? (data.payload.value / total) * 100
+                                      : 0
+                                  return (
+                                    <div className="bg-background min-w-[12rem] rounded-lg border p-2 text-sm shadow-sm">
+                                      <div className="flex items-center gap-2 font-medium">
+                                        <div
+                                          className="h-2.5 w-2.5 shrink-0 rounded-sm"
+                                          style={{
+                                            backgroundColor: data.payload.fill,
+                                          }}
+                                        />
+                                        {data.name}
+                                      </div>
+                                      <div className="text-muted-foreground flex justify-between">
+                                        <span>
+                                          Contagem: {data.payload.value}
+                                        </span>
+                                        <span>{percentage.toFixed(0)}%</span>
+                                      </div>
                                     </div>
-                                    <div className="text-muted-foreground flex justify-between">
-                                      <span>
-                                        Contagem: {data.payload.value}
-                                      </span>
-                                      <span>{percentage.toFixed(0)}%</span>
-                                    </div>
-                                  </div>
-                                )
-                              }
-                              return null
-                            }}
-                          />
-                          <Pie
-                            data={metrics.punctualityData}
-                            dataKey="value"
-                            nameKey="name"
-                            innerRadius={30}
-                            outerRadius={40}
-                            strokeWidth={2}
-                          >
-                            {metrics.punctualityData.map((entry) => (
-                              <Cell
-                                key={`cell-${entry.name}`}
-                                fill={entry.fill}
-                              />
-                            ))}
-                          </Pie>
-                        </RechartsPieChart>
+                                  )
+                                }
+                                return null
+                              }}
+                            />
+                            <Pie
+                              data={qualityQuery.data.punctualityData}
+                              dataKey="value"
+                              nameKey="name"
+                              innerRadius={30}
+                              outerRadius={40}
+                              strokeWidth={2}
+                            >
+                              {qualityQuery.data.punctualityData.map(
+                                (entry) => (
+                                  <Cell
+                                    key={`cell-${entry.name}`}
+                                    fill={entry.fill}
+                                  />
+                                ),
+                              )}
+                            </Pie>
+                          </RechartsPieChart>
+                        </ResponsiveContainer>
                       </ChartContainer>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </>
-        )}
+            )
+          )}
+        </div>
       </div>
     </>
   )
