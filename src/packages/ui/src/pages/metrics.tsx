@@ -87,6 +87,7 @@ import { useWorkspace } from '@/hooks'
 import { useSyncStore } from '@/stores/syncStore'
 
 // #region Helper Functions and Constants
+// (Toda a sua lógica de helpers, constantes, formatadores, etc., permanece inalterada)
 const chartSettings = {
   hoursGoal: 8.5,
   acceptablePercentage: 0.85,
@@ -151,9 +152,10 @@ const getEntriesForRange = async (
 // #endregion
 
 // #region Skeletons
+// (Skeletons agora com h-full para manter a altura)
 function SummaryCardSkeleton() {
   return (
-    <Card className="p-5">
+    <Card className="h-full p-5">
       <CardContent className="flex items-center justify-between p-0">
         <div className="flex flex-col justify-between gap-2">
           <Skeleton className="h-5 w-24" />
@@ -170,7 +172,7 @@ function SummaryCardSkeleton() {
 
 function PeriodCardSkeleton() {
   return (
-    <Card className="p-5">
+    <Card className="h-full p-5">
       <CardContent className="flex w-full items-center justify-between p-0">
         <div className="space-y-2">
           <Skeleton className="h-5 w-28" />
@@ -190,7 +192,7 @@ function ChartCardSkeleton({
   className?: string
 }) {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <Skeleton className="h-6 w-1/2" />
         <Skeleton className="h-4 w-3/4" />
@@ -204,7 +206,7 @@ function ChartCardSkeleton({
 
 function PieChartSkeleton() {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <Skeleton className="h-6 w-1/2" />
         <Skeleton className="h-4 w-3/4" />
@@ -218,7 +220,7 @@ function PieChartSkeleton() {
 
 function QualityCardSkeleton() {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <Skeleton className="h-6 w-1/2" />
       </CardHeader>
@@ -242,7 +244,7 @@ function QualityCardSkeleton() {
 
 function HeatmapSkeleton() {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <Skeleton className="h-6 w-1/2" />
         <Skeleton className="h-4 w-3/4" />
@@ -271,7 +273,7 @@ function HeatmapSkeleton() {
 // #endregion
 
 // #region Data Fetching (Dividido por Query)
-
+// (Todas as suas funções de data fetching permanecem inalteradas)
 // Query 1: Status Atual (Hoje, Semana, Mês)
 async function fetchSummaryData(db: any) {
   if (!db?.timeEntries) return { today: 0, week: 0, month: 0 }
@@ -620,6 +622,7 @@ export function Metrics() {
   }
 
   // #region Queries (Divididas)
+  // (Suas queries permanecem inalteradas)
   const summaryQuery = useQuery({
     queryKey: ['metricsSummary', workspace?.id],
     queryFn: () => fetchSummaryData(db),
@@ -664,6 +667,7 @@ export function Metrics() {
   // #endregion
 
   // #region Memos and Derived State
+  // (Todos os seus memos e estados derivados permanecem inalterados)
   const acceptableHours =
     chartSettings.hoursGoal * chartSettings.acceptablePercentage
 
@@ -802,6 +806,7 @@ export function Metrics() {
   // #endregion
 
   // #region Handlers and Render Functions
+  // (Seus handlers e funções de render permanecem inalterados)
   const handleDayToggle = (dayLabel: string) => {
     setSelectedDays((prev) => ({ ...prev, [dayLabel]: !prev[dayLabel] }))
   }
@@ -827,6 +832,7 @@ export function Metrics() {
   // #endregion
 
   // Chart configs (static or simple)
+  // (Suas configs de gráfico permanecem inalteradas)
   const punctualityChartConfig = {
     Pontuais: { label: 'Pontuais', color: 'var(--chart-2)' },
     Atrasados: { label: 'Atrasados', color: 'var(--chart-5)' },
@@ -855,7 +861,13 @@ export function Metrics() {
       </Breadcrumb>
       <hr className="mt-2" />
 
+      {/* // ===============================================
+        // ==         INÍCIO DA REFATORAÇÃO DO LAYOUT     ==
+        // ===============================================
+      */}
+
       <div className="mt-6 flex flex-col gap-6">
+        {/* --- 1. SEÇÃO "STATUS ATUAL" (INTOCÁVEL) --- */}
         <div className=" ">
           <h2 className="font-sans text-lg font-bold tracking-tight">
             Status Atual
@@ -868,11 +880,11 @@ export function Metrics() {
             {summaryQuery.isLoading
               ? [1, 2, 3].map((i) => <SummaryCardSkeleton key={i} />)
               : summaryCards.map((item, i) => {
-                  const abaixoDaMeta = item.horas < item.min
+                  const abaixoDaMeta = item.horas < item.min // Variavel preservada
                   return (
                     <Card
                       key={i}
-                      className="p-5 transition-all hover:shadow-md"
+                      className="h-full p-5 transition-all hover:shadow-md" // h-full ADICIONADO
                     >
                       <CardContent className="flex items-center justify-between p-0">
                         <div className="flex flex-col justify-between">
@@ -930,31 +942,49 @@ export function Metrics() {
           </div>
         </div>
 
-        <div className="">
-          <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-            <div>
-              <h2 className="text-lg font-bold tracking-tight">
-                Análise de Período
-              </h2>
-              <p className="text-muted-foreground text-sm">
-                Métricas que refletem seu esforço e constância.
-              </p>
+        {/* --- 2. SEÇÃO "BENTO GRID" (NOVO LAYOUT) --- */}
+        {/* Este grid de 6 colunas contém todo o resto */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-6">
+          {/* --- LINHA 1: CABEÇALHO E SELETOR DE DATA --- */}
+          <div className="lg:col-span-6">
+            <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+              <div>
+                <h2 className="text-lg font-bold tracking-tight">
+                  Análise de Período
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  Métricas que refletem seu esforço e constância.
+                </p>
+              </div>
+              <DatePickerWithRange
+                date={date}
+                setDate={setDate}
+                className="ml-auto"
+              />
             </div>
-            <DatePickerWithRange
-              date={date}
-              setDate={setDate}
-              className="ml-auto"
-            />
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {periodSummaryQuery.isLoading
-              ? [1, 2, 3, 4].map((i) => <PeriodCardSkeleton key={i} />)
-              : periodCards.map((card, i) => (
-                  <Card
-                    key={i}
-                    className="flex items-center justify-between p-5 transition-all hover:shadow-md"
-                  >
+          {/* --- LINHA 2: CARDS DE PERÍODO (2 + 1 + 1 + 2) --- */}
+          {periodSummaryQuery.isLoading
+            ? [
+                { span: 'lg:col-span-2' },
+                { span: 'lg:col-span-1' },
+                { span: 'lg:col-span-1' },
+                { span: 'lg:col-span-2' },
+              ].map((item, i) => (
+                <div key={i} className={item.span}>
+                  <PeriodCardSkeleton />
+                </div>
+              ))
+            : periodCards.map((card, i) => (
+                <div
+                  key={i}
+                  className={
+                    // Total Horas e Apontamentos (0 e 3) pegam 2 colunas
+                    i === 0 || i === 3 ? 'lg:col-span-2' : 'lg:col-span-1'
+                  }
+                >
+                  <Card className="flex h-full items-center justify-between p-5 transition-all hover:shadow-md">
                     <CardContent className="flex w-full items-center justify-between p-0">
                       <div>
                         <h3 className="text-foreground/90 flex items-center gap-2 text-sm font-semibold tracking-tight">
@@ -972,473 +1002,584 @@ export function Metrics() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                </div>
+              ))}
+
+          {/* --- LINHA 3: TIMELINE (4) + DISTRIBUIÇÃO (2) --- */}
+          {/* (Invertido conforme pedido) */}
+          <div className="lg:col-span-4">
+            {timelineQuery.isLoading ? (
+              <ChartCardSkeleton className="h-[250px]" />
+            ) : (
+              timelineQuery.data && (
+                <Card className="h-full">
+                  <CardHeader>
+                    <CardTitle>Timeline de Horas</CardTitle>
+                    <CardDescription>
+                      Horas apontadas no período de
+                      {date?.from ? ` ${format(date.from, 'dd/MM/yy')}` : ''} a
+                      {date?.to ? ` ${format(date.to, 'dd/MM/yy')}` : ''}.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pl-2">
+                    <ChartContainer
+                      config={{
+                        dailyHours: { label: 'Horas', color: 'var(--primary)' },
+                      }}
+                      className="h-[250px] w-full"
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        {(() => {
+                          const today = startOfToday()
+                          const adjustedData =
+                            timelineQuery.data.timelineData.map((item) => {
+                              const itemDate = parseISO(item.date)
+                              if (isAfter(itemDate, today))
+                                return { ...item, dailyHours: null }
+                              return item
+                            })
+
+                          return (
+                            <LineChart
+                              data={adjustedData}
+                              margin={{
+                                top: 5,
+                                right: 20,
+                                left: 0,
+                                bottom: 20,
+                              }}
+                            >
+                              <CartesianGrid vertical={false} />
+                              <XAxis
+                                dataKey="day"
+                                tickLine={false}
+                                axisLine={false}
+                                height={50}
+                                interval="preserveStartEnd"
+                              />
+                              <YAxis
+                                tickFormatter={(value) =>
+                                  `${value.toFixed(1)}h`
+                                }
+                                width={40}
+                                domain={[0, yAxisMax]}
+                                ticks={yAxisTicks}
+                              />
+                              <ChartTooltip
+                                cursor={false}
+                                content={
+                                  <ChartTooltipContent indicator="dot" />
+                                }
+                              />
+                              <ReferenceLine
+                                y={chartSettings.hoursGoal}
+                                label={{
+                                  value: `Meta ${chartSettings.hoursGoal}h`,
+                                  position: 'insideTopRight',
+                                  fill: 'orange',
+                                  fontSize: 12,
+                                }}
+                                stroke="orange"
+                                strokeDasharray="3 3"
+                              />
+                              <ReferenceLine
+                                y={acceptableHours}
+                                label={{
+                                  value: `Aceitável ${acceptableHours.toFixed(
+                                    1,
+                                  )}h`,
+                                  position: 'insideTopRight',
+                                  fill: 'var(--muted-foreground)',
+                                  fontSize: 12,
+                                  dy: 20,
+                                }}
+                                stroke="var(--muted-foreground)"
+                                strokeDasharray="4 4"
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="dailyHours"
+                                stroke="var(--color-dailyHours)"
+                                strokeWidth={2}
+                                dot={{
+                                  r: 4,
+                                  strokeWidth: 2,
+                                  fill: 'var(--primary)',
+                                  stroke: 'var(--background)',
+                                }}
+                                connectNulls={false}
+                              />
+                            </LineChart>
+                          )
+                        })()}
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+              )
+            )}
           </div>
-        </div>
 
-        {/* Gráficos Individuais com Skeletons */}
-        {timelineQuery.isLoading ? (
-          <ChartCardSkeleton className="h-[250px]" />
-        ) : (
-          timelineQuery.data && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Timeline de Horas</CardTitle>
-                <CardDescription>
-                  Horas apontadas no período de
-                  {date?.from ? ` ${format(date.from, 'dd/MM/yy')}` : ''} a
-                  {date?.to ? ` ${format(date.to, 'dd/MM/yy')}` : ''}.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pl-2">
-                <ChartContainer
-                  config={{
-                    dailyHours: { label: 'Horas', color: 'var(--primary)' },
-                  }}
-                  className="h-[250px] w-full"
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    {(() => {
-                      const today = startOfToday()
-                      const adjustedData = timelineQuery.data.timelineData.map(
-                        (item) => {
-                          const itemDate = parseISO(item.date)
-                          if (isAfter(itemDate, today))
-                            return { ...item, dailyHours: null }
-                          return item
-                        },
-                      )
+          <div className="lg:col-span-2">
+            {activityQuery.isLoading ? (
+              <PieChartSkeleton />
+            ) : (
+              activityQuery.data && (
+                <Card className="flex h-full flex-col">
+                  <CardHeader className="items-center pb-0">
+                    <CardTitle>Distribuição por Atividade</CardTitle>
+                    <CardDescription>
+                      <div className="flex items-center gap-2 leading-none font-medium">
+                        Top 5 atividades com mais horas no período
+                      </div>
+                    </CardDescription>
+                  </CardHeader>
 
-                      return (
-                        <LineChart
-                          data={adjustedData}
-                          margin={{ top: 5, right: 20, left: 0, bottom: 20 }}
+                  <CardContent className="flex flex-1 items-center justify-center overflow-visible p-6">
+                    <div className="flex h-[300px] w-full items-center justify-center overflow-visible">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart
+                          margin={{ top: 40, right: 40, bottom: 40, left: 40 }}
+                        >
+                          <ChartTooltip
+                            cursor={false}
+                            content={({ active, payload }) => {
+                              if (!active || !payload?.length) return null
+
+                              const item = payload[0]?.payload as {
+                                activity: string
+                                hours: number
+                                fill: string
+                              }
+
+                              const value = Number(payload[0]?.value ?? 0)
+                              const total = activityQuery.data.reduce(
+                                (sum, p) => sum + (p.hours ?? 0),
+                                0,
+                              )
+                              const percent = total
+                                ? ((value / total) * 100).toFixed(1)
+                                : '0.0'
+
+                              return (
+                                <div className="bg-popover rounded-md p-2 text-sm shadow-md">
+                                  <div className="flex items-center gap-2 font-medium">
+                                    <span
+                                      className="h-2 w-2 rounded-full"
+                                      style={{ backgroundColor: item.fill }}
+                                    />
+                                    {item.activity}
+                                  </div>
+                                  <div className="text-muted-foreground">
+                                    {value.toFixed(1)}h ({percent}%)
+                                  </div>
+                                </div>
+                              )
+                            }}
+                          />
+
+                          <Pie
+                            data={activityQuery.data}
+                            dataKey="hours"
+                            nameKey="activity"
+                            innerRadius="40%"
+                            outerRadius="80%"
+                            stroke="none"
+                            labelLine={false}
+                            label={({
+                              cx,
+                              cy,
+                              midAngle,
+                              outerRadius,
+                              index,
+                            }) => {
+                              const entry = activityQuery.data[index]
+                              const RADIAN = Math.PI / 180
+                              const radius = outerRadius + 10
+                              const x =
+                                cx + radius * Math.cos(-midAngle * RADIAN)
+                              const y =
+                                cy + radius * Math.sin(-midAngle * RADIAN)
+
+                              const value = entry.hours
+                              const total = activityQuery.data.reduce(
+                                (sum, p) => sum + (p.hours ?? 0),
+                                0,
+                              )
+                              const percent = total
+                                ? ((value / total) * 100).toFixed(1)
+                                : '0.0'
+
+                              return (
+                                <text
+                                  x={x}
+                                  y={y}
+                                  textAnchor={x > cx ? 'start' : 'end'}
+                                  dominantBaseline="central"
+                                  fontSize={12}
+                                  fill="var(--foreground)"
+                                >
+                                  <tspan style={{ fill: entry.fill }}>● </tspan>
+                                  {entry.activity} {value.toFixed(1)}h (
+                                  {percent}%)
+                                </text>
+                              )
+                            }}
+                          >
+                            {activityQuery.data.map((entry, index) => (
+                              <Cell
+                                key={index}
+                                fill={entry.fill}
+                                stroke={entry.fill}
+                              />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            )}
+          </div>
+
+          <div className="lg:col-span-3">
+            {avgHoursQuery.isLoading ? (
+              <ChartCardSkeleton className="h-[430px]" />
+            ) : (
+              avgHoursQuery.data && (
+                <Card className="h-full">
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <BarChartHorizontal className="h-5 w-5" />
+                      <CardTitle>Média de Horas por Dia da Semana</CardTitle>
+                    </div>
+                    <CardDescription>
+                      Qual dia da semana você é mais produtivo?
+                    </CardDescription>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
+                      {WEEK_DAYS_CONFIG.map(({ id, label }) => (
+                        <div key={id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`day-${id}`}
+                            checked={selectedDays[label]}
+                            onCheckedChange={() => handleDayToggle(label)}
+                          />
+                          <Label
+                            htmlFor={`day-${id}`}
+                            className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-4 text-center">
+                      <p className="text-muted-foreground text-sm">
+                        Média geral (dias selecionados)
+                      </p>
+                      <p className="text-2xl font-bold">
+                        {formatHours(avgHoursAnalysis.overallAverage)}
+                      </p>
+                    </div>
+                    <ChartContainer
+                      config={avgHoursChartConfig}
+                      className="h-[300px] w-full"
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={avgHoursAnalysis.chartData}
+                          margin={{ left: -20 }}
                         >
                           <CartesianGrid vertical={false} />
                           <XAxis
                             dataKey="day"
                             tickLine={false}
                             axisLine={false}
-                            height={50}
-                            interval="preserveStartEnd"
+                          />
+                          <YAxis tickFormatter={(value) => `${value}h`} />
+                          <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent />}
+                          />
+                          <Bar
+                            dataKey="averageHours"
+                            fill="var(--color-averageHours)"
+                            radius={4}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+              )
+            )}
+          </div>
+
+          {/* Este é o bloco de Horas Extras (era Atividades) */}
+          <div className="lg:col-span-3">
+            {timelineQuery.isLoading ? (
+              <ChartCardSkeleton className="h-[430px]" />
+            ) : (
+              timelineQuery.data && (
+                <Card className="h-full">
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <AlarmClockOff className="h-5 w-5" />
+                      <CardTitle>Análise de Horas Extras</CardTitle>
+                    </div>
+                    <CardDescription>
+                      Você teve
+                      <span className="text-primary font-bold">
+                        {' '}
+                        {timelineQuery.data.overtimeData.daysWithOvertime}{' '}
+                      </span>
+                      dia(s) com horas extras no período.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer
+                      config={overtimeChartConfig}
+                      className="h-[300px] w-full"
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={timelineQuery.data.overtimeData.chartData}
+                          margin={{ left: -20, right: 10 }}
+                        >
+                          <CartesianGrid vertical={false} />
+                          <XAxis
+                            dataKey="day"
+                            tickLine={false}
+                            axisLine={false}
                           />
                           <YAxis
                             tickFormatter={(value) => `${value.toFixed(1)}h`}
-                            width={40}
-                            domain={[0, yAxisMax]}
-                            ticks={yAxisTicks}
                           />
                           <ChartTooltip
                             cursor={false}
-                            content={<ChartTooltipContent indicator="dot" />}
-                          />
-                          <ReferenceLine
-                            y={chartSettings.hoursGoal}
-                            label={{
-                              value: `Meta ${chartSettings.hoursGoal}h`,
-                              position: 'insideTopRight',
-                              fill: 'orange',
-                              fontSize: 12,
-                            }}
-                            stroke="orange"
-                            strokeDasharray="3 3"
-                          />
-                          <ReferenceLine
-                            y={acceptableHours}
-                            label={{
-                              value: `Aceitável ${acceptableHours.toFixed(1)}h`,
-                              position: 'insideTopRight',
-                              fill: 'var(--muted-foreground)',
-                              fontSize: 12,
-                              dy: 20,
-                            }}
-                            stroke="var(--muted-foreground)"
-                            strokeDasharray="4 4"
+                            content={
+                              <ChartTooltipContent
+                                formatter={(value) =>
+                                  formatHours(Number(value))
+                                }
+                              />
+                            }
                           />
                           <Line
                             type="monotone"
-                            dataKey="dailyHours"
-                            stroke="var(--color-dailyHours)"
+                            dataKey="overtimeHours"
+                            stroke="var(--primary)"
                             strokeWidth={2}
-                            dot={{
-                              r: 4,
-                              strokeWidth: 2,
-                              fill: 'var(--primary)',
-                              stroke: 'var(--background)',
-                            }}
-                            connectNulls={false}
+                            dot={false}
                           />
                         </LineChart>
-                      )
-                    })()}
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          )
-        )}
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+              )
+            )}
+          </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {avgHoursQuery.isLoading ? (
-            <ChartCardSkeleton className="h-[430px]" />
-          ) : (
-            avgHoursQuery.data && (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <BarChartHorizontal className="h-5 w-5" />
-                    <CardTitle>Média de Horas por Dia da Semana</CardTitle>
-                  </div>
-                  <CardDescription>
-                    Qual dia da semana você é mais produtivo?
-                  </CardDescription>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
-                    {WEEK_DAYS_CONFIG.map(({ id, label }) => (
-                      <div key={id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`day-${id}`}
-                          checked={selectedDays[label]}
-                          onCheckedChange={() => handleDayToggle(label)}
-                        />
-                        <Label
-                          htmlFor={`day-${id}`}
-                          className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4 text-center">
-                    <p className="text-muted-foreground text-sm">
-                      Média geral (dias selecionados)
-                    </p>
-                    <p className="text-2xl font-bold">
-                      {formatHours(avgHoursAnalysis.overallAverage)}
-                    </p>
-                  </div>
-                  <ChartContainer
-                    config={avgHoursChartConfig}
-                    className="h-[300px] w-full"
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={avgHoursAnalysis.chartData}
-                        margin={{ left: -20 }}
-                      >
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                          dataKey="day"
-                          tickLine={false}
-                          axisLine={false}
-                        />
-                        <YAxis tickFormatter={(value) => `${value}h`} />
-                        <ChartTooltip
-                          cursor={false}
-                          content={<ChartTooltipContent />}
-                        />
-                        <Bar
-                          dataKey="averageHours"
-                          fill="var(--color-averageHours)"
-                          radius={4}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            )
-          )}
-
-          {timelineQuery.isLoading ? (
-            <ChartCardSkeleton className="h-[430px]" />
-          ) : (
-            timelineQuery.data && (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <AlarmClockOff className="h-5 w-5" />
-                    <CardTitle>Análise de Horas Extras</CardTitle>
-                  </div>
-                  <CardDescription>
-                    Você teve
-                    <span className="text-primary font-bold">
-                      {' '}
-                      {timelineQuery.data.overtimeData.daysWithOvertime}{' '}
-                    </span>
-                    dia(s) com horas extras no período.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer
-                    config={overtimeChartConfig}
-                    className="h-[300px] w-full"
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={timelineQuery.data.overtimeData.chartData}
-                        margin={{ left: -20, right: 10 }}
-                      >
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                          dataKey="day"
-                          tickLine={false}
-                          axisLine={false}
-                        />
-                        <YAxis
-                          tickFormatter={(value) => `${value.toFixed(1)}h`}
-                        />
-                        <ChartTooltip
-                          cursor={false}
-                          content={
-                            <ChartTooltipContent
-                              formatter={(value) => formatHours(Number(value))}
-                            />
-                          }
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="overtimeHours"
-                          stroke="var(--primary)"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            )
-          )}
-        </div>
-
-        {heatmapQuery.isLoading ? (
-          <HeatmapSkeleton />
-        ) : (
-          heatmapQuery.data && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Grid className="h-5 w-5" />
-                  <CardTitle>Mapa de Calor de Produtividade</CardTitle>
-                </div>
-                <CardDescription>
-                  Seus horários de pico de trabalho no período selecionado.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[60px]">Dia</TableHead>
-                      {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
-                        <TableHead
-                          key={hour}
-                          className="p-1 text-center text-xs"
-                        >{`${String(hour).padStart(2, '0')}h`}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {heatmapDayMapping.map(({ key, display }) => (
-                      <TableRow key={key}>
-                        <TableCell className="font-medium">{display}</TableCell>
-                        {Array.from({ length: 24 }, (_, i) => {
-                          const hourStr = String(i).padStart(2, '0')
-                          const hoursValue = heatmapQuery.data[key]?.[hourStr]
-                          return (
-                            <TableCell
-                              key={`${key}-${i}`}
-                              className="p-0 text-center"
-                            >
-                              <div
-                                className="m-0.5 h-8 rounded-md"
-                                style={getHeatmapStyle(hoursValue)}
-                                title={
-                                  hoursValue
-                                    ? `${formatHours(
-                                        hoursValue,
-                                      )} em ${display} às ${hourStr}h`
-                                    : 'Nenhuma atividade'
-                                }
-                              />
+          {/* --- LINHA 5: HEATMAP (4) + QUALIDADE (2) --- */}
+          <div className="lg:col-span-4">
+            {heatmapQuery.isLoading ? (
+              <HeatmapSkeleton />
+            ) : (
+              heatmapQuery.data && (
+                <Card className="h-full">
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <Grid className="h-5 w-5" />
+                      <CardTitle>Mapa de Calor de Produtividade</CardTitle>
+                    </div>
+                    <CardDescription>
+                      Seus horários de pico de trabalho no período selecionado.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[60px]">Dia</TableHead>
+                          {Array.from({ length: 24 }, (_, i) => i).map(
+                            (hour) => (
+                              <TableHead
+                                key={hour}
+                                className="p-1 text-center text-xs"
+                              >{`${String(hour).padStart(2, '0')}h`}</TableHead>
+                            ),
+                          )}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {heatmapDayMapping.map(({ key, display }) => (
+                          <TableRow key={key}>
+                            <TableCell className="font-medium">
+                              {display}
                             </TableCell>
-                          )
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )
-        )}
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {activityQuery.isLoading ? (
-            <PieChartSkeleton />
-          ) : (
-            activityQuery.data && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Distribuição por Atividade</CardTitle>
-                  <CardDescription>
-                    Top 5 atividades no período.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex justify-center">
-                  <ChartContainer
-                    config={activityChartConfig}
-                    className="mx-auto aspect-square h-[300px] max-h-[300px]"
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPieChart>
-                        <ChartTooltip
-                          content={
-                            <ChartTooltipContent
-                              nameKey="hours"
-                              formatter={(value) => formatHours(Number(value))}
-                            />
-                          }
-                        />
-                        <Pie
-                          data={activityQuery.data}
-                          dataKey="hours"
-                          nameKey="activity"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={5}
-                        />
-                      </RechartsPieChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            )
-          )}
-
-          {qualityQuery.isLoading ? (
-            <QualityCardSkeleton />
-          ) : (
-            qualityQuery.data && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Qualidade e Hábitos de Apontamento</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-8">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <CalendarClock className="h-5 w-5 text-amber-500" />
-                      <span className="ml-3 font-medium">
-                        Dias Úteis Esquecidos
-                      </span>
-                    </div>
-                    <Badge
-                      variant={
-                        qualityQuery.data.quality.forgottenDays > 0
-                          ? 'destructive'
-                          : 'secondary'
-                      }
-                    >
-                      {qualityQuery.data.quality.forgottenDays} dia(s)
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <MessageSquareWarning className="h-5 w-5 text-amber-500" />
-                      <span className="ml-3 font-medium">
-                        Apontamentos sem Comentários
-                      </span>
-                    </div>
-                    <div className="w-32 text-right">
-                      <span className="font-bold">
-                        {qualityQuery.data.quality.noCommentPercent.toFixed(0)}%
-                      </span>
-                      <Progress
-                        value={qualityQuery.data.quality.noCommentPercent}
-                        className="mt-1 h-2"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Clock4 className="h-5 w-5 text-amber-500" />
-                      <span className="ml-3 font-medium">
-                        Pontualidade dos Apontamentos
-                      </span>
-                    </div>
-                    <div className="w-40">
-                      <ChartContainer
-                        config={punctualityChartConfig}
-                        className="h-[100px] w-full"
-                      >
-                        <ResponsiveContainer width="100%" height="100%">
-                          <RechartsPieChart accessibilityLayer>
-                            <ChartTooltip
-                              cursor={false}
-                              content={({ active, payload }) => {
-                                if (active && payload && payload.length) {
-                                  const total =
-                                    qualityQuery.data.punctualityData.reduce(
-                                      (acc, curr) => acc + curr.value,
-                                      0,
-                                    )
-                                  const data = payload[0]
-                                  const percentage =
-                                    total > 0
-                                      ? (data.payload.value / total) * 100
-                                      : 0
-                                  return (
-                                    <div className="bg-background min-w-[12rem] rounded-lg border p-2 text-sm shadow-sm">
-                                      <div className="flex items-center gap-2 font-medium">
-                                        <div
-                                          className="h-2.5 w-2.5 shrink-0 rounded-sm"
-                                          style={{
-                                            backgroundColor: data.payload.fill,
-                                          }}
-                                        />
-                                        {data.name}
-                                      </div>
-                                      <div className="text-muted-foreground flex justify-between">
-                                        <span>
-                                          Contagem: {data.payload.value}
-                                        </span>
-                                        <span>{percentage.toFixed(0)}%</span>
-                                      </div>
-                                    </div>
-                                  )
-                                }
-                                return null
-                              }}
-                            />
-                            <Pie
-                              data={qualityQuery.data.punctualityData}
-                              dataKey="value"
-                              nameKey="name"
-                              innerRadius={30}
-                              outerRadius={40}
-                              strokeWidth={2}
-                            >
-                              {qualityQuery.data.punctualityData.map(
-                                (entry) => (
-                                  <Cell
-                                    key={`cell-${entry.name}`}
-                                    fill={entry.fill}
+                            {Array.from({ length: 24 }, (_, i) => {
+                              const hourStr = String(i).padStart(2, '0')
+                              const hoursValue =
+                                heatmapQuery.data[key]?.[hourStr]
+                              return (
+                                <TableCell
+                                  key={`${key}-${i}`}
+                                  className="p-0 text-center"
+                                >
+                                  <div
+                                    className="m-0.5 h-8 rounded-md"
+                                    style={getHeatmapStyle(hoursValue)}
+                                    title={
+                                      hoursValue
+                                        ? `${formatHours(
+                                            hoursValue,
+                                          )} em ${display} às ${hourStr}h`
+                                        : 'Nenhuma atividade'
+                                    }
                                   />
-                                ),
-                              )}
-                            </Pie>
-                          </RechartsPieChart>
-                        </ResponsiveContainer>
-                      </ChartContainer>
+                                </TableCell>
+                              )
+                            })}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              )
+            )}
+          </div>
+
+          <div className="lg:col-span-2">
+            {qualityQuery.isLoading ? (
+              <QualityCardSkeleton />
+            ) : (
+              qualityQuery.data && (
+                <Card className="h-full">
+                  <CardHeader>
+                    <CardTitle>Qualidade e Hábitos de Apontamento</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid gap-8">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <CalendarClock className="h-5 w-5 text-amber-500" />
+                        <span className="ml-3 font-medium">
+                          Dias Úteis Esquecidos
+                        </span>
+                      </div>
+                      <Badge
+                        variant={
+                          qualityQuery.data.quality.forgottenDays > 0
+                            ? 'destructive'
+                            : 'secondary'
+                        }
+                      >
+                        {qualityQuery.data.quality.forgottenDays} dia(s)
+                      </Badge>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <MessageSquareWarning className="h-5 w-5 text-amber-500" />
+                        <span className="ml-3 font-medium">
+                          Apontamentos sem Comentários
+                        </span>
+                      </div>
+                      <div className="w-32 text-right">
+                        <span className="font-bold">
+                          {qualityQuery.data.quality.noCommentPercent.toFixed(
+                            0,
+                          )}
+                          %
+                        </span>
+                        <Progress
+                          value={qualityQuery.data.quality.noCommentPercent}
+                          className="mt-1 h-2"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Clock4 className="h-5 w-5 text-amber-500" />
+                        <span className="ml-3 font-medium">
+                          Pontualidade dos Apontamentos
+                        </span>
+                      </div>
+                      <div className="w-40">
+                        <ChartContainer
+                          config={punctualityChartConfig}
+                          className="h-[100px] w-full"
+                        >
+                          <ResponsiveContainer width="100%" height="100%">
+                            <RechartsPieChart accessibilityLayer>
+                              <ChartTooltip
+                                cursor={false}
+                                content={({ active, payload }) => {
+                                  if (active && payload && payload.length) {
+                                    const total =
+                                      qualityQuery.data.punctualityData.reduce(
+                                        (acc, curr) => acc + curr.value,
+                                        0,
+                                      )
+                                    const data = payload[0]
+                                    const percentage =
+                                      total > 0
+                                        ? (data.payload.value / total) * 100
+                                        : 0
+                                    return (
+                                      <div className="bg-background min-w-[12rem] rounded-lg border p-2 text-sm shadow-sm">
+                                        <div className="flex items-center gap-2 font-medium">
+                                          <div
+                                            className="h-2.5 w-2.5 shrink-0 rounded-sm"
+                                            style={{
+                                              backgroundColor:
+                                                data.payload.fill,
+                                            }}
+                                          />
+                                          {data.name}
+                                        </div>
+                                        <div className="text-muted-foreground flex justify-between">
+                                          <span>
+                                            Contagem: {data.payload.value}
+                                          </span>
+                                          <span>{percentage.toFixed(0)}%</span>
+                                        </div>
+                                      </div>
+                                    )
+                                  }
+                                  return null
+                                }}
+                              />
+                              <Pie
+                                data={qualityQuery.data.punctualityData}
+                                dataKey="value"
+                                nameKey="name"
+                                innerRadius={30}
+                                outerRadius={40}
+                                strokeWidth={2}
+                              >
+                                {qualityQuery.data.punctualityData.map(
+                                  (entry) => (
+                                    <Cell
+                                      key={`cell-${entry.name}`}
+                                      fill={entry.fill}
+                                    />
+                                  ),
+                                )}
+                              </Pie>
+                            </RechartsPieChart>
+                          </ResponsiveContainer>
+                        </ChartContainer>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            )}
+          </div>
         </div>
       </div>
     </>
