@@ -230,7 +230,7 @@ export function DataGridSortMenu<TData>({
               onClick={onSortAdd}
               disabled={columns.length === 0}
             >
-              Add sort
+              Adicionar
             </Button>
             {sorting.length > 0 && (
               <Button
@@ -239,7 +239,7 @@ export function DataGridSortMenu<TData>({
                 className="rounded"
                 onClick={onSortingReset}
               >
-                Reset sorting
+                Resetar
               </Button>
             )}
           </div>

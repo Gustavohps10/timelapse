@@ -1,30 +1,23 @@
 'use client'
 
-import * as React from 'react'
+import { use, useMemo, useState } from 'react'
 
 import type { DataTableRowAction, QueryKeys } from '@/@types/data-table'
 import { DataTable } from '@/components/data-table/data-table'
-import { DataTableAdvancedToolbar } from '@/components/data-table/data-table-advanced-toolbar'
-import { DataTableFilterList } from '@/components/data-table/data-table-filter-list'
-import { DataTableFilterMenu } from '@/components/data-table/data-table-filter-menu'
 import { DataTableSortList } from '@/components/data-table/data-table-sort-list'
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar'
 import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 import { useDataTable } from '@/hooks/use-data-table'
 
-// Presumindo que você tenha queries para buscar todas as opções
 import type {
-  getAllPriorities, // Adicionado
-  getAllStati, // Adicionado
+  getAllPriorities,
+  getAllstatus,
   getEstimatedHoursRange,
   getTaskPriorityCounts,
   getTasks,
   getTaskStatusCounts,
 } from '../lib/queries'
-import { useFeatureFlags } from './feature-flags-provider'
-// import { TasksTableActionBar } from './tasks-table-action-bar'
 import { getTasksTableColumns } from './tasks-table-columns'
-// import { UpdateTaskSheet } from './update-task-sheet'
 
 interface TasksTableProps {
   promises: Promise<
@@ -33,107 +26,82 @@ interface TasksTableProps {
       Awaited<ReturnType<typeof getTaskStatusCounts>>,
       Awaited<ReturnType<typeof getTaskPriorityCounts>>,
       Awaited<ReturnType<typeof getEstimatedHoursRange>>,
-      Awaited<ReturnType<typeof getAllStati>>, // Adicionado
-      Awaited<ReturnType<typeof getAllPriorities>>, // Adicionado
+      Awaited<ReturnType<typeof getAllstatus>>,
+      Awaited<ReturnType<typeof getAllPriorities>>,
     ]
   >
   queryKeys?: Partial<QueryKeys>
 }
 
 export function TasksTable({ promises, queryKeys }: TasksTableProps) {
-  const { enableAdvancedFilter, filterFlag } = useFeatureFlags()
+  // const { enableAdvancedFilter, filterFlag } = useFeatureFlags()
 
-  // Atualizado para extrair os novos dados
   const [
     { data, pageCount },
     statusCounts,
     priorityCounts,
     estimatedHoursRange,
-    allStati,
+    allstatus,
     allPriorities,
-  ] = React.use(promises)
+  ] = use(promises)
 
   const [rowAction, setRowAction] =
-    React.useState<DataTableRowAction<SyncTaskRxDBDTO> | null>(null)
+    useState<DataTableRowAction<SyncTaskRxDBDTO> | null>(null)
 
-  const columns = React.useMemo(
+  const columns = useMemo(
     () =>
       getTasksTableColumns({
         statusCounts,
         priorityCounts,
         estimatedHoursRange,
-        allStati, // Passado para a função
-        allPriorities, // Passado para a função
+        allstatus,
+        allPriorities,
         setRowAction,
       }),
     [
       statusCounts,
       priorityCounts,
       estimatedHoursRange,
-      allStati,
+      allstatus,
       allPriorities,
-    ], // Adicionado às dependências
+    ],
   )
 
   const { table, shallow, debounceMs, throttleMs } = useDataTable({
     data,
     columns,
     pageCount,
-    enableAdvancedFilter,
+    // enableAdvancedFilter,
     initialState: {
-      sorting: [{ id: 'updatedAt', desc: true }], // 'updatedAt' existe no DTO
+      sorting: [{ id: 'updatedAt', desc: true }],
       columnPinning: { right: ['actions'] },
     },
     queryKeys,
-    getRowId: (originalRow) => originalRow.id, // 'id' existe no DTO
+    getRowId: (originalRow) => originalRow.id,
     shallow: false,
     clearOnDefault: true,
   })
 
   return (
     <>
-      <DataTable
-        table={table}
-        // actionBar={<TasksTableActionBar table={table} />}
-      >
-        {enableAdvancedFilter ? (
-          <DataTableAdvancedToolbar table={table}>
-            <DataTableSortList table={table} align="start" />
-            {filterFlag === 'advancedFilters' ? (
-              <DataTableFilterList
-                table={table}
-                shallow={shallow}
-                debounceMs={debounceMs}
-                throttleMs={throttleMs}
-                align="start"
-              />
-            ) : (
-              <DataTableFilterMenu
-                table={table}
-                shallow={shallow}
-                debounceMs={debounceMs}
-                throttleMs={throttleMs}
-              />
-            )}
-          </DataTableAdvancedToolbar>
-        ) : (
-          <DataTableToolbar table={table}>
-            <DataTableSortList table={table} align="end" />
-          </DataTableToolbar>
-        )}
+      <DataTable table={table}>
+        <DataTableToolbar table={table}>
+          <DataTableSortList table={table} align="end" />
+        </DataTableToolbar>
       </DataTable>
+
       {/* <UpdateTaskSheet
-        open={rowAction?.variant === 'update'}
-        onOpenChange={() => setRowAction(null)}
-        task={rowAction?.row.original ?? null}
-      /> */}
+        open={rowAction?.variant === 'update'}
+        onOpenChange={() => setRowAction(null)}
+        task={rowAction?.row.original ?? null}
+      /> */}
       {/* <DeleteTasksDialog
-        open={rowAction?.variant === 'delete'}
-        onOpenChange={() => setRowAction(null)}
-        tasks={rowAction?.row.original ? [rowAction?.row.original] : []}
-        showTrigger={false}
-        onSuccess={() => rowAction?.row.toggleSelected(false)}
-      /> */}
+        open={rowAction?.variant === 'delete'}
+        onOpenChange={() => setRowAction(null)}
+        tasks={rowAction?.row.original ? [rowAction?.row.original] : []}
+        showTrigger={false}
+        onSuccess={() => rowAction?.row.toggleSelected(false)}
+      /> */}
     </>
   )
 }

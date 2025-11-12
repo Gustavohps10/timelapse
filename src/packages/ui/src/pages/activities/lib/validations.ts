@@ -36,24 +36,17 @@ export const tasksSearchParamsParsers = {
   joinOperator: parseAsStringEnum(['and', 'or']).withDefault('and'),
 }
 
-/**
- * Helper para validar filtros (usado pelo Activities.tsx).
- * Adapte conforme sua necessidade.
- */
 export function getValidFilters(
   filters: ReturnType<(typeof tasksSearchParamsParsers)['filters']['parse']>,
 ) {
-  // Por enquanto, apenas retorna os filtros.
   return filters
 }
 
-// Helper type para extrair os tipos do objeto de parsers
 type Parsers = typeof tasksSearchParamsParsers
 type ParsedValues<T> = {
   [K in keyof T]: T[K] extends Parser<infer V> ? V : never
 }
 
-// 2. MUDANÇA: O tipo 'GetTasksSchema' agora é inferido do objeto de parsers
 export type GetTasksSchema = ParsedValues<Parsers>
 
 // export const createTaskSchema = z.object({

@@ -29,7 +29,7 @@ export function Activities() {
         .find({
           selector: { _deleted: { $ne: true } },
         })
-        .limit(10)
+        .limit(100)
         .exec()
 
       const tasksWithTimeEntries = await Promise.all(
@@ -106,7 +106,7 @@ export function Activities() {
   }
 
   return (
-    <div className="flex-1 overflow-hidden rounded-md border">
+    <div className="w-[calc(100vw-300px-72px-2rem)] flex-1 cursor-grab overflow-auto rounded-md border select-none active:cursor-grabbing">
       <Board initial={initialBoard} />
     </div>
   )

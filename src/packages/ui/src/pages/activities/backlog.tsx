@@ -6,13 +6,12 @@ import { Suspense } from 'react'
 import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton'
 import { Shell } from '@/components/shell'
 import { useAuth } from '@/hooks'
-import { FeatureFlagsProvider } from '@/pages/activities/components/feature-flags-provider'
 import { AppDatabase, useSyncStore } from '@/stores/syncStore'
 
 import { TasksTable } from './components/tasks-table'
 import {
   getAllPriorities,
-  getAllStati,
+  getAllstatus,
   getEstimatedHoursRange,
   getTaskPriorityCounts,
   getTasks,
@@ -30,23 +29,19 @@ function ClientTasksTableWrapper({ db, userId }: ClientTasksTableWrapperProps) {
 
   const validFilters = getValidFilters(search.filters)
 
+  console.log('Valid filters:', validFilters)
+  console.log('Search params:', search)
+
   const promises = Promise.all([
     getTasks(db, userId, search),
     getTaskStatusCounts(db, userId),
     getTaskPriorityCounts(db, userId),
     getEstimatedHoursRange(db, userId),
-    getAllStati(db),
+    getAllstatus(db),
     getAllPriorities(db),
   ])
 
-  const queryKeys = {
-    page: String(search.page ?? ''),
-    perPage: String(search.perPage ?? ''),
-    sort: JSON.stringify(search.sort ?? []),
-    filters: JSON.stringify(validFilters ?? []),
-  } as const
-
-  return <TasksTable promises={promises} queryKeys={queryKeys} />
+  return <TasksTable promises={promises} />
 }
 
 export function Backlog() {
@@ -83,9 +78,7 @@ export function Backlog() {
             />
           }
         >
-          <FeatureFlagsProvider>
-            <ClientTasksTableWrapper db={db} userId={userId} />
-          </FeatureFlagsProvider>
+          <ClientTasksTableWrapper db={db} userId={userId} />
         </Suspense>
       </Shell>
     </div>

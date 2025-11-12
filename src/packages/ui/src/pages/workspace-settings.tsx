@@ -238,6 +238,8 @@ export function WorkspaceSettings() {
       queryClient.invalidateQueries({
         queryKey: ['workspace-addon', workspaceId],
       })
+
+      console.log(variables)
       toast.success(
         `Conectado com "${variables.dataSource?.name}" com sucesso!`,
       )

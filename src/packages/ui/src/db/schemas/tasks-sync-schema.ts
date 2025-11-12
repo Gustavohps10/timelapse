@@ -1,6 +1,6 @@
 import { RxJsonSchema } from 'rxdb'
 
-import { SyncTimeEntryRxDBDTO } from '@/db/schemastime-entries-sync-schema'
+import { SyncTimeEntryRxDBDTO } from '@/db/schemas/time-entries-sync-schema'
 
 export interface SyncParticipantsRxDBDTO {
   id: string

@@ -10,7 +10,7 @@ import {
   Clock,
   Ellipsis,
   Text,
-  User, // Ícone adicionado
+  User,
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -34,10 +34,6 @@ import {
 import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 import { formatDate } from '@/lib/format'
 
-// import { updateTask } from '../lib/actions'
-// import { getPriorityIcon, getStatusIcon } from '../lib/utils'
-
-// Helper types para as props. O componente pai deve fornecer estas listas.
 interface StatusOption {
   id: string
   name: string
@@ -49,10 +45,10 @@ interface PriorityOption {
 }
 
 interface GetTasksTableColumnsProps {
-  allStati: StatusOption[]
+  allstatus: StatusOption[]
   allPriorities: PriorityOption[]
-  statusCounts: Record<string, number> // Chave é status.name
-  priorityCounts: Record<string, number> // Chave é priority.name
+  statusCounts: Record<string, number>
+  priorityCounts: Record<string, number>
   estimatedHoursRange: { min: number; max: number }
   setRowAction: React.Dispatch<
     React.SetStateAction<DataTableRowAction<SyncTaskRxDBDTO> | null>
@@ -60,7 +56,7 @@ interface GetTasksTableColumnsProps {
 }
 
 export function getTasksTableColumns({
-  allStati,
+  allstatus,
   allPriorities,
   statusCounts,
   priorityCounts,
@@ -72,7 +68,7 @@ export function getTasksTableColumns({
       id: 'select',
       header: ({ table }) => (
         <Checkbox
-          aria-label="Select all"
+          aria-label="Selecionar todos"
           className="translate-y-0.5"
           checked={
             table.getIsAllPageRowsSelected() ||
@@ -83,7 +79,7 @@ export function getTasksTableColumns({
       ),
       cell: ({ row }) => (
         <Checkbox
-          aria-label="Select row"
+          aria-label="Selecionar linha"
           className="translate-y-0.5"
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
@@ -95,9 +91,9 @@ export function getTasksTableColumns({
     },
     {
       id: 'id',
-      accessorKey: 'id', // Usando o 'id' do DTO
+      accessorKey: 'id',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Task" />
+        <DataTableColumnHeader column={column} label="Tarefa" />
       ),
       cell: ({ row }) => <div className="w-20">{row.getValue('id')}</div>,
       enableSorting: false,
@@ -107,11 +103,10 @@ export function getTasksTableColumns({
       id: 'title',
       accessorKey: 'title',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Title" />
+        <DataTableColumnHeader column={column} label="Título" />
       ),
       cell: ({ row }) => {
-        const projectName = row.original.projectName // Usando projectName
-
+        const projectName = row.original.projectName
         return (
           <div className="flex items-center gap-2">
             {projectName && <Badge variant="outline">{projectName}</Badge>}
@@ -122,8 +117,8 @@ export function getTasksTableColumns({
         )
       },
       meta: {
-        label: 'Title',
-        placeholder: 'Search titles...',
+        label: 'Título',
+        placeholder: 'Buscar títulos...',
         variant: 'text',
         icon: Text,
       },
@@ -131,16 +126,14 @@ export function getTasksTableColumns({
     },
     {
       id: 'status',
-      accessorFn: (row) => row.status.name, // Acessa o nome para filtro/sort
+      accessorFn: (row) => row.status.name,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} label="Status" />
       ),
       cell: ({ row }) => {
         const status = row.original.status
         if (!status) return null
-
-        const Icon = BoxIcon // Passa o nome para o helper
-
+        const Icon = BoxIcon
         return (
           <Badge variant="outline" className="py-1 [&>svg]:size-3.5">
             <Icon />
@@ -151,7 +144,7 @@ export function getTasksTableColumns({
       meta: {
         label: 'Status',
         variant: 'multiSelect',
-        options: allStati.map((status) => ({
+        options: allstatus.map((status) => ({
           label: status.name.charAt(0).toUpperCase() + status.name.slice(1),
           value: status.name,
           count: statusCounts[status.name] || 0,
@@ -164,16 +157,14 @@ export function getTasksTableColumns({
     },
     {
       id: 'priority',
-      accessorFn: (row) => row.priority?.name, // Acessa o nome (opcional)
+      accessorFn: (row) => row.priority?.name,
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Priority" />
+        <DataTableColumnHeader column={column} label="Prioridade" />
       ),
       cell: ({ row }) => {
         const priority = row.original.priority
         if (!priority) return null
-
-        const Icon = BookmarkX // Passa o nome para o helper
-
+        const Icon = BookmarkX
         return (
           <Badge variant="outline" className="py-1 [&>svg]:size-3.5">
             <Icon />
@@ -182,7 +173,7 @@ export function getTasksTableColumns({
         )
       },
       meta: {
-        label: 'Priority',
+        label: 'Prioridade',
         variant: 'multiSelect',
         options: allPriorities.map((priority) => ({
           label: priority.name.charAt(0).toUpperCase() + priority.name.slice(1),
@@ -197,9 +188,9 @@ export function getTasksTableColumns({
     },
     {
       id: 'assignedTo',
-      accessorFn: (row) => row.assignedTo?.name, // Acessa o nome (opcional)
+      accessorFn: (row) => row.assignedTo?.name,
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Assigned To" />
+        <DataTableColumnHeader column={column} label="Atribuído a" />
       ),
       cell: ({ cell }) => {
         const assignedTo = cell.getValue<string>()
@@ -210,16 +201,19 @@ export function getTasksTableColumns({
           </div>
         )
       },
+      meta: {
+        label: 'Atribuído a',
+        placeholder: 'Buscar por pessoa...',
+      },
       enableSorting: true,
-      enableColumnFilter: false, // Pode ser habilitado se passar 'allUsers'
+      enableColumnFilter: false,
     },
     {
       id: 'estimatedHours',
-      accessorFn: (
-        row, // Soma o array
-      ) => row.estimatedTimes?.reduce((acc, curr) => acc + curr.hours, 0) || 0,
+      accessorFn: (row) =>
+        row.estimatedTimes?.reduce((acc, curr) => acc + curr.hours, 0) || 0,
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Est. Hours" />
+        <DataTableColumnHeader column={column} label="Horas estimadas" />
       ),
       cell: ({ cell }) => {
         const estimatedHours = cell.getValue<number>()
@@ -228,10 +222,10 @@ export function getTasksTableColumns({
         )
       },
       meta: {
-        label: 'Est. Hours',
+        label: 'Horas estimadas',
         variant: 'range',
         range: [estimatedHoursRange.min, estimatedHoursRange.max],
-        unit: 'hr',
+        unit: 'h',
         icon: Clock,
       },
       enableColumnFilter: true,
@@ -239,26 +233,30 @@ export function getTasksTableColumns({
     },
     {
       id: 'spentHours',
-      accessorKey: 'spentHours', // Chave direta do DTO
+      accessorKey: 'spentHours',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Spent Hours" />
+        <DataTableColumnHeader column={column} label="Horas gastas" />
       ),
       cell: ({ cell }) => {
         const spentHours = cell.getValue<number>() || 0
         return <div className="w-20 text-right">{spentHours.toFixed(2)}</div>
       },
+      meta: {
+        label: 'Horas gastas',
+        variant: 'range',
+      },
       enableSorting: true,
-      enableColumnFilter: false, // Habilitar se passar um range nas props
+      enableColumnFilter: false,
     },
     {
       id: 'createdAt',
       accessorKey: 'createdAt',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Created At" />
+        <DataTableColumnHeader column={column} label="Criada em" />
       ),
-      cell: ({ cell }) => formatDate(cell.getValue<string>()), // Schema é string
+      cell: ({ cell }) => formatDate(cell.getValue<string>()),
       meta: {
-        label: 'Created At',
+        label: 'Criada em',
         variant: 'dateRange',
         icon: CalendarIcon,
       },
@@ -269,12 +267,11 @@ export function getTasksTableColumns({
       id: 'actions',
       cell: function Cell({ row }: { row: Row<SyncTaskRxDBDTO> }) {
         const [isUpdatePending, startUpdateTransition] = React.useTransition()
-
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label="Open menu"
+                aria-label="Abrir menu"
                 variant="ghost"
                 className="data-[state=open]:bg-muted flex size-8 p-0"
               >
@@ -285,37 +282,23 @@ export function getTasksTableColumns({
               <DropdownMenuItem
                 onSelect={() => setRowAction({ row, variant: 'update' })}
               >
-                Edit
+                Editar
               </DropdownMenuItem>
 
-              {/* Submenu refatorado para 'Change Status' */}
               <DropdownMenuSub>
-                <DropdownMenuSubTrigger>Change Status</DropdownMenuSubTrigger>
+                <DropdownMenuSubTrigger>Alterar status</DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
                   <DropdownMenuRadioGroup
-                    value={row.original.status.id} // Usa o ID do status
+                    value={row.original.status.id}
                     onValueChange={(value) => {
-                      // Encontra o objeto de status completo pelo ID
-                      const newStatus = allStati.find((s) => s.id === value)
+                      const newStatus = allstatus.find((s) => s.id === value)
                       if (!newStatus) return
-
                       startUpdateTransition(() => {
-                        // toast.promise(
-                        //   updateTask({
-                        //     // Passa o objeto parcial para a action
-                        //     id: row.original.id,
-                        //     status: newStatus,
-                        //   }),
-                        //   {
-                        //     loading: 'Updating...',
-                        //     success: 'Status updated',
-                        //     error: (err) => getErrorMessage(err),
-                        //   },
-                        // )
+                        // updateTask(...)
                       })
                     }}
                   >
-                    {allStati.map((status) => (
+                    {allstatus.map((status) => (
                       <DropdownMenuRadioItem
                         key={status.id}
                         value={status.id}
@@ -333,7 +316,7 @@ export function getTasksTableColumns({
               <DropdownMenuItem
                 onSelect={() => setRowAction({ row, variant: 'delete' })}
               >
-                Delete
+                Excluir
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

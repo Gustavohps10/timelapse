@@ -199,7 +199,7 @@ export async function getEstimatedHoursRange(db: AppDatabase, userId: string) {
   return { min, max }
 }
 
-export async function getAllStati(db: AppDatabase) {
+export async function getAllstatus(db: AppDatabase) {
   const metadata = await getMetadata(db)
   return metadata?.taskStatuses || []
 }

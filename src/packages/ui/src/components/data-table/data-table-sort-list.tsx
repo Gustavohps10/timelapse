@@ -187,7 +187,7 @@ export function DataTableSortList<TData>({
         >
           <div className="flex flex-col gap-1">
             <h4 id={labelId} className="leading-none font-medium">
-              {sorting.length > 0 ? 'Sort by' : 'No sorting applied'}
+              {sorting.length > 0 ? 'Ordenar por' : 'No sorting applied'}
             </h4>
             <p
               id={descriptionId}
@@ -226,7 +226,7 @@ export function DataTableSortList<TData>({
               onClick={onSortAdd}
               disabled={columns.length === 0}
             >
-              Add sort
+              Adicionar
             </Button>
             {sorting.length > 0 && (
               <Button
@@ -235,7 +235,7 @@ export function DataTableSortList<TData>({
                 className="rounded"
                 onClick={onSortingReset}
               >
-                Reset sorting
+                Resetar
               </Button>
             )}
           </div>
