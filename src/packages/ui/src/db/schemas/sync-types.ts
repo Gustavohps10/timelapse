@@ -2,12 +2,11 @@
 
 import { RxCollection, RxDatabase, RxError, RxJsonSchema } from 'rxdb'
 
-import { SyncMetadataRxDBDTO } from '@/db/schemasmetadata-sync-schema'
+import { SyncMetadataRxDBDTO } from '@/db/schemas/metadata-sync-schema'
 
 import { SyncTaskRxDBDTO } from './tasks-sync-schema'
 import { SyncTimeEntryRxDBDTO } from './time-entries-sync-schema'
 
-// TIPOS DE BANCO DE DADOS (sem alteração)
 export type ReplicationCheckpoint = {
   updatedAt: string
   id: string

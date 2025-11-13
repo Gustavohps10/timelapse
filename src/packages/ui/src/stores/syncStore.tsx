@@ -24,6 +24,14 @@ import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv'
 import { createStore, type StoreApi, useStore } from 'zustand'
 
 import {
+  KanbanColumnRxDBDTO,
+  kanbanColumnsSchema,
+} from '@/db/schemas/kanban-column-schema'
+import {
+  kanbanTaskColumnsSchema,
+  TaskKanbanColumnRxDBDTO,
+} from '@/db/schemas/kanban-task-columns-schema'
+import {
   metadataSyncSchema,
   SyncMetadataRxDBDTO,
 } from '@/db/schemas/metadata-sync-schema'
@@ -47,6 +55,8 @@ export type AppCollections = {
   timeEntries: RxCollection<SyncTimeEntryRxDBDTO>
   tasks: RxCollection<SyncTaskRxDBDTO>
   metadata: RxCollection<SyncMetadataRxDBDTO>
+  kanbanColumns: RxCollection<KanbanColumnRxDBDTO>
+  kanbanTaskColumns: RxCollection<TaskKanbanColumnRxDBDTO>
 }
 
 export type AppDatabase = RxDatabase<AppCollections>
@@ -283,11 +293,29 @@ export const createSyncStore = (
         ignoreDuplicate: true,
         allowSlowCount: true,
       })
+
       const collectionsToCreate = replicationConfigs.reduce(
-        (acc, config) => ({ ...acc, [config.name]: { schema: config.schema } }),
-        {} as { [key in keyof AppCollections]: { schema: RxJsonSchema<any> } },
+        (acc, config) => ({
+          ...acc,
+          [config.name]: { schema: config.schema },
+        }),
+        {} as Record<
+          keyof Pick<AppCollections, 'tasks' | 'metadata' | 'timeEntries'>,
+          { schema: RxJsonSchema<any> }
+        >,
       )
-      await db.addCollections(collectionsToCreate)
+
+      const allCollectionsToCreate: Record<
+        keyof AppCollections,
+        { schema: RxJsonSchema<any> }
+      > = {
+        ...collectionsToCreate,
+        kanbanColumns: { schema: kanbanColumnsSchema },
+        kanbanTaskColumns: { schema: kanbanTaskColumnsSchema },
+      }
+
+      await db.addCollections(allCollectionsToCreate)
+
       set({ db, isInitialized: true })
 
       for (const config of replicationConfigs) {

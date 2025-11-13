@@ -1,6 +1,6 @@
 import { RxJsonSchema } from 'rxdb'
 
-import { SyncTaskRxDBDTO } from '@/db/schemastasks-sync-schema'
+import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 
 export interface SyncTimeEntryRxDBDTO {
   _id: string
