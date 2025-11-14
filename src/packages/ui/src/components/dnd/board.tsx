@@ -111,7 +111,7 @@ export function Board({
 }: {
   initial: TBoard
   enableAddColumns?: boolean
-  onAddColumn?: () => Promise<void> | void
+  onAddColumn?: (name: string) => Promise<void> | void
 }) {
   const [data, setData] = useState(initial)
   const scrollableRef = useRef<HTMLDivElement | null>(null)

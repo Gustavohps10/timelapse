@@ -1,135 +1,30 @@
 'use client'
 
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { Suspense, useEffect } from 'react' // 1. Imports atualizados
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
+import { WorkspaceViewModel } from '@timelapse/presentation/view-models'
+import { Suspense, useCallback } from 'react'
+import { RxDocument } from 'rxdb'
+import { toast } from 'sonner'
 
+import { User } from '@/@types/session/User'
 import { Board } from '@/components/dnd/board'
 import { TBoard, TCard, TColumn } from '@/components/dnd/data'
-import { Card, CardContent, CardHeader } from '@/components/ui/card' // 2. Shadcn
-import { Skeleton } from '@/components/ui/skeleton' // 2. Shadcn
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { KanbanColumnRxDBDTO } from '@/db/schemas/kanban-column-schema'
 import { TaskKanbanColumnRxDBDTO } from '@/db/schemas/kanban-task-columns-schema'
 import { SyncMetadataRxDBDTO } from '@/db/schemas/metadata-sync-schema'
 import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
-import { useAuth } from '@/hooks'
-import { useSyncStore } from '@/stores/syncStore'
+import { SyncTimeEntryRxDBDTO } from '@/db/schemas/time-entries-sync-schema'
+import { useAuth, useWorkspace } from '@/hooks'
+import { AppDatabase, useSyncStore } from '@/stores/syncStore'
 
 type TaskWithTimeEntries = SyncTaskRxDBDTO & { timeEntries: any[] }
 
-const simpleUUID = () => `id_${Math.random().toString(36).substring(2, 11)}`
-
-// --- HOOK DE SEED (EXTRAÍDO) ---
-function useDevSeed() {
-  const db = useSyncStore((state) => state.db)
-
-  useEffect(() => {
-    // Roda apenas em ambiente de desenvolvimento e apenas uma vez por sessão
-    if (process.env.NODE_ENV !== 'development' || (window as any).dbSeeded) {
-      return
-    }
-
-    const seedDatabase = async () => {
-      if (!db) return
-
-      try {
-        // 1. Verifica se dados já existem para não duplicar
-        const existingColumns = await db.kanbanColumns.count().exec()
-        if (existingColumns > 0) {
-          console.log('DEV: Dados do Kanban já existem. Pulando o seed.')
-          ;(window as any).dbSeeded = true // Marca como "seedado" nesta sessão
-          return
-        }
-
-        console.log('DEV: Populando banco com dados de teste para o Kanban...')
-
-        // 2. Pega 10 tarefas aleatórias
-        const tasks = await db.tasks
-          .find({ selector: { _deleted: { $ne: true } } })
-          .limit(10)
-          .exec()
-
-        if (tasks.length === 0) {
-          console.warn(
-            'DEV: Nenhuma tarefa encontrada. Não é possível criar relações.',
-          )
-          return
-        }
-        const taskIds = tasks.map((t) => t.id)
-
-        // 3. Cria 7 colunas
-        const columnNames = [
-          'Backlog',
-          'A Fazer',
-          'Em Progresso',
-          'Em Revisão',
-          'Testando',
-          'Bloqueado',
-          'Concluído',
-        ]
-        const now = new Date().toISOString()
-        const workspaceId = 'dev-workspace-1' // Workspace de teste
-
-        const newColumns: KanbanColumnRxDBDTO[] = columnNames.map(
-          (name, index) => {
-            const id = simpleUUID()
-            return {
-              _id: id,
-              _deleted: false,
-              id: id,
-              name: name,
-              order: index,
-              workspaceId: workspaceId,
-              isActive: true,
-              createdAt: now,
-              updatedAt: now,
-            }
-          },
-        )
-
-        await db.kanbanColumns.bulkInsert(newColumns)
-        const columnIds = newColumns.map((c) => c.id)
-        console.log(`DEV: ${columnIds.length} colunas criadas.`)
-
-        // 4. Cria as amarrações (relações)
-        const newRelations: TaskKanbanColumnRxDBDTO[] = []
-        const columnPositions = new Map<string, number>(
-          columnIds.map((id) => [id, 0]),
-        )
-
-        for (const taskId of taskIds) {
-          const randomColumnId =
-            columnIds[Math.floor(Math.random() * columnIds.length)]
-          const position = columnPositions.get(randomColumnId)!
-          columnPositions.set(randomColumnId, position + 1)
-
-          const relationId = simpleUUID()
-          newRelations.push({
-            _id: relationId,
-            _deleted: false,
-            taskId: taskId,
-            columnId: randomColumnId,
-            inWorkspace: true,
-            position: position,
-            createdAt: now,
-            updatedAt: now,
-          })
-        }
-
-        await db.kanbanTaskColumns.bulkInsert(newRelations)
-        console.log(
-          `DEV: ${newRelations.length} relações entre tarefas e colunas criadas.`,
-        )
-        ;(window as any).dbSeeded = true
-      } catch (error) {
-        console.error('DEV: Erro ao popular dados de teste do Kanban:', error)
-      }
-    }
-
-    setTimeout(seedDatabase, 1000)
-  }, [db])
-}
-
-// --- SKELETON (SHADCN UI) ---
 function KanbanSkeleton() {
   return (
     <div className="grid h-full w-full auto-cols-[300px] grid-flow-col gap-4 p-4">
@@ -149,17 +44,19 @@ function KanbanSkeleton() {
   )
 }
 
-// --- COMPONENTE DE DADOS (SUSPENSE) ---
-function KanbanBoardContent() {
-  const db = useSyncStore((state) => state.db)!
-  const { user } = useAuth()!
+function KanbanBoard({
+  db,
+  user,
+  workspace,
+}: {
+  db: AppDatabase
+  user: User
+  workspace: WorkspaceViewModel
+}) {
+  const queryClient = useQueryClient()
 
-  // Hook de seed é chamado aqui
-  useDevSeed()
-
-  // 1. Fetch de Tasks (com useSuspenseQuery)
   const { data: tasks } = useSuspenseQuery({
-    queryKey: ['tasks', user?.id],
+    queryKey: ['tasks', user.id],
     queryFn: async (): Promise<TaskWithTimeEntries[]> => {
       const tasksDocs = await db.tasks
         .find({
@@ -168,7 +65,7 @@ function KanbanBoardContent() {
         .exec()
 
       const tasksWithTimeEntries = await Promise.all(
-        tasksDocs.map(async (task) => {
+        tasksDocs.map(async (task: RxDocument<SyncTaskRxDBDTO>) => {
           const taskObj = task.toJSON()
           const timeEntriesDocs = await db.timeEntries
             .find({
@@ -180,7 +77,10 @@ function KanbanBoardContent() {
             .exec()
           return {
             ...taskObj,
-            timeEntries: timeEntriesDocs.map((te) => te.toJSON()),
+
+            timeEntries: timeEntriesDocs.map(
+              (te: RxDocument<SyncTimeEntryRxDBDTO>) => te.toJSON(),
+            ),
           }
         }),
       )
@@ -188,7 +88,6 @@ function KanbanBoardContent() {
     },
   })
 
-  // 2. Fetch de Metadata (com useSuspenseQuery)
   const { data: metadata } = useSuspenseQuery({
     queryKey: ['metadata'],
     queryFn: async (): Promise<SyncMetadataRxDBDTO | null> => {
@@ -199,7 +98,6 @@ function KanbanBoardContent() {
     },
   })
 
-  // 3. Fetch de Colunas (com useSuspenseQuery)
   const { data: kanbanColumns } = useSuspenseQuery({
     queryKey: ['kanbanColumns'],
     queryFn: async (): Promise<KanbanColumnRxDBDTO[]> => {
@@ -213,7 +111,6 @@ function KanbanBoardContent() {
     },
   })
 
-  // 4. Fetch de Relações (com useSuspenseQuery)
   const { data: kanbanRelations } = useSuspenseQuery({
     queryKey: ['kanbanRelations'],
     queryFn: async (): Promise<TaskKanbanColumnRxDBDTO[]> => {
@@ -226,8 +123,78 @@ function KanbanBoardContent() {
     },
   })
 
-  // --- Transformação de Dados ---
-  // Sem useMemo! Este código só roda quando TUDO acima estiver pronto.
+  const { mutate: addColumnMutate } = useMutation<
+    void,
+    Error,
+    KanbanColumnRxDBDTO,
+    { previousColumns: KanbanColumnRxDBDTO[] }
+  >({
+    mutationFn: async (newColumn) => {
+      await db.kanbanColumns.insert(newColumn)
+    },
+    onMutate: async (newColumn) => {
+      await queryClient.cancelQueries({ queryKey: ['kanbanColumns'] })
+
+      const previousColumns =
+        queryClient.getQueryData<KanbanColumnRxDBDTO[]>(['kanbanColumns']) ?? []
+
+      queryClient.setQueryData(
+        ['kanbanColumns'],
+        [...previousColumns, newColumn],
+      )
+
+      return { previousColumns }
+    },
+    onError: (err, newColumn, context) => {
+      console.error('Falha ao adicionar nova coluna:', err)
+      toast.error('Falha ao adicionar nova coluna.')
+
+      if (context?.previousColumns) {
+        queryClient.setQueryData(['kanbanColumns'], context.previousColumns)
+      }
+    },
+    onSuccess: () => {
+      toast.success('Coluna adicionada com sucesso!')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['kanbanColumns'] })
+    },
+  })
+
+  /**
+   * Função passada ao componente Board.
+   * Ela prepara o novo objeto de coluna e chama a mutação.
+   */
+  const handleAddColumn = useCallback(
+    (name: string) => {
+      const previousColumns =
+        queryClient.getQueryData<KanbanColumnRxDBDTO[]>(['kanbanColumns']) ?? []
+
+      const maxOrder =
+        previousColumns.length > 0
+          ? previousColumns[previousColumns.length - 1].order
+          : -1
+      const newOrder = maxOrder + 1
+      const newId = crypto.randomUUID()
+      const now = new Date().toISOString()
+
+      const newColumn: KanbanColumnRxDBDTO = {
+        _id: newId,
+        _deleted: false,
+        id: newId,
+        name: name,
+        order: newOrder,
+        workspaceId: workspace.id,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      }
+
+      addColumnMutate(newColumn)
+    },
+    [queryClient, workspace, addColumnMutate],
+  )
+
   const taskMap = new Map<string, TCard[]>()
   for (const col of kanbanColumns) taskMap.set(col.id, [])
 
@@ -240,7 +207,7 @@ function KanbanBoardContent() {
       task: task as SyncTaskRxDBDTO,
       metadata: metadata ?? ({} as SyncMetadataRxDBDTO),
     }
-    taskMap.get(colId)!.push(card)
+    taskMap.get(colId)?.push(card)
   }
 
   const columns: TColumn[] = kanbanColumns.map((col) => ({
@@ -257,20 +224,32 @@ function KanbanBoardContent() {
 
   const initialBoard: TBoard = { columns }
 
-  // Renderiza o Board diretamente
-  return <Board initial={initialBoard} enableAddColumns />
+  return (
+    <Board
+      initial={initialBoard}
+      enableAddColumns
+      onAddColumn={handleAddColumn}
+    />
+  )
 }
 
-// --- COMPONENTE PRINCIPAL (EXPORTADO) ---
-export function Activities() {
+function KanbanBoardContent() {
   const db = useSyncStore((state) => state.db)
+  const { workspace } = useWorkspace()
   const { user } = useAuth()
 
+  if (!db || !user || !workspace) {
+    return <KanbanSkeleton />
+  }
+
+  return <KanbanBoard db={db} user={user} workspace={workspace} />
+}
+
+export function Activities() {
   return (
     <div className="w-[calc(100vw-300px-72px-2rem)] flex-1 cursor-grab overflow-auto rounded-md border select-none active:cursor-grabbing">
       <Suspense fallback={<KanbanSkeleton />}>
-        {/* Só renderiza o Board se o DB e o User estiverem prontos */}
-        {db && user ? <KanbanBoardContent /> : <KanbanSkeleton />}
+        <KanbanBoardContent />
       </Suspense>
     </div>
   )
