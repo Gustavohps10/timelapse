@@ -258,7 +258,7 @@ function KanbanBoardContent() {
   const initialBoard: TBoard = { columns }
 
   // Renderiza o Board diretamente
-  return <Board initial={initialBoard} />
+  return <Board initial={initialBoard} enableAddColumns />
 }
 
 // --- COMPONENTE PRINCIPAL (EXPORTADO) ---

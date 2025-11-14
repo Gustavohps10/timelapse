@@ -9,8 +9,12 @@ import { unsafeOverflowAutoScrollForElements } from '@atlaskit/pragmatic-drag-an
 import { extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import { reorderWithEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge'
 import { bindAll } from 'bind-event-listener'
+import { Plus, X } from 'lucide-react'
 import { useContext, useEffect, useRef, useState } from 'react'
 import invariant from 'tiny-invariant'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 import { Column } from './column'
 import {
@@ -25,7 +29,90 @@ import {
 import { blockBoardPanningAttr } from './data-attributes'
 import { SettingsContext } from './settings-context'
 
-export function Board({ initial }: { initial: TBoard }) {
+type AddColumnProps = {
+  onAdd?: (name: string) => Promise<void> | void
+}
+
+export function AddColumn({ onAdd }: AddColumnProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [name, setName] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleSave = async () => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    setIsSaving(true)
+
+    try {
+      await onAdd?.(trimmed)
+      setName('')
+      setIsEditing(false)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    setName('')
+  }
+
+  return (
+    <div className="w-[300px] flex-shrink-0 cursor-auto select-auto">
+      {isEditing ? (
+        <div className="border-muted-foreground/30 bg-muted/50 flex flex-col gap-2 rounded-md border-2 border-dashed p-2">
+          <Input
+            placeholder="Nome da nova coluna..."
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+            disabled={isSaving}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSave()
+              if (e.key === 'Escape') handleCancel()
+            }}
+          />
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              disabled={isSaving}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={isSaving || !name.trim()}
+            >
+              {isSaving ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button
+          variant="outline"
+          className="text-muted-foreground hover:bg-muted/50 flex h-12 w-full items-center justify-start border-2 border-dashed bg-transparent p-4 shadow-none"
+          onClick={() => setIsEditing(true)}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Adicionar Coluna
+        </Button>
+      )}
+    </div>
+  )
+}
+
+export function Board({
+  initial,
+  enableAddColumns,
+  onAddColumn,
+}: {
+  initial: TBoard
+  enableAddColumns?: boolean
+  onAddColumn?: () => Promise<void> | void
+}) {
   const [data, setData] = useState(initial)
   const scrollableRef = useRef<HTMLDivElement | null>(null)
   const { settings } = useContext(SettingsContext)
@@ -360,6 +447,7 @@ export function Board({ initial }: { initial: TBoard }) {
         {data.columns.map((column) => (
           <Column key={column.id} column={column} />
         ))}
+        {enableAddColumns && <AddColumn onAdd={onAddColumn} />}
       </div>
     </div>
   )
