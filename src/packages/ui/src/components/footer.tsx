@@ -86,7 +86,7 @@ export function Footer({
   legalLinks = defaultLegalLinks,
 }: FooterProps) {
   return (
-    <footer className="mt-5 border border-l-0 bg-neutral-50 p-4 dark:bg-neutral-900">
+    <footer className="mt-5 border border-l-0 bg-zinc-50 p-4 dark:bg-zinc-900">
       <section className="py-20">
         <div className="container">
           <div className="flex w-full flex-col justify-between gap-10 lg:flex-row lg:items-start lg:text-left">

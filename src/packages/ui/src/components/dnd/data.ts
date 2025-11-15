@@ -10,6 +10,18 @@ export type TColumn = {
   id: string
   title: string
   cards: TCard[]
+  actions?: ColumnActionGroup[]
+}
+
+export type ColumnAction = {
+  icon?: React.ReactNode
+  label: string
+  onClick: (column: TColumn) => void
+}
+
+export type ColumnActionGroup = {
+  title?: string
+  items: ColumnAction[]
 }
 
 export type TBoard = {

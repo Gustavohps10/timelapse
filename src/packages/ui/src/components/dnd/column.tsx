@@ -14,6 +14,13 @@ import { Ellipsis } from 'lucide-react'
 import { memo, useContext, useEffect, useRef, useState } from 'react'
 import invariant from 'tiny-invariant'
 
+import { Button } from '@/components/ui/button'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+
 import { Card, CardShadow } from './card'
 import {
   getColumnData,
@@ -242,7 +249,7 @@ export function Column({ column }: { column: TColumn }) {
       ref={outerFullHeightRef}
     >
       <div
-        className={`flex max-h-full flex-col rounded-lg bg-zinc-100 text-neutral-50 dark:bg-zinc-900 ${stateStyles[state.type]}`}
+        className={`dark:bg-card flex max-h-full flex-col rounded-lg bg-zinc-100 text-zinc-50 ${stateStyles[state.type]}`}
         ref={innerRef}
         {...{ [blockBoardPanningAttr]: true }}
       >
@@ -251,20 +258,64 @@ export function Column({ column }: { column: TColumn }) {
           className={`flex max-h-full flex-col ${state.type === 'is-column-over' ? 'invisible' : ''}`}
         >
           <div
-            className="flex flex-row items-center justify-between p-3 pb-2"
+            className="flex flex-row items-center justify-between px-3 py-2"
             ref={headerRef}
           >
-            <div className="text-foreground pl-2 leading-4 font-bold">
+            <div className="text-foreground pl-2 text-sm leading-tight font-semibold">
               {column.title}
             </div>
-            <button
-              type="button"
-              className="rounded p-2 hover:bg-slate-700 active:bg-slate-600"
-              aria-label="More actions"
-            >
-              <Ellipsis size={16} />
-            </button>
+
+            {Array.isArray(column.actions) && column.actions.length > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="text-foreground h-7 w-7 p-1"
+                  >
+                    <Ellipsis size={16} />
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent
+                  align="end"
+                  className="bg-popover w-48 rounded-md border p-1 shadow-md"
+                >
+                  <div className="flex flex-col gap-1.5">
+                    {column.actions.map((group, indexGroup) => (
+                      <div key={indexGroup} className="flex flex-col gap-1">
+                        {group.title && (
+                          <div className="text-sidebar-foreground/70 flex h-5 items-center px-1.5 text-[10px] font-medium">
+                            {group.title}
+                          </div>
+                        )}
+
+                        <div className="flex flex-col gap-[2px]">
+                          {group.items.map((item, indexItem) => (
+                            <button
+                              key={indexItem}
+                              className="hover:bg-accent hover:text-accent-foreground flex h-7 w-full items-center gap-2 rounded-md px-2 text-sm transition-colors"
+                              onClick={() => item.onClick(column)}
+                            >
+                              <span className="flex items-center leading-none [&>svg]:size-4">
+                                {item.icon}
+                              </span>
+
+                              <span className="text-muted-foreground leading-none tracking-tighter">
+                                {item.label}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
+
           <div
             className="flex flex-col overflow-y-auto [overflow-anchor:none] [scrollbar-color:theme(colors.slate.600)_theme(colors.slate.700)] [scrollbar-width:thin]"
             ref={scrollableRef}

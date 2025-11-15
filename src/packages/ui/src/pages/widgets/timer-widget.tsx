@@ -166,7 +166,7 @@ function ExpansiveTimeWigetSession({
             variant="outline"
             role="combobox"
             aria-expanded={true}
-            className="bg-background h-8 w-full justify-between hover:bg-neutral-900"
+            className="bg-background h-8 w-full justify-between hover:bg-zinc-900"
           >
             {value
               ? activities.find((framework) => framework.value === value)?.label

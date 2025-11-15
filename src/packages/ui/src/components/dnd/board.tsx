@@ -105,15 +105,18 @@ export function AddColumn({ onAdd }: AddColumnProps) {
 }
 
 export function Board({
-  initial,
+  board,
   enableAddColumns,
   onAddColumn,
 }: {
-  initial: TBoard
+  board: TBoard
   enableAddColumns?: boolean
   onAddColumn?: (name: string) => Promise<void> | void
 }) {
-  const [data, setData] = useState(initial)
+  const [data, setData] = useState(board)
+  useEffect(() => {
+    setData(board)
+  }, [board])
   const scrollableRef = useRef<HTMLDivElement | null>(null)
   const { settings } = useContext(SettingsContext)
 

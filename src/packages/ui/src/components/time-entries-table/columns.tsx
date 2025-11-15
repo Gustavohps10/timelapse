@@ -105,7 +105,7 @@ export const columns: ColumnDef<Row>[] = [
               />
             )}
             {!allSynced && hasPending && (
-              <Pin className="text-neutral-500" size={16} strokeWidth={1.5} />
+              <Pin className="text-zinc-500" size={16} strokeWidth={1.5} />
             )}
             {!allSynced && hasFailed && (
               <AlertTriangle
@@ -129,9 +129,7 @@ export const columns: ColumnDef<Row>[] = [
             />
           )
         case 'pending':
-          return (
-            <Pin className="text-neutral-500" size={16} strokeWidth={1.5} />
-          )
+          return <Pin className="text-zinc-500" size={16} strokeWidth={1.5} />
         case 'failed':
           return (
             <AlertTriangle

@@ -246,7 +246,7 @@ export function CardDisplay({
   return (
     <div
       ref={outerRef}
-      className={`flex flex-shrink-0 flex-col gap-2 px-3 py-1 ${
+      className={`flex flex-shrink-0 flex-col gap-2 p-3 ${
         outerStyles[state.type] ?? ''
       }`}
     >
