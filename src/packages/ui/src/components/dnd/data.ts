@@ -11,6 +11,9 @@ export type TColumn = {
   title: string
   cards: TCard[]
   actions?: ColumnActionGroup[]
+  position: number
+  isLoading: boolean
+  onChange?: (column: TColumn) => void
 }
 
 export type ColumnAction = {

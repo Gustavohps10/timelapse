@@ -14,6 +14,7 @@ import { Ellipsis } from 'lucide-react'
 import { memo, useContext, useEffect, useRef, useState } from 'react'
 import invariant from 'tiny-invariant'
 
+import { Loader } from '@/components/loader'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -80,6 +81,41 @@ export function Column({ column }: { column: TColumn }) {
   const innerRef = useRef<HTMLDivElement | null>(null)
   const { settings } = useContext(SettingsContext)
   const [state, setState] = useState<TColumnState>(idle)
+  const [isEditing, setIsEditing] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [tempTitle, setTempTitle] = useState(column.title)
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    }
+  }, [isEditing])
+
+  const startEditing = () => {
+    setTempTitle(column.title)
+    setIsEditing(true)
+  }
+
+  const saveEditing = () => {
+    setIsEditing(false)
+    if (tempTitle !== column.title && column.onChange) {
+      column.onChange({
+        ...column,
+        title: tempTitle,
+      })
+    }
+  }
+
+  const cancelEditing = () => {
+    setTempTitle(column.title)
+    setIsEditing(false)
+  }
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') saveEditing()
+    if (e.key === 'Escape') cancelEditing()
+  }
 
   useEffect(() => {
     const outer = outerFullHeightRef.current
@@ -261,59 +297,87 @@ export function Column({ column }: { column: TColumn }) {
             className="flex flex-row items-center justify-between px-3 py-2"
             ref={headerRef}
           >
-            <div className="text-foreground pl-2 text-sm leading-tight font-semibold">
-              {column.title}
-            </div>
-
-            {Array.isArray(column.actions) && column.actions.length > 0 && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="text-foreground h-7 w-7 p-1"
-                  >
-                    <Ellipsis size={16} />
-                  </Button>
-                </PopoverTrigger>
-
-                <PopoverContent
-                  align="end"
-                  className="bg-popover w-48 rounded-md border p-1 shadow-md"
+            {!isEditing && (
+              <div className="pl-2">
+                <div
+                  className="text-foreground hover:bg-background hover:border-primary/40 box-border cursor-text rounded-sm border-2 border-transparent px-2 pl-2 text-sm leading-tight font-semibold transition-colors transition-shadow select-none"
+                  role="button"
+                  aria-label="Column title (double click to edit)"
+                  onDoubleClick={startEditing}
                 >
-                  <div className="flex flex-col gap-1.5">
-                    {column.actions.map((group, indexGroup) => (
-                      <div key={indexGroup} className="flex flex-col gap-1">
-                        {group.title && (
-                          <div className="text-sidebar-foreground/70 flex h-5 items-center px-1.5 text-[10px] font-medium">
-                            {group.title}
-                          </div>
-                        )}
-
-                        <div className="flex flex-col gap-[2px]">
-                          {group.items.map((item, indexItem) => (
-                            <button
-                              key={indexItem}
-                              className="hover:bg-accent hover:text-accent-foreground flex h-7 w-full items-center gap-2 rounded-md px-2 text-sm transition-colors"
-                              onClick={() => item.onClick(column)}
-                            >
-                              <span className="flex items-center leading-none [&>svg]:size-4">
-                                {item.icon}
-                              </span>
-
-                              <span className="text-muted-foreground leading-none tracking-tighter">
-                                {item.label}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
+                  {column.title}
+                </div>
+              </div>
             )}
+
+            {isEditing && (
+              <div className="pl-2">
+                <input
+                  ref={inputRef}
+                  className="text-foreground bg-background border-primary/40 ring-primary/40 box-border rounded-sm border-2 px-1 pl-2 text-sm leading-tight font-semibold ring-1 transition-all outline-none"
+                  type="text"
+                  value={tempTitle}
+                  onChange={(e) => setTempTitle(e.target.value)}
+                  onBlur={saveEditing}
+                  onKeyDown={onKeyDown}
+                  aria-label="Edit column title"
+                />
+              </div>
+            )}
+
+            {column.isLoading && <Loader />}
+
+            {!column.isLoading &&
+              Array.isArray(column.actions) &&
+              column.actions.length > 0 && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="text-foreground h-7 w-7 p-1"
+                    >
+                      <Ellipsis size={16} />
+                    </Button>
+                  </PopoverTrigger>
+
+                  <PopoverContent
+                    align="end"
+                    className="bg-popover w-48 rounded-md border p-1 shadow-md"
+                  >
+                    <div className="flex flex-col gap-1.5">
+                      {column.actions.map((group, indexGroup) => (
+                        <div key={indexGroup} className="flex flex-col gap-1">
+                          {group.title && (
+                            <div className="text-sidebar-foreground/70 flex h-5 items-center px-1.5 text-[10px] font-medium">
+                              {group.title}
+                            </div>
+                          )}
+
+                          <div className="flex flex-col gap-[2px]">
+                            {group.items.map((item, indexItem) => (
+                              <button
+                                key={indexItem}
+                                className="hover:bg-accent hover:text-accent-foreground flex h-7 w-full items-center gap-2 rounded-md px-2 text-sm transition-colors"
+                                onClick={() => item.onClick(column)}
+                              >
+                                <span className="flex items-center leading-none [&>svg]:size-4">
+                                  {item.icon}
+                                </span>
+
+                                <span className="text-muted-foreground leading-none tracking-tighter">
+                                  {item.label}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
           </div>
 
           <div

@@ -233,6 +233,7 @@ export function Board({
             const destinationColumnIndex = data.columns.findIndex(
               (column) => column.id === dropTargetData.column.id,
             )
+
             const destination = data.columns[destinationColumnIndex]
 
             if (!destination) {
@@ -241,9 +242,6 @@ export function Board({
 
             // dropping on home
             if (home === destination) {
-              console.log('moving card to home column')
-
-              // move to last position
               const reordered = reorder({
                 list: home.cards,
                 startIndex: cardIndexInHome,
@@ -254,32 +252,64 @@ export function Board({
                 ...home,
                 cards: reordered,
               }
+
               const columns = Array.from(data.columns)
               columns[homeColumnIndex] = updated
+
+              // dispara evento
+              if (updated.onChange) {
+                console.log(
+                  'disparando evento de onChange da coluna',
+                  updated.id,
+                )
+                updated.onChange({
+                  ...updated,
+                  position: homeColumnIndex,
+                })
+              }
+
               setData({ ...data, columns })
               return
             }
 
-            console.log('moving card to another column')
-
-            // remove card from home list
+            // moving card to another column
 
             const homeCards = Array.from(home.cards)
             homeCards.splice(cardIndexInHome, 1)
 
-            // insert into destination list
             const destinationCards = Array.from(destination.cards)
             destinationCards.splice(destination.cards.length, 0, dragging.card)
 
             const columns = Array.from(data.columns)
-            columns[homeColumnIndex] = {
+
+            const updatedHome: TColumn = {
               ...home,
               cards: homeCards,
             }
-            columns[destinationColumnIndex] = {
+
+            const updatedDestination: TColumn = {
               ...destination,
               cards: destinationCards,
             }
+
+            columns[homeColumnIndex] = updatedHome
+            columns[destinationColumnIndex] = updatedDestination
+
+            // dispara eventos
+            if (updatedHome.onChange) {
+              updatedHome.onChange({
+                ...updatedHome,
+                position: homeColumnIndex,
+              })
+            }
+
+            if (updatedDestination.onChange) {
+              updatedDestination.onChange({
+                ...updatedDestination,
+                position: destinationColumnIndex,
+              })
+            }
+
             setData({ ...data, columns })
             return
           }
@@ -294,12 +324,11 @@ export function Board({
           }
 
           const innerMost = location.current.dropTargets[0]
-
           if (!innerMost) {
             return
           }
-          const dropTargetData = innerMost.data
 
+          const dropTargetData = innerMost.data
           if (!isColumnData(dropTargetData)) {
             return
           }
@@ -324,7 +353,26 @@ export function Board({
             startIndex: homeIndex,
             finishIndex: destinationIndex,
           })
-          setData({ ...data, columns: reordered })
+
+          const updatedColumns = reordered.map((column, index) => {
+            const newPosition = index
+            const oldPosition = column.position
+
+            if (newPosition !== oldPosition && column.onChange) {
+              const updatedColumnForCallback = {
+                ...column,
+                position: newPosition,
+              }
+              column.onChange(updatedColumnForCallback)
+            }
+
+            return {
+              ...column,
+              position: newPosition,
+            }
+          })
+
+          setData({ ...data, columns: updatedColumns })
         },
       }),
       autoScrollForElements({
