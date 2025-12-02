@@ -1,22 +1,30 @@
 'use client'
 
 import {
-  type QueryClient,
   useMutation,
   useQueryClient,
   useSuspenseQuery,
 } from '@tanstack/react-query'
 import { WorkspaceViewModel } from '@timelapse/presentation/view-models'
-import { CalendarIcon, TrashIcon, UserIcon } from 'lucide-react'
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  CableIcon,
+  CalendarIcon,
+  CopyIcon,
+  CopyPlusIcon,
+  MoveRightIcon,
+  PencilIcon,
+  TrashIcon,
+  UserIcon,
+} from 'lucide-react'
+import { Suspense, useCallback, useMemo, useState } from 'react'
 import { DeepReadonly, RxDocument } from 'rxdb'
 import { toast } from 'sonner'
 
 import { User } from '@/@types/session/User'
 import { Loader } from '@/components'
+import AutomationModal from '@/components/automation-modal'
 import { Board } from '@/components/dnd/board'
 import {
-  ColumnAction,
   ColumnActionGroup,
   TBoard,
   TCard,
@@ -150,113 +158,6 @@ function useDeleteColumnMutation(db: AppDatabase) {
   })
 }
 
-/**
- * Embaralha um array e seleciona os primeiros N elementos.
- * @param array Array para embaralhar
- * @param count Número de elementos para selecionar
- * @returns Um novo array com N elementos aleatórios
- */
-function shuffleAndPick<T>(array: T[], count: number): T[] {
-  const shuffled = [...array].sort(() => 0.5 - Math.random())
-  return shuffled.slice(0, count)
-}
-
-/**
- * Hook para popular o board com tarefas de teste.
- * Roda TODA VEZ que o componente é montado (após um delay).
- * Deleta todas as amarrações existentes e amarra um TOTAL de 20 tarefas
- * JÁ EXISTENTES, distribuídas entre as colunas.
- */
-function useSeedFakeTasks(db: AppDatabase, queryClient: QueryClient) {
-  useEffect(() => {
-    const seedTasks = async () => {
-      try {
-        console.log('--- 🚀 EXECUTANDO SEED DE TESTE KANBAN ---')
-
-        console.log('Limpando amarrações antigas...')
-        await db.kanbanTaskColumns.find().remove()
-        console.log('Amarrações antigas removidas.')
-
-        const [columnsDocs, allTasksDocs] = await Promise.all([
-          db.kanbanColumns
-            .find({ selector: { _deleted: { $ne: true } } })
-            .exec(),
-          db.tasks.find({ selector: { _deleted: { $ne: true } } }).exec(),
-        ])
-
-        const columns = columnsDocs.map((d) => d.toJSON())
-        const allTasks = allTasksDocs.map((d) => d.toJSON())
-
-        if (columns.length === 0) {
-          toast.warning('Seed: Nenhuma coluna encontrada para amarrar tarefas.')
-          return
-        }
-        if (allTasks.length === 0) {
-          toast.warning('Seed: Nenhuma tarefa encontrada para amarrar.')
-          return
-        }
-
-        console.log(
-          `Seed: Encontradas ${columns.length} colunas e ${allTasks.length} tarefas.`,
-        )
-
-        const tasksToDistribute = shuffleAndPick(allTasks, 20)
-        console.log(
-          `Seed: Distribuindo um total de ${tasksToDistribute.length} tarefas.`,
-        )
-
-        const newRelations: TaskKanbanColumnRxDBDTO[] = []
-        const now = new Date().toISOString()
-
-        const columnPositionMap = new Map<string, number>()
-        columns.forEach((col) => columnPositionMap.set(col.id, 0))
-
-        tasksToDistribute.forEach((task, index) => {
-          const columnIndex = index % columns.length
-          const column = columns[columnIndex]
-
-          const position = columnPositionMap.get(column.id) ?? 0
-          columnPositionMap.set(column.id, position + 1)
-
-          const relationId = crypto.randomUUID()
-          newRelations.push({
-            _id: relationId,
-            _deleted: false,
-            taskId: task.id,
-            columnId: column.id,
-            inWorkspace: true,
-            position,
-            createdAt: now,
-            updatedAt: now,
-          })
-        })
-
-        if (newRelations.length > 0) {
-          console.log(
-            `Seed: Inserindo ${newRelations.length} novas amarrações...`,
-          )
-          await db.kanbanTaskColumns.bulkInsert(newRelations)
-          console.log('Seed: Novas amarrações inseridas.')
-        }
-
-        await queryClient.invalidateQueries({ queryKey: ['kanbanRelations'] })
-        toast.success(
-          `Seed: ${newRelations.length} tarefas de teste amarradas!`,
-        )
-      } catch (error) {
-        console.error('Falha no script de seed do Kanban:', error)
-        toast.error('Falha ao amarrar tarefas de teste.')
-      }
-    }
-
-    const timer = setTimeout(() => {
-      void seedTasks()
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [db, queryClient])
-}
-
 function useOptimizedBoard({
   kanbanColumns,
   kanbanRelations,
@@ -326,8 +227,6 @@ function KanbanBoard({
   const queryClient = useQueryClient()
   const { mutate: addColumn } = useInsertColumnMutation(db)
   const deleteColumnMutation = useDeleteColumnMutation(db)
-
-  useSeedFakeTasks(db, queryClient)
 
   const { data: kanbanColumns } = useSuspenseQuery({
     queryKey: ['kanbanColumns'],
@@ -458,25 +357,64 @@ function KanbanBoard({
   })
 
   const boardWithActions: TBoard = useMemo(() => {
-    const deleteAction: ColumnAction = {
-      label: 'Excluir Coluna',
-      icon: <TrashIcon className="h-3.5 w-3.5" />,
-      onClick: (col: TColumn) => {
-        setColumnForDeletion(col)
-        setIsDeleteAlertOpen(true)
+    const actionGroups: ColumnActionGroup[] = [
+      {
+        title: 'Gerenciar Coluna',
+        items: [
+          {
+            label: 'Renomear',
+            icon: <PencilIcon className="h-3.5 w-3.5" />,
+            onClick: () => {},
+          },
+          {
+            label: 'Duplicar',
+            icon: <CopyIcon className="h-3.5 w-3.5" />,
+            onClick: () => {},
+          },
+          {
+            label: 'Excluir Coluna',
+            icon: <TrashIcon className="h-3.5 w-3.5" />,
+            onClick: (col: TColumn) => {
+              setColumnForDeletion(col)
+              setIsDeleteAlertOpen(true)
+            },
+          },
+        ],
       },
-    }
 
-    const actionGroup: ColumnActionGroup = {
-      title: 'Ações',
-      items: [deleteAction],
-    }
+      {
+        title: 'Cards',
+        items: [
+          {
+            label: 'Novo Card',
+            icon: <CopyPlusIcon className="h-3.5 w-3.5" />,
+            onClick: () => {},
+          },
+          {
+            label: 'Mover Todos os Cards',
+            icon: <MoveRightIcon className="h-3.5 w-3.5" />,
+            onClick: () => {},
+          },
+        ],
+      },
+
+      {
+        title: 'Avançado',
+        items: [
+          {
+            label: 'Automação',
+            icon: <CableIcon className="h-3.5 w-3.5" />,
+            onClick: () => {},
+          },
+        ],
+      },
+    ]
 
     return {
       columns: board.columns.map((col) => ({
         ...col,
         isLoading: col.id === loadingColumnId,
-        actions: [actionGroup],
+        actions: actionGroups,
         onChange: async (changedColumn: TColumn) => {
           console.log('disparando evento de onChange da coluna', changedColumn)
           const { id, title, position } = changedColumn
@@ -523,6 +461,7 @@ function KanbanBoard({
 
   return (
     <>
+      <AutomationModal />
       <Board
         board={boardWithActions}
         enableAddColumns
@@ -622,7 +561,7 @@ export function Activities() {
     <>
       <KanbanToolbar />
       <Suspense fallback={<KanbanSkeleton />}>
-        <div className="w-[calc(100vw-300px-72px-rem)] cursor-grab overflow-auto rounded-md border select-none active:cursor-grabbing">
+        <div className="w-[calc(100vw-300px-72px-rem)] cursor-grab overflow-auto rounded-md select-none active:cursor-grabbing">
           <KanbanBoardContent />
         </div>
       </Suspense>

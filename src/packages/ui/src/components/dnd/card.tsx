@@ -246,7 +246,7 @@ export function CardDisplay({
   return (
     <div
       ref={outerRef}
-      className={`flex flex-shrink-0 flex-col gap-2 p-3 ${
+      className={`flex flex-shrink-0 flex-col gap-2 ${
         outerStyles[state.type] ?? ''
       }`}
     >
@@ -492,8 +492,7 @@ export function CardDisplay({
                     </ToggleGroup>
 
                     <Button className="flex h-7 items-center gap-1 px-2 text-xs">
-                      <LucideIcons.Check className="h-3.5 w-3.5" />
-                      Confirmar
+                      <LucideIcons.Send className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>

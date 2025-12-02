@@ -10,17 +10,35 @@ import { preserveOffsetOnSource } from '@atlaskit/pragmatic-drag-and-drop/elemen
 import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview'
 import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element'
 import { unsafeOverflowAutoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/unsafe-overflow/element'
-import { Ellipsis } from 'lucide-react'
-import { memo, useContext, useEffect, useRef, useState } from 'react'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import { useVirtualizer } from '@tanstack/react-virtual'
+import { ClipboardList, Ellipsis, PlusIcon } from 'lucide-react'
+import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import invariant from 'tiny-invariant'
 
 import { Loader } from '@/components/loader'
 import { Button } from '@/components/ui/button'
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 
 import { Card, CardShadow } from './card'
 import {
@@ -34,9 +52,50 @@ import {
   TColumn,
 } from './data'
 import { blockBoardPanningAttr } from './data-attributes'
-import { isSafari } from './is-safari'
 import { isShallowEqual } from './is-shallow-equal'
 import { SettingsContext } from './settings-context'
+
+const fakeTasks: Omit<
+  SyncTaskRxDBDTO,
+  '_deleted' | 'timeEntryIds' | 'conflicted' | 'timeEntries'
+>[] = [
+  {
+    _id: 'task_1',
+    id: 'RDM-456',
+    title: 'Implementar tela de dashboard',
+    projectName: 'App Interno',
+    status: { id: '1', name: 'Novo' },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    _id: 'task_2',
+    id: 'JIRA-123',
+    title: 'Corrigir bug no login (SSO)',
+    projectName: 'Plataforma Core',
+    status: { id: '2', name: 'Em Andamento' },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    _id: 'task_3',
+    id: 'RDM-457',
+    title: 'Otimizar query de usuários na API',
+    projectName: 'App Interno',
+    status: { id: '1', name: 'Novo' },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    _id: 'task_4',
+    id: 'YT-789',
+    title: 'Reunião de alinhamento - Sprint Q4',
+    projectName: 'Design System',
+    status: { id: '5', name: 'Fechado' },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+]
 
 type TColumnState =
   | {
@@ -57,17 +116,12 @@ type TColumnState =
 const stateStyles: { [Key in TColumnState['type']]: string } = {
   idle: 'cursor-grab',
   'is-card-over': 'outline outline-2 outline-primary',
-  'is-dragging': 'opacity-40',
+  'is-dragging': '',
   'is-column-over': 'bg-slate-900',
 }
 
 const idle = { type: 'idle' } satisfies TColumnState
 
-/**
- * A memoized component for rendering out the card.
- *
- * Created so that state changes to the column don't require all cards to be rendered
- */
 const CardList = memo(function CardList({ column }: { column: TColumn }) {
   return column.cards.map((card, index) => (
     <Card key={index} card={card} columnId={column.id} />
@@ -82,7 +136,7 @@ export function Column({ column }: { column: TColumn }) {
   const { settings } = useContext(SettingsContext)
   const [state, setState] = useState<TColumnState>(idle)
   const [isEditing, setIsEditing] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
   const [tempTitle, setTempTitle] = useState(column.title)
 
   useEffect(() => {
@@ -146,7 +200,7 @@ export function Column({ column }: { column: TColumn }) {
         dragging: data.rect,
         isOverChildCard,
       }
-      // optimization - don't update state if we don't need to.
+
       setState((current) => {
         if (isShallowEqual(proposed, current)) {
           return current
@@ -169,18 +223,11 @@ export function Column({ column }: { column: TColumn }) {
               input: location.current.input,
             }),
             render({ container }) {
-              // Simple drag preview generation: just cloning the current element.
-              // Not using react for this.
               const rect = inner.getBoundingClientRect()
               const preview = inner.cloneNode(true)
               invariant(preview instanceof HTMLElement)
               preview.style.width = `${rect.width}px`
               preview.style.height = `${rect.height}px`
-
-              // rotation of native drag previews does not work in safari
-              if (!isSafari()) {
-                preview.style.transform = 'rotate(4deg)'
-              }
 
               container.appendChild(preview)
             },
@@ -279,19 +326,69 @@ export function Column({ column }: { column: TColumn }) {
     )
   }, [column, settings])
 
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
+
+  const allTasks = useMemo(() => {
+    const largeList: SyncTaskRxDBDTO[] = []
+    for (let i = 0; i < 5000; i++) {
+      fakeTasks.forEach((task) => {
+        largeList.push({
+          ...task,
+          _id: `${task._id}_${i}`,
+          id: `${task.id}_${i}`,
+          title: `${task.title} #${i + 1}`,
+          _deleted: false,
+          timeEntryIds: [],
+        })
+      })
+    }
+    return largeList
+  }, [])
+
+  const filteredTasks = useMemo(() => {
+    if (!searchValue) {
+      return allTasks
+    }
+    const searchLower = searchValue.toLowerCase()
+    return allTasks.filter(
+      (task) =>
+        task.title.toLowerCase().includes(searchLower) ||
+        task.id.toLowerCase().includes(searchLower),
+    )
+  }, [searchValue, allTasks])
+
+  const listRef = useRef<HTMLDivElement | null>(null)
+
+  const rowVirtualizer = useVirtualizer({
+    count: filteredTasks.length,
+    getScrollElement: () => listRef.current,
+    estimateSize: () => 40,
+    overscan: 5,
+  })
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        rowVirtualizer.measure()
+      }, 100)
+    }
+  }, [isOpen, rowVirtualizer])
+
   return (
     <div
       className="flex w-72 flex-shrink-0 flex-col select-none"
       ref={outerFullHeightRef}
     >
       <div
-        className={`dark:bg-card flex max-h-full flex-col rounded-lg bg-zinc-100 text-zinc-50 ${stateStyles[state.type]}`}
+        className={`group bg-card flex max-h-full flex-col rounded-lg text-zinc-50 shadow-sm ${stateStyles[state.type]}`}
         ref={innerRef}
         {...{ [blockBoardPanningAttr]: true }}
       >
-        {/* Extra wrapping element to make it easy to toggle visibility of content when a column is dragging over */}
         <div
-          className={`flex max-h-full flex-col ${state.type === 'is-column-over' ? 'invisible' : ''}`}
+          className={`flex max-h-full flex-col ${
+            state.type === 'is-column-over' ? 'invisible' : ''
+          }`}
         >
           <div
             className="flex flex-row items-center justify-between px-3 py-2"
@@ -305,11 +402,10 @@ export function Column({ column }: { column: TColumn }) {
                   aria-label="Column title (double click to edit)"
                   onDoubleClick={startEditing}
                 >
-                  {column.title}
+                  {column.title} 
                 </div>
               </div>
             )}
-
             {isEditing && (
               <div className="pl-2">
                 <input
@@ -324,9 +420,7 @@ export function Column({ column }: { column: TColumn }) {
                 />
               </div>
             )}
-
-            {column.isLoading && <Loader />}
-
+            {column.isLoading && <Loader />} 
             {!column.isLoading &&
               Array.isArray(column.actions) &&
               column.actions.length > 0 && (
@@ -338,7 +432,7 @@ export function Column({ column }: { column: TColumn }) {
                       variant="ghost"
                       className="text-foreground h-7 w-7 p-1"
                     >
-                      <Ellipsis size={16} />
+                      <Ellipsis size={16} /> 
                     </Button>
                   </PopoverTrigger>
 
@@ -351,7 +445,7 @@ export function Column({ column }: { column: TColumn }) {
                         <div key={indexGroup} className="flex flex-col gap-1">
                           {group.title && (
                             <div className="text-sidebar-foreground/70 flex h-5 items-center px-1.5 text-[10px] font-medium">
-                              {group.title}
+                              {group.title} 
                             </div>
                           )}
 
@@ -363,7 +457,7 @@ export function Column({ column }: { column: TColumn }) {
                                 onClick={() => item.onClick(column)}
                               >
                                 <span className="flex items-center leading-none [&>svg]:size-4">
-                                  {item.icon}
+                                  {item.icon} 
                                 </span>
 
                                 <span className="text-muted-foreground leading-none tracking-tighter">
@@ -379,17 +473,127 @@ export function Column({ column }: { column: TColumn }) {
                 </Popover>
               )}
           </div>
-
           <div
-            className="flex flex-col overflow-y-auto [overflow-anchor:none] [scrollbar-color:theme(colors.slate.600)_theme(colors.slate.700)] [scrollbar-width:thin]"
+            className="flex flex-col gap-y-3.5 overflow-y-auto px-3 py-3 [overflow-anchor:none] [scrollbar-color:theme(colors.slate.600)_theme(colors.slate.700)] [scrollbar-width:thin]"
             ref={scrollableRef}
           >
-            <CardList column={column} />
+            <CardList column={column} /> 
             {state.type === 'is-card-over' && !state.isOverChildCard ? (
-              <div className="flex-shrink-0 px-3 py-1">
-                <CardShadow dragging={state.dragging} />
+              <div className="flex-shrink-0 py-1">
+                <CardShadow dragging={state.dragging} /> 
               </div>
             ) : null}
+            <Dialog
+              open={isOpen}
+              onOpenChange={(open) => {
+                setIsOpen(open)
+                if (open) {
+                  setSearchValue('')
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <div className="h-9 pt-1 pb-2 opacity-0 transition-opacity duration-150 ease-in-out group-hover:opacity-100">
+                  <button className="text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary/10 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium">
+                    <PlusIcon size={16} />  Adicionar
+                  </button>
+                </div>
+              </DialogTrigger>
+
+              <DialogContent className="overflow-hidden p-0 shadow-lg sm:max-w-2xl [&>button]:hidden">
+                <VisuallyHidden>
+                  <DialogTitle>Adicionar Card</DialogTitle> 
+                  <DialogDescription>
+                    Busque uma tarefa ou crie uma nova.
+                  </DialogDescription>
+                </VisuallyHidden>
+
+                <Command className="[--cmdk-group-heading-font-size:0.75rem]">
+                  <CommandInput
+                    className="h-10 text-base"
+                    placeholder="Buscar tarefa por ID, título ou criar..."
+                    value={searchValue}
+                    onValueChange={setSearchValue}
+                  />
+
+                  <CommandList
+                    ref={listRef}
+                    className="max-h-[350px] overflow-x-hidden overflow-y-auto"
+                  >
+                    <CommandEmpty>Nenhuma tarefa encontrada.</CommandEmpty> 
+                    {!searchValue && (
+                      <CommandGroup heading="Novo">
+                        <CommandItem
+                          onSelect={() => {
+                            console.log('Selecionou: Criar novo card')
+                            setIsOpen(false)
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <PlusIcon className="mr-2 h-4 w-4" /> 
+                          <span className="text-sm">
+                            Criar um novo card local
+                          </span>
+                        </CommandItem>
+                      </CommandGroup>
+                    )}
+                    {filteredTasks.length > 0 && (
+                      <CommandGroup
+                        heading="Tarefas Replicadas"
+                        className="relative"
+                        style={{
+                          height: `${rowVirtualizer.getTotalSize()}px`,
+                        }}
+                      >
+                        {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+                          const task = filteredTasks[virtualItem.index]
+
+                          if (!task) {
+                            return null
+                          }
+
+                          return (
+                            <CommandItem
+                              key={task._id}
+                              onSelect={() => {
+                                console.log('Selecionou tarefa:', task.id)
+                                setIsOpen(false)
+                              }}
+                              className="group/item absolute top-0 left-0 flex w-full cursor-pointer items-center justify-between"
+                              style={{
+                                height: `${virtualItem.size}px`,
+                                transform: `translateY(${virtualItem.start}px)`,
+                              }}
+                            >
+                              <div className="flex items-center gap-2 overflow-hidden">
+                                <ClipboardList className="text-muted-foreground h-4 w-4 flex-shrink-0" />
+
+                                <span
+                                  className="truncate text-sm"
+                                  title={task.title}
+                                >
+                                  <span className="text-muted-foreground font-medium">
+                                    {task.id} 
+                                  </span>
+
+                                  <span className="text-foreground/90">
+                                    {task.title} 
+                                  </span>
+                                </span>
+                              </div>
+
+                              <span className="text-muted-foreground group-hover/item:text-foreground ml-4 text-xs text-nowrap">
+                                {task.projectName} 
+                              </span>
+                            </CommandItem>
+                          )
+                        })}
+                      </CommandGroup>
+                    )}
+                  </CommandList>
+                </Command>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
