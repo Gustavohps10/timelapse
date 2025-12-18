@@ -48,16 +48,14 @@ type RawInstaller = {
 export class AddonsFacade implements IAddonsFacade {
   public async listAvailable(): Promise<Either<AppError, AddonManifestDTO[]>> {
     try {
-      const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_PATH}`
-      const { data: files } = await axios.get(url)
-
-      const yamlFiles = (
-        files as { name: string; download_url: string }[]
-      ).filter((f) => f.name.endsWith('.yaml'))
+      const indexUrl =
+        'https://gustavohps10.github.io/timelapse-addons/addonDatabase/dataSource/index.json'
+      const { data: yamlFiles } = await axios.get<string[]>(indexUrl)
 
       const addons: AddonManifestDTO[] = await Promise.all(
-        yamlFiles.map(async (file) => {
-          const { data: rawYaml } = await axios.get(file.download_url)
+        yamlFiles.map(async (filename) => {
+          const yamlUrl = `https://gustavohps10.github.io/timelapse-addons/addonDatabase/dataSource/${filename}`
+          const { data: rawYaml } = await axios.get(yamlUrl)
           const parsed = await this.parseManifest(rawYaml)
           if (parsed.isFailure()) throw parsed.failure
           return parsed.success
@@ -83,7 +81,10 @@ export class AddonsFacade implements IAddonsFacade {
           const content = await fs.readFile(manifestPath)
           const manifestResult = await this.parseManifest(content)
           if (manifestResult.isSuccess()) {
-            installedAddons.push({ ...manifestResult.success, installed: true })
+            const addon = { ...manifestResult.success, installed: true }
+            const base64Logo = await this.getLocalIconBase64(addon.id)
+            if (base64Logo) addon.logo = base64Logo
+            installedAddons.push(addon)
           }
         } catch {
           continue
@@ -104,25 +105,14 @@ export class AddonsFacade implements IAddonsFacade {
     const result = await this.listInstalled()
     if (result.isFailure()) return result.forwardFailure()
 
-    const localAddonsList = result.success
-    const addon = localAddonsList.find((a) => a.id === addonId)
-
+    const addon = result.success.find((a) => a.id === addonId)
     if (!addon)
       return Either.failure(NotFoundError.danger('LOCAL_ADDON_NOT_FOUND'))
 
-    const localIconPath = `${LOCAL_ADDONS_PATH}/${addonId}/icon.png`
+    const base64Logo = await this.getLocalIconBase64(addonId)
+    if (base64Logo) addon.logo = base64Logo
 
-    try {
-      const file = await fs.readFile(localIconPath)
-      const base64 = `data:image/png;base64,${file.toString('base64')}`
-
-      return Either.success({
-        ...addon,
-        logo: base64,
-      })
-    } catch (err) {
-      return Either.failure(NotFoundError.danger('LOCAL_ADDON_ICON_NOT_FOUND'))
-    }
+    return Either.success(addon)
   }
 
   public async getInstaller(
@@ -144,9 +134,8 @@ export class AddonsFacade implements IAddonsFacade {
     try {
       const doc = yaml.load(fileContent.toString()) as RawManifest
 
-      if (!doc.AddonId) {
+      if (!doc.AddonId)
         return Either.failure(NotFoundError.danger('ADDONID_NOT_FOUND'))
-      }
 
       const addon: AddonManifestDTO = {
         id: doc.AddonId,
@@ -178,9 +167,8 @@ export class AddonsFacade implements IAddonsFacade {
     try {
       const doc = yaml.load(fileContent.toString()) as RawInstaller
 
-      if (!doc.AddonId) {
+      if (!doc.AddonId)
         return Either.failure(ValidationError.danger('INSTALLER_INVALID'))
-      }
 
       const installer: AddonInstallerDTO = {
         id: doc.AddonId,
@@ -220,5 +208,20 @@ export class AddonsFacade implements IAddonsFacade {
     } catch {
       return Either.failure(InternalServerError.danger('DOWNLOAD_FAILED'))
     }
+  }
+
+  private async getLocalIconBase64(addonId: string): Promise<string | null> {
+    const possibleIcons = ['icon.png', 'icon.jpg', 'icon.jpeg']
+    for (const iconName of possibleIcons) {
+      const iconPath = join(LOCAL_ADDONS_PATH, addonId, iconName)
+      try {
+        const file = await fs.readFile(iconPath)
+        const ext = iconName.split('.').pop()
+        return `data:image/${ext};base64,${file.toString('base64')}`
+      } catch {
+        continue
+      }
+    }
+    return null
   }
 }

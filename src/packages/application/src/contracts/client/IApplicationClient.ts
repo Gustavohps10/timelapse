@@ -197,21 +197,22 @@ export interface AddonInstaller {
 }
 
 export interface IAddonsClient {
-  list(): Promise<AddonManifest[]>
+  listAvailable(): Promise<AddonManifest[]>
+
+  listInstalled(): Promise<AddonManifest[]>
+
   getInstalledById(
-    payload: IRequest<{
-      addonId: string
-    }>,
+    payload: IRequest<{ addonId: string }>,
   ): Promise<ViewModel<AddonManifest>>
+
   updateLocal?(addon: AddonManifest): Promise<void>
-  import(
-    payload: IRequest<{
-      addon: FileData
-    }>,
-  ): Promise<ViewModel>
+
+  import(payload: IRequest<{ addon: FileData }>): Promise<ViewModel>
+
   getInstaller(
     payload: IRequest<{ installerUrl: string }>,
   ): Promise<AddonInstaller>
+
   install(
     payload: IRequest<
       { downloadUrl: string } & { onProgress?: (progress: number) => void }

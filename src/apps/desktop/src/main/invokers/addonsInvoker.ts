@@ -7,7 +7,8 @@ export const addonsInvoker: IAddonsClient = {
   getInstalledById: (payload: IRequest<{ addonId: string }>) =>
     IpcInvoker.invoke('ADDONS_GETINSTALLED_BY_ID', payload),
 
-  list: () => IpcInvoker.invoke('ADDONS_LIST'),
+  listAvailable: () => IpcInvoker.invoke('ADDONS_LIST_AVAILABLE'),
+  listInstalled: () => IpcInvoker.invoke('ADDONS_LIST_INSTALLED'),
 
   updateLocal: (addon: AddonManifest) =>
     IpcInvoker.invoke('ADDONS_UPDATE_LOCAL', { body: addon }), // ERRADO ALTERAR PAYLOAD

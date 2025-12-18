@@ -3,6 +3,7 @@ import {
   FileEditIcon,
   ListTodoIcon,
   Settings,
+  ShoppingBagIcon,
   Timer,
 } from 'lucide-react'
 import { NavLink, useParams } from 'react-router-dom'
@@ -22,6 +23,7 @@ const mainItems = [
   { title: 'Métricas', path: '', icon: ChartColumnBig },
   { title: 'Anotações', path: 'notes', icon: FileEditIcon },
   { title: 'Configuração', path: 'settings', icon: Settings },
+  { title: 'Extensöes', path: 'settings', icon: ShoppingBagIcon },
 ]
 
 export function AppSidebarWorkspacesContent() {

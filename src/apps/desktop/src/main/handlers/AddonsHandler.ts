@@ -15,30 +15,14 @@ export class AddonsHandler {
     private readonly addonsFacade: IAddonsFacade,
   ) {}
 
-  public async list(
+  public async listAvailable(
     _event?: IpcMainInvokeEvent,
     _req?: IRequest,
   ): Promise<AddonManifest[]> {
-    const [availableResult, installedResult] = await Promise.all([
-      this.addonsFacade.listAvailable(),
-      this.addonsFacade.listInstalled(),
-    ])
+    const result = await this.addonsFacade.listAvailable()
+    if (result.isFailure()) return []
 
-    /*
-     *
-     * REFATORAR POIS LOGICA ESTA ERRADA
-     *
-     *
-     */
-    // if (availableResult.isFailure()) {
-    //   return []
-    // }
-
-    const installedIds: string[] = installedResult.isSuccess()
-      ? installedResult.success.map((i) => i.id)
-      : []
-
-    return installedResult.success.map((a) => ({
+    return result.success.map((a) => ({
       id: a.id,
       version: a.version,
       name: a.name,
@@ -48,8 +32,31 @@ export class AddonsHandler {
       logo: a.logo,
       downloads: a.downloads ?? 0,
       stars: a.stars ?? 0,
-      installed: installedIds.includes(a.id),
+      installed: false,
       installerManifestUrl: a.installerManifestUrl,
+      sourceUrl: a.sourceUrl,
+      tags: a.tags,
+    }))
+  }
+
+  public async listInstalled(
+    _event?: IpcMainInvokeEvent,
+    _req?: IRequest,
+  ): Promise<AddonManifest[]> {
+    const result = await this.addonsFacade.listInstalled()
+    if (result.isFailure()) return []
+
+    return result.success.map((a) => ({
+      id: a.id,
+      version: a.version,
+      name: a.name,
+      creator: a.creator,
+      description: a.description,
+      path: a.path || '',
+      logo: a.logo,
+      downloads: a.downloads ?? 0,
+      stars: a.stars ?? 0,
+      installed: true,
       sourceUrl: a.sourceUrl,
       tags: a.tags,
     }))

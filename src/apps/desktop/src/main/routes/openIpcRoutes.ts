@@ -110,9 +110,14 @@ IpcHandler.register('METADATA_PULL',[ensureAuthenticated, injectConnector], (eve
       return timeEntriesHandler.push(event, req)
   })
 
-  IpcHandler.register('ADDONS_LIST', () => {
+  IpcHandler.register('ADDONS_LIST_AVAILABLE', () => {
     const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
-    return addonsHandler.list()
+    return addonsHandler.listAvailable()
+  })
+
+    IpcHandler.register('ADDONS_LIST_INSTALLED', () => {
+    const addonsHandler = serviceProvider.resolve<AddonsHandler>('addonsHandler')
+    return addonsHandler.listInstalled()
   })
 
   IpcHandler.register('ADDONS_GETINSTALLED_BY_ID', (event, req) => {
