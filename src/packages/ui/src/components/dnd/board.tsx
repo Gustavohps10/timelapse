@@ -372,6 +372,8 @@ export function Board({
             }
           })
 
+          if (data.onReorder) data.onReorder(data.columns, updatedColumns)
+
           setData({ ...data, columns: updatedColumns })
         },
       }),

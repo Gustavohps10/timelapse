@@ -96,7 +96,6 @@ function useInsertColumnMutation(db: AppDatabase) {
     mutationFn: async (newColumn) => {
       await db.kanbanColumns.insert(newColumn)
     },
-
     onMutate: async (newColumn) => {
       let previousColumns: DeepReadonly<KanbanColumnRxDBDTO[]> = []
       queryClient.setQueryData(
@@ -109,7 +108,6 @@ function useInsertColumnMutation(db: AppDatabase) {
       return { previousColumns }
     },
     onError: (err, _newColumn, ctx) => {
-      console.error('Falha ao adicionar nova coluna:', err)
       toast.error('Falha ao adicionar nova coluna.')
       if (ctx?.previousColumns) {
         queryClient.setQueryData(['kanbanColumns'], ctx.previousColumns)
@@ -128,7 +126,6 @@ function useDeleteColumnMutation(db: AppDatabase) {
     mutationFn: async (columnId) => {
       const doc = await db.kanbanColumns.findOne(columnId).exec()
       if (!doc) return
-
       await doc.patch({
         _deleted: true,
         isActive: false,
@@ -154,6 +151,31 @@ function useDeleteColumnMutation(db: AppDatabase) {
     },
     onSuccess: () => {
       toast.success('Coluna removida!')
+    },
+  })
+}
+
+function useReorderColumnsMutation(db: AppDatabase) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (updatedColumns: TColumn[]) => {
+      const promises = updatedColumns.map(async (col, index) => {
+        const doc = await db.kanbanColumns.findOne(col.id).exec()
+        if (doc && doc.order !== index) {
+          return doc.patch({
+            order: index,
+            updatedAt: new Date().toISOString(),
+          })
+        }
+      })
+      await Promise.all(promises)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kanbanColumns'] })
+      toast.success('Ordem das colunas sincronizada!')
+    },
+    onError: () => {
+      toast.error('Falha ao sincronizar ordem das colunas.')
     },
   })
 }
@@ -227,6 +249,7 @@ function KanbanBoard({
   const queryClient = useQueryClient()
   const { mutate: addColumn } = useInsertColumnMutation(db)
   const deleteColumnMutation = useDeleteColumnMutation(db)
+  const reorderColumnsMutation = useReorderColumnsMutation(db)
 
   const { data: kanbanColumns } = useSuspenseQuery({
     queryKey: ['kanbanColumns'],
@@ -256,10 +279,7 @@ function KanbanBoard({
   const { data: tasks } = useSuspenseQuery({
     queryKey: ['tasks', user.id],
     queryFn: async (): Promise<TaskWithTimeEntries[]> => {
-      const taskDocs = await db.tasks
-        .find({ selector: { _deleted: { $ne: true } } })
-        .exec()
-
+      const taskDocs = await db.tasks.find().exec()
       const tasksWithTimeEntries = await Promise.all(
         taskDocs.map(async (t: RxDocument<SyncTaskRxDBDTO>) => {
           const obj = t.toJSON()
@@ -271,14 +291,12 @@ function KanbanBoard({
               },
             })
             .exec()
-
           return {
             ...obj,
             timeEntries: timeDocs.map((d) => d.toJSON()),
           }
         }),
       )
-
       return JSON.parse(JSON.stringify(tasksWithTimeEntries))
     },
   })
@@ -297,6 +315,7 @@ function KanbanBoard({
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [loadingColumnId, setLoadingColumnId] = useState<string | null>(null)
+  const [isReordering, setIsReordering] = useState(false)
 
   const handleAddColumn = useCallback(
     (name: string) => {
@@ -304,12 +323,10 @@ function KanbanBoard({
         queryClient.getQueryData<DeepReadonly<KanbanColumnRxDBDTO[]>>([
           'kanbanColumns',
         ]) ?? []
-
       const maxOrder =
         currentColumns.length > 0
           ? currentColumns[currentColumns.length - 1].order
           : -1
-
       const id = crypto.randomUUID()
       const now = new Date().toISOString()
 
@@ -328,6 +345,18 @@ function KanbanBoard({
     [addColumn, workspace.id, queryClient],
   )
 
+  const handleReorderColumns = useCallback(
+    async (oldCols: TColumn[], newCols: TColumn[]) => {
+      setIsReordering(true)
+      try {
+        await reorderColumnsMutation.mutateAsync(newCols)
+      } finally {
+        setIsReordering(false)
+      }
+    },
+    [reorderColumnsMutation],
+  )
+
   const confirmDeleteColumn = useCallback(async () => {
     if (!columnForDeletion) return
     try {
@@ -336,18 +365,12 @@ function KanbanBoard({
       await deleteColumnMutation.mutateAsync(columnForDeletion.id)
       setIsDeleteAlertOpen(false)
     } catch (err) {
-      console.error('Erro ao deletar coluna', err)
       toast.error('Erro ao deletar coluna.')
     } finally {
       setIsDeleting(false)
       setLoadingColumnId(null)
     }
-  }, [columnForDeletion, deleteColumnMutation, setLoadingColumnId])
-
-  const handleAlertOpenChange = (isOpen: boolean) => {
-    if (isDeleting) return
-    setIsDeleteAlertOpen(isOpen)
-  }
+  }, [columnForDeletion, deleteColumnMutation])
 
   const board = useOptimizedBoard({
     kanbanColumns,
@@ -381,7 +404,6 @@ function KanbanBoard({
           },
         ],
       },
-
       {
         title: 'Cards',
         items: [
@@ -397,7 +419,6 @@ function KanbanBoard({
           },
         ],
       },
-
       {
         title: 'Avançado',
         items: [
@@ -411,53 +432,42 @@ function KanbanBoard({
     ]
 
     return {
+      onReorder: handleReorderColumns,
       columns: board.columns.map((col) => ({
         ...col,
-        isLoading: col.id === loadingColumnId,
+        isLoading: col.id === loadingColumnId || isReordering,
         actions: actionGroups,
         onChange: async (changedColumn: TColumn) => {
-          console.log('disparando evento de onChange da coluna', changedColumn)
-          const { id, title, position } = changedColumn
-
-          type UpdateColumnData = Partial<
-            Omit<KanbanColumnRxDBDTO, 'id' | '_id'>
-          >
-
-          const dtoChanges: UpdateColumnData = {}
-
-          if (title !== col.title) {
-            dtoChanges.name = title
-          }
-          if (position !== col.position) {
-            dtoChanges.order = position
-          }
-
-          if (Object.keys(dtoChanges).length === 0) return
+          const { id, title } = changedColumn
+          if (title === col.title) return
 
           try {
             setLoadingColumnId(id)
             const doc = await db.kanbanColumns.findOne(id).exec()
             if (doc) {
               await doc.patch({
-                ...dtoChanges,
+                name: title,
                 updatedAt: new Date().toISOString(),
               })
             }
-
-            await queryClient.invalidateQueries({
-              queryKey: ['kanbanColumns'],
-            })
-            toast.success('Coluna atualizada!')
+            await queryClient.invalidateQueries({ queryKey: ['kanbanColumns'] })
+            toast.success('Nome da coluna atualizado!')
           } catch (err) {
-            console.error('Falha ao atualizar coluna', err)
-            toast.error('Falha ao atualizar coluna.')
+            toast.error('Falha ao atualizar nome.')
           } finally {
             setLoadingColumnId(null)
           }
         },
       })),
     }
-  }, [board, db, queryClient, loadingColumnId])
+  }, [
+    board,
+    db,
+    queryClient,
+    loadingColumnId,
+    isReordering,
+    handleReorderColumns,
+  ])
 
   return (
     <>
@@ -470,7 +480,7 @@ function KanbanBoard({
 
       <AlertDialog
         open={isDeleteAlertOpen}
-        onOpenChange={handleAlertOpenChange}
+        onOpenChange={(open) => !isDeleting && setIsDeleteAlertOpen(open)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -482,19 +492,14 @@ function KanbanBoard({
               coluna continuarão existindo, porém sem coluna atribuída.
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>
               Cancelar
             </AlertDialogCancel>
-
             <AlertDialogAction asChild>
               <Button
                 variant="destructive"
-                onClick={() => {
-                  if (isDeleting) return
-                  void confirmDeleteColumn()
-                }}
+                onClick={() => !isDeleting && void confirmDeleteColumn()}
                 disabled={isDeleting}
               >
                 {isDeleting ? <Loader /> : 'Excluir'}
@@ -511,9 +516,7 @@ function KanbanBoardContent() {
   const db = useSyncStore((s) => s.db)
   const { workspace } = useWorkspace()
   const { user } = useAuth()
-
   if (!db || !user || !workspace) return null
-
   return <KanbanBoard db={db} user={user} workspace={workspace} />
 }
 
@@ -525,21 +528,15 @@ function KanbanToolbar() {
         placeholder="Buscar tarefas..."
         className="h-9 w-64"
       />
-
       <Button variant="outline" size="sm" className="h-9">
-        <UserIcon className="mr-2 h-4 w-4" />
-        Pessoa
+        <UserIcon className="mr-2 h-4 w-4" /> Pessoa
       </Button>
-
       <Button variant="outline" size="sm" className="h-9">
-        <CalendarIcon className="mr-2 h-4 w-4" />
-        Data
+        <CalendarIcon className="mr-2 h-4 w-4" /> Data
       </Button>
-
       <Button variant="outline" size="sm" className="h-9">
         Filtro
       </Button>
-
       <div className="ml-4 flex items-center -space-x-2">
         <Avatar className="border-background h-8 w-8 border-2">
           <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />

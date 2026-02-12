@@ -29,6 +29,7 @@ export type ColumnActionGroup = {
 
 export type TBoard = {
   columns: TColumn[]
+  onReorder?: (beforeColumns: TColumn[], afterColumns: TColumn[]) => void
 }
 
 const cardKey = Symbol('card')
