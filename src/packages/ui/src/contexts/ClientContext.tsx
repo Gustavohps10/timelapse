@@ -1,11 +1,11 @@
-import { IApplicationClient } from '@timelapse/application'
+import { IApplicationAPI } from '@timelapse/application'
 import React from 'react'
 import { createContext } from 'react'
 
-export const ClientContext = createContext<IApplicationClient | null>(null)
+export const ClientContext = createContext<IApplicationAPI | null>(null)
 
 interface ClientProviderProps {
-  client: IApplicationClient
+  client: IApplicationAPI
   children: React.ReactNode
 }
 

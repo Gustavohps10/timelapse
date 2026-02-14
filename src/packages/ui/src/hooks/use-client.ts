@@ -1,9 +1,9 @@
-import { IApplicationClient } from '@timelapse/application'
+import { IApplicationAPI } from '@timelapse/application'
 import { useContext } from 'react'
 
 import { ClientContext } from '@/contexts/ClientContext'
 
-export function useClient(): IApplicationClient {
+export function useClient(): IApplicationAPI {
   const context = useContext(ClientContext)
   if (!context) {
     throw new Error(

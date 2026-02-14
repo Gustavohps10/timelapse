@@ -1,6 +1,6 @@
-import { IApplicationClient } from '@timelapse/application'
+import { IApplicationAPI } from '@timelapse/application'
 
-const ipcClient: IApplicationClient = {
+const ipcClient: IApplicationAPI = {
   services: window.api.services,
   modules: window.api.modules,
   integrations: window.api.integrations,

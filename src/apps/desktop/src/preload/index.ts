@@ -1,4 +1,4 @@
-import { IApplicationClient } from '@timelapse/application'
+import { IApplicationAPI } from '@timelapse/application'
 import { contextBridge } from 'electron'
 
 import {
@@ -14,7 +14,7 @@ import {
   workspacesInvoker,
 } from '@/main/invokers'
 
-const api: IApplicationClient = {
+const api: IApplicationAPI = {
   services: {
     workspaces: workspacesInvoker,
     session: sessionInvoker,

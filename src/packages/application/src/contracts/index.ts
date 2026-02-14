@@ -1,4 +1,4 @@
-export * from './client'
+export * from './api'
 export * from './data'
 export * from './facades'
 export * from './infra'

@@ -1,10 +1,10 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
-import type { IApplicationClient } from '@timelapse/application'
+import type { IApplicationAPI } from '@timelapse/application'
 
 declare global {
   interface Window {
     electron: ElectronAPI
-    api: IApplicationClient
+    api: IApplicationAPI
   }
 }
