@@ -13,9 +13,7 @@ interface Input {
   workspaceId: string
 }
 
-export class DisconnectDataSourceService
-  implements IDisconnectDataSourceUseCase
-{
+export class DisconnectDataSourceService implements IDisconnectDataSourceUseCase {
   constructor(private readonly workspacesRepository: IWorkspacesRepository) {}
 
   public async execute(input: Input): Promise<Either<AppError, void>> {

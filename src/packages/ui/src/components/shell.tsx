@@ -22,7 +22,8 @@ const shellVariants = cva(
 )
 
 interface ShellProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof shellVariants> {
   as?: React.ElementType
 }

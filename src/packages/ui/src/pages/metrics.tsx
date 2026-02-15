@@ -1,5 +1,3 @@
-// src/pages/Metrics.tsx (Exemplo de caminho)
-
 import { useQuery } from '@tanstack/react-query'
 import {
   eachDayOfInterval,

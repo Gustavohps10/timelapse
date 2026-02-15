@@ -15,8 +15,9 @@ import {
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
-interface DataTableActionBarProps<TData>
-  extends React.ComponentProps<typeof motion.div> {
+interface DataTableActionBarProps<TData> extends React.ComponentProps<
+  typeof motion.div
+> {
   table: Table<TData>
   visible?: boolean
   portalContainer?: Element | DocumentFragment | null
@@ -79,8 +80,9 @@ function DataTableActionBar<TData>({
   )
 }
 
-interface DataTableActionBarActionProps
-  extends React.ComponentProps<typeof Button> {
+interface DataTableActionBarActionProps extends React.ComponentProps<
+  typeof Button
+> {
   tooltip?: string
   isPending?: boolean
 }

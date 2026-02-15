@@ -93,8 +93,10 @@ function useStore<T>(
   return React.useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
 }
 
-interface UseDataGridProps<TData>
-  extends Omit<TableOptions<TData>, 'pageCount' | 'getCoreRowModel'> {
+interface UseDataGridProps<TData> extends Omit<
+  TableOptions<TData>,
+  'pageCount' | 'getCoreRowModel'
+> {
   onDataChange?: (data: TData[]) => void
   onRowAdd?: (event?: React.MouseEvent<HTMLDivElement>) =>
     | Partial<CellPosition>

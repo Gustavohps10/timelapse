@@ -24,12 +24,7 @@ import { User } from '@/@types/session/User'
 import { Loader } from '@/components'
 import AutomationModal from '@/components/automation-modal'
 import { Board } from '@/components/dnd/board'
-import {
-  ColumnActionGroup,
-  TBoard,
-  TCard,
-  TColumn,
-} from '@/components/dnd/data'
+import { TBoard, TCard, TColumn } from '@/components/dnd/data'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -251,6 +246,15 @@ function KanbanBoard({
   const deleteColumnMutation = useDeleteColumnMutation(db)
   const reorderColumnsMutation = useReorderColumnsMutation(db)
 
+  // Estados para gerenciar o Modal de Automação por Coluna
+  const [automationModalOpen, setAutomationModalOpen] = useState(false)
+  const [selectedColumnId, setSelectedColumnId] = useState<string | null>(null)
+
+  const handleOpenAutomations = useCallback((columnId: string) => {
+    setSelectedColumnId(columnId)
+    setAutomationModalOpen(true)
+  }, [])
+
   const { data: kanbanColumns } = useSuspenseQuery({
     queryKey: ['kanbanColumns'],
     queryFn: async () => {
@@ -380,63 +384,61 @@ function KanbanBoard({
   })
 
   const boardWithActions: TBoard = useMemo(() => {
-    const actionGroups: ColumnActionGroup[] = [
-      {
-        title: 'Gerenciar Coluna',
-        items: [
-          {
-            label: 'Renomear',
-            icon: <PencilIcon className="h-3.5 w-3.5" />,
-            onClick: () => {},
-          },
-          {
-            label: 'Duplicar',
-            icon: <CopyIcon className="h-3.5 w-3.5" />,
-            onClick: () => {},
-          },
-          {
-            label: 'Excluir Coluna',
-            icon: <TrashIcon className="h-3.5 w-3.5" />,
-            onClick: (col: TColumn) => {
-              setColumnForDeletion(col)
-              setIsDeleteAlertOpen(true)
-            },
-          },
-        ],
-      },
-      {
-        title: 'Cards',
-        items: [
-          {
-            label: 'Novo Card',
-            icon: <CopyPlusIcon className="h-3.5 w-3.5" />,
-            onClick: () => {},
-          },
-          {
-            label: 'Mover Todos os Cards',
-            icon: <MoveRightIcon className="h-3.5 w-3.5" />,
-            onClick: () => {},
-          },
-        ],
-      },
-      {
-        title: 'Avançado',
-        items: [
-          {
-            label: 'Automação',
-            icon: <CableIcon className="h-3.5 w-3.5" />,
-            onClick: () => {},
-          },
-        ],
-      },
-    ]
-
     return {
       onReorder: handleReorderColumns,
       columns: board.columns.map((col) => ({
         ...col,
         isLoading: col.id === loadingColumnId || isReordering,
-        actions: actionGroups,
+        actions: [
+          {
+            title: 'Gerenciar Coluna',
+            items: [
+              {
+                label: 'Renomear',
+                icon: <PencilIcon className="h-3.5 w-3.5" />,
+                onClick: () => {},
+              },
+              {
+                label: 'Duplicar',
+                icon: <CopyIcon className="h-3.5 w-3.5" />,
+                onClick: () => {},
+              },
+              {
+                label: 'Excluir Coluna',
+                icon: <TrashIcon className="h-3.5 w-3.5" />,
+                onClick: (column: TColumn) => {
+                  setColumnForDeletion(column)
+                  setIsDeleteAlertOpen(true)
+                },
+              },
+            ],
+          },
+          {
+            title: 'Cards',
+            items: [
+              {
+                label: 'Novo Card',
+                icon: <CopyPlusIcon className="h-3.5 w-3.5" />,
+                onClick: () => {},
+              },
+              {
+                label: 'Mover Todos os Cards',
+                icon: <MoveRightIcon className="h-3.5 w-3.5" />,
+                onClick: () => {},
+              },
+            ],
+          },
+          {
+            title: 'Avançado',
+            items: [
+              {
+                label: 'Automação',
+                icon: <CableIcon className="h-3.5 w-3.5" />,
+                onClick: (column: TColumn) => handleOpenAutomations(column.id),
+              },
+            ],
+          },
+        ],
         onChange: async (changedColumn: TColumn) => {
           const { id, title } = changedColumn
           if (title === col.title) return
@@ -467,11 +469,24 @@ function KanbanBoard({
     loadingColumnId,
     isReordering,
     handleReorderColumns,
+    handleOpenAutomations,
   ])
 
   return (
     <>
-      <AutomationModal />
+      {/* Modal de Automação injetado globalmente na página, mas controlado pelo clique na coluna */}
+      <Suspense fallback={null}>
+        {selectedColumnId && (
+          <AutomationModal
+            workspaceId={workspace.id}
+            columnId={selectedColumnId}
+            allColumns={kanbanColumns}
+            open={automationModalOpen}
+            onOpenChange={setAutomationModalOpen}
+          />
+        )}
+      </Suspense>
+
       <Board
         board={boardWithActions}
         enableAddColumns
@@ -558,7 +573,7 @@ export function Activities() {
     <>
       <KanbanToolbar />
       <Suspense fallback={<KanbanSkeleton />}>
-        <div className="w-[calc(100vw-300px-72px-rem)] cursor-grab overflow-auto rounded-md select-none active:cursor-grabbing">
+        <div className="w-[calc(100vw-300px-72px-2rem)] cursor-grab overflow-auto rounded-md select-none active:cursor-grabbing">
           <KanbanBoardContent />
         </div>
       </Suspense>

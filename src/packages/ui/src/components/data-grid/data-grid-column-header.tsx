@@ -64,8 +64,9 @@ function getColumnVariant(variant?: Cell['variant']): {
   }
 }
 
-interface DataGridColumnHeaderProps<TData, TValue>
-  extends React.ComponentProps<typeof DropdownMenuTrigger> {
+interface DataGridColumnHeaderProps<TData, TValue> extends React.ComponentProps<
+  typeof DropdownMenuTrigger
+> {
   header: Header<TData, TValue>
   table: Table<TData>
 }
@@ -282,8 +283,10 @@ const DataGridColumnResizer = React.memo(
   },
 ) as typeof DataGridColumnResizerImpl
 
-interface DataGridColumnResizerProps<TData, TValue>
-  extends DataGridColumnHeaderProps<TData, TValue> {
+interface DataGridColumnResizerProps<
+  TData,
+  TValue,
+> extends DataGridColumnHeaderProps<TData, TValue> {
   label: string
 }
 

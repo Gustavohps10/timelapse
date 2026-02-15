@@ -13,8 +13,7 @@ import { getCommonPinningStyles } from '@/lib/data-table'
 import { cn } from '@/lib/utils'
 
 interface DataGridProps<TData>
-  extends ReturnType<typeof useDataGrid<TData>>,
-    React.ComponentProps<'div'> {
+  extends ReturnType<typeof useDataGrid<TData>>, React.ComponentProps<'div'> {
   height?: number
 }
 

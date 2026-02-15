@@ -43,8 +43,9 @@ const SORT_ORDERS = [
   { label: 'Desc', value: 'desc' },
 ]
 
-interface DataGridSortMenuProps<TData>
-  extends React.ComponentProps<typeof PopoverContent> {
+interface DataGridSortMenuProps<TData> extends React.ComponentProps<
+  typeof PopoverContent
+> {
   table: Table<TData>
 }
 

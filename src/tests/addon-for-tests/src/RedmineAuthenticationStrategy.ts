@@ -44,9 +44,7 @@ interface RedmineUserResponse {
   user: RedmineUserAPIResponse
 }
 
-export class RedmineAuthenticationStrategy
-  implements IAuthenticationStrategy<RedmineAuthInput>
-{
+export class RedmineAuthenticationStrategy implements IAuthenticationStrategy<RedmineAuthInput> {
   private getApiClient(apiUrl: string): AxiosInstance {
     return axios.create({ baseURL: apiUrl })
   }

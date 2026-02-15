@@ -24,6 +24,10 @@ import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv'
 import { createStore, type StoreApi, useStore } from 'zustand'
 
 import {
+  AutomationRxDBDTO,
+  automationsSchema,
+} from '@/db/schemas/automations-schema'
+import {
   KanbanColumnRxDBDTO,
   kanbanColumnsSchema,
 } from '@/db/schemas/kanban-column-schema'
@@ -57,6 +61,7 @@ export type AppCollections = {
   metadata: RxCollection<SyncMetadataRxDBDTO>
   kanbanColumns: RxCollection<KanbanColumnRxDBDTO>
   kanbanTaskColumns: RxCollection<TaskKanbanColumnRxDBDTO>
+  automations: RxCollection<AutomationRxDBDTO>
 }
 
 export type AppDatabase = RxDatabase<AppCollections>
@@ -229,6 +234,7 @@ export const createSyncStore = (
             estimatedTimes: item.estimatedTimes,
             createdAt: item.createdAt.toISOString(),
             updatedAt: item.updatedAt.toISOString(),
+            timeEntryIds: [],
             startDate: item.startDate
               ? item.startDate.toISOString()
               : undefined,
@@ -269,9 +275,8 @@ export const createSyncStore = (
       if (get().isInitialized) return
 
       const { RxDBDevModePlugin } = await import('rxdb/plugins/dev-mode')
-      const { RxDBQueryBuilderPlugin } = await import(
-        'rxdb/plugins/query-builder'
-      )
+      const { RxDBQueryBuilderPlugin } =
+        await import('rxdb/plugins/query-builder')
       addRxPlugin(RxDBDevModePlugin)
       addRxPlugin(RxDBQueryBuilderPlugin)
 
@@ -312,6 +317,7 @@ export const createSyncStore = (
         ...collectionsToCreate,
         kanbanColumns: { schema: kanbanColumnsSchema },
         kanbanTaskColumns: { schema: kanbanTaskColumnsSchema },
+        automations: { schema: automationsSchema },
       }
 
       await db.addCollections(allCollectionsToCreate)
