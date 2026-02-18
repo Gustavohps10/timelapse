@@ -1,74 +1,69 @@
-import { differenceInSeconds } from 'date-fns'
-import { JSX, useContext, useEffect, useRef, useState } from 'react'
+'use client'
+
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 
 import { TimeEntriesContext } from '@/contexts/TimeEntriesContext'
-import { markCurrentTimeEntryAction } from '@/reducers/time-entries/actions'
+import { cn } from '@/lib/utils'
 
 export type TimerProps = {
   size?: 'big' | 'medium' | 'small'
   onTimeChange?: (minutes: number) => void
 }
 
-export function Timer({ size, onTimeChange }: TimerProps) {
+export function Timer({ size = 'medium', onTimeChange }: TimerProps) {
   const [digits, setDigits] = useState<string[]>(['0', '0', '0', '0', '0', '0'])
   const [activeIndex, setActiveIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const { activeTimeEntry, amountSecondsPassed, setSecondsPassed } =
+  const { activeTimeEntry, amountSecondsPassed } =
     useContext(TimeEntriesContext)
 
-  const totalSeconds = activeTimeEntry ? activeTimeEntry.minutesAmount * 60 : 0
-
+  // 1. Lógica de cálculo de tempo para quando NÃO há timer ativo (modo input/edição)
   useEffect(() => {
     if (!activeTimeEntry && onTimeChange) {
       const [h1, h2, m1, m2, s1, s2] = digits.map(Number)
-      const minutes =
-        h1 * 600 + h2 * 60 + m1 * 10 + m2 + Math.floor((s1 * 10 + s2) / 60)
-      onTimeChange(minutes)
+      const totalMinutes =
+        (h1 * 10 + h2) * 60 + (m1 * 10 + m2) + Math.floor((s1 * 10 + s2) / 60)
+      onTimeChange(totalMinutes)
     }
-  }, [digits, activeTimeEntry])
+  }, [digits, activeTimeEntry, onTimeChange])
 
-  useEffect(() => {
-    if (!activeTimeEntry || activeTimeEntry.status === 'paused') return
+  // 2. Formatação do tempo ativo (HH:MM:SS) consumindo o contexto reativo
+  const formattedTime = useMemo(() => {
+    // Se o timer for decrescente, subtraímos o tempo passado do tempo total planejado
+    // Caso contrário (increasing ou manual), mostramos o tempo progressivo (HH:MM:SS)
+    let displaySeconds = amountSecondsPassed
 
-    const interval = setInterval(() => {
-      const secondsDifference = differenceInSeconds(
-        new Date(),
-        new Date(activeTimeEntry.startDate),
-      )
+    if (activeTimeEntry?.type === 'decreasing') {
+      // No modo decrescente, timeSpent seria o "alvo" de minutos convertido em segundos
+      const totalTargetSeconds = activeTimeEntry.timeSpent || 0
+      displaySeconds = Math.max(0, totalTargetSeconds - amountSecondsPassed)
+    }
 
-      if (activeTimeEntry.type === 'decreasing') {
-        if (secondsDifference >= totalSeconds) {
-          markCurrentTimeEntryAction()
-          setSecondsPassed(totalSeconds)
-          clearInterval(interval)
-          return
-        }
+    const h = Math.floor(displaySeconds / 3600)
+      .toString()
+      .padStart(2, '0')
+    const m = Math.floor((displaySeconds % 3600) / 60)
+      .toString()
+      .padStart(2, '0')
+    const s = Math.floor(displaySeconds % 60)
+      .toString()
+      .padStart(2, '0')
 
-        setSecondsPassed(secondsDifference)
-      }
-
-      if (activeTimeEntry.type === 'increasing') {
-        setSecondsPassed(-secondsDifference)
-      }
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [activeTimeEntry, totalSeconds, markCurrentTimeEntryAction])
-
-  const currentSeconds = activeTimeEntry
-    ? totalSeconds - amountSecondsPassed
-    : 0
+    return `${h}:${m}:${s}`
+  }, [amountSecondsPassed, activeTimeEntry])
 
   const isValidDigits = (nextDigits: string[]): boolean => {
-    const [m1, m2, s1, s2] = nextDigits.map(Number)
+    const [h1, h2, m1, m2, s1, s2] = nextDigits.map(Number)
     const mm = m1 * 10 + m2
     const ss = s1 * 10 + s2
+    // Limitação padrão de relógio: minutos e segundos não passam de 59
     return mm <= 59 && ss <= 59
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (activeTimeEntry) return
+
     if (e.key >= '0' && e.key <= '9') {
       const newDigits = [...digits]
       newDigits[activeIndex] = e.key
@@ -78,10 +73,12 @@ export function Timer({ size, onTimeChange }: TimerProps) {
         if (activeIndex < 5) setActiveIndex((i) => i + 1)
       }
       e.preventDefault()
-    } else if (e.code == 'Space') {
+    } else if (e.key === 'Backspace') {
+      const newDigits = [...digits]
+      newDigits[activeIndex] = '0'
+      setDigits(newDigits)
+      if (activeIndex > 0) setActiveIndex((i) => i - 1)
       e.preventDefault()
-
-      if (activeIndex < digits.length - 1) setActiveIndex(activeIndex + 1)
     } else if (e.key === 'ArrowRight') {
       if (activeIndex < 5) setActiveIndex((i) => i + 1)
       e.preventDefault()
@@ -94,76 +91,79 @@ export function Timer({ size, onTimeChange }: TimerProps) {
   const handleDigitClick = (index: number) => {
     if (!activeTimeEntry) {
       setActiveIndex(index)
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, 0)
+      setTimeout(() => inputRef.current?.focus(), 0)
     }
   }
 
-  const renderTime = () => {
-    const time = [...digits]
+  const renderEditableTime = () => {
+    return digits.map((digit, index) => {
+      const isSelected = index === activeIndex
+      const elements = []
 
-    return (
-      <>
-        {time
-          .map((digit, index) => (
-            <span
-              key={index}
-              className={`inline-block h-6 w-[1ch] cursor-text pr-[1px] text-center ${
-                index === activeIndex && activeIndex !== -1
-                  ? 'ring-pulse text-foreground rounded ring-2 ring-red-500'
-                  : ''
-              }`}
-              onClick={() => handleDigitClick(index)}
-            >
-              {digit}
-            </span>
-          ))
-          .reduce((acc, curr, i) => {
-            acc.push(curr)
+      elements.push(
+        <span
+          key={`digit-${index}`}
+          className={cn(
+            'inline-block w-[0.9ch] cursor-text text-center transition-all duration-75',
+            isSelected &&
+              'bg-primary/20 text-primary ring-primary/50 z-10 scale-110 rounded-[2px] ring-1',
+          )}
+          onClick={() => handleDigitClick(index)}
+        >
+          {digit}
+        </span>,
+      )
 
-            if (i === 1 || i === 3) {
-              const targetIndex = i + 1
-              acc.push(
-                <span
-                  key={`sep-${i}`}
-                  className="cursor-text px-0.5 text-zinc-500"
-                  onClick={() => handleDigitClick(targetIndex)}
-                >
-                  :
-                </span>,
-              )
-            }
+      if (index === 1 || index === 3) {
+        elements.push(
+          <span
+            key={`sep-${index}`}
+            className="text-muted-foreground px-0.5 opacity-40 select-none"
+          >
+            :
+          </span>,
+        )
+      }
 
-            return acc
-          }, [] as JSX.Element[])}
-      </>
-    )
+      return elements
+    })
   }
 
-  const sizeClass = {
-    big: 'text-4xl',
-    medium: 'text-2xl',
-    small: 'text-sm',
-  }[size ?? 'medium']
+  const sizeClasses = {
+    big: 'text-5xl tracking-tighter',
+    medium: 'text-2xl tracking-tight',
+    small: 'text-sm tracking-normal',
+  }[size]
 
   return (
-    <span
-      className={`relative mt-1 flex justify-center p-1 font-mono leading-tight font-semibold tracking-tighter text-zinc-800 dark:text-zinc-300 ${sizeClass}`}
+    <div
+      className={cn(
+        'relative inline-flex items-center justify-center font-mono font-semibold tabular-nums transition-colors select-none',
+        activeTimeEntry?.timeStatus === 'running'
+          ? 'text-primary'
+          : 'text-foreground',
+        sizeClasses,
+      )}
     >
       <input
         ref={inputRef}
         onKeyDown={handleKeyDown}
         onBlur={() => setActiveIndex(-1)}
-        className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
+        className="pointer-events-none absolute inset-0 h-full w-full cursor-default opacity-0"
+        readOnly
       />
+
       {activeTimeEntry ? (
-        <span>
-          {new Date(currentSeconds * 1000).toISOString().substr(11, 8)}
+        <span
+          className={cn(
+            activeTimeEntry.timeStatus === 'running' && 'animate-pulse-subtle',
+          )}
+        >
+          {formattedTime}
         </span>
       ) : (
-        renderTime()
+        <div className="flex items-center">{renderEditableTime()}</div>
       )}
-    </span>
+    </div>
   )
 }

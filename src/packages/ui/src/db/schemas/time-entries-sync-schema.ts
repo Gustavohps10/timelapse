@@ -5,7 +5,7 @@ import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 export interface SyncTimeEntryRxDBDTO {
   _id: string
   _deleted: boolean
-  id?: string
+  id: string
   task: { id: string }
   taskData?: SyncTaskRxDBDTO
   activity: { id: string; name?: string }
@@ -17,6 +17,8 @@ export interface SyncTimeEntryRxDBDTO {
   createdAt: string
   updatedAt: string
   conflicted?: boolean
+  timeStatus: 'running' | 'paused' | 'finished'
+  type: 'increasing' | 'decreasing' | 'manual'
   conflictData?: { server?: any; local?: any }
   validationError?: any
   syncedAt?: string
@@ -68,6 +70,14 @@ export const timeEntriesSyncSchema: RxJsonSchema<SyncTimeEntryRxDBDTO> = {
     validationError: { type: 'object' },
     syncedAt: { type: 'string', format: 'date-time' },
     assumedMasterState: { type: 'object' },
+    timeStatus: {
+      type: 'string',
+      enum: ['running', 'paused', 'finished'],
+    },
+    type: {
+      type: 'string',
+      enum: ['increasing', 'decreasing', 'manual'],
+    },
   },
   required: [
     '_id',

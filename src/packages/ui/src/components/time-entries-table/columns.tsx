@@ -1,187 +1,171 @@
+'use client'
+
 import { ColumnDef } from '@tanstack/react-table'
+import { format, parseISO } from 'date-fns'
 import {
-  AlertTriangle,
-  CheckCircle,
+  AlertCircle,
+  CheckCircle2,
   ChevronDown,
   ChevronRight,
-  Pin,
+  CloudOff,
+  RefreshCcw,
 } from 'lucide-react'
 
-import { TimeEntry } from '@/components/time-entries-table/data-table'
 import { Badge } from '@/components/ui/badge'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { SyncTimeEntryRxDBDTO } from '@/db/schemas/time-entries-sync-schema'
 
-export type Row = TimeEntry & {
-  subRows?: TimeEntry[]
+export type Row = SyncTimeEntryRxDBDTO & {
+  subRows?: SyncTimeEntryRxDBDTO[]
 }
 
 export const columns: ColumnDef<Row>[] = [
   {
     id: 'expand',
     header: 'Apontamentos',
-    size: 60,
-    minSize: 50,
+    size: 100,
     cell: ({ row }) => {
       if (row.depth > 0) return null
-
-      const count = row.subRows?.length ?? 0
-      const hasSubRows = count > 0
+      const count = row.original.subRows?.length ?? 0
+      const hasSubRows = count > 1
 
       return (
-        <button
-          onClick={hasSubRows ? row.getToggleExpandedHandler() : undefined}
-          className="flex items-center gap-2"
-          style={{ cursor: hasSubRows ? 'pointer' : 'default' }}
-          aria-label={
-            hasSubRows
-              ? row.getIsExpanded()
-                ? 'Colapsar'
-                : 'Expandir'
-              : undefined
-          }
-        >
-          {hasSubRows ? (
-            row.getIsExpanded() ? (
-              <ChevronDown size={16} />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={hasSubRows ? row.getToggleExpandedHandler() : undefined}
+            className="flex items-center justify-center transition-opacity"
+            style={{
+              cursor: hasSubRows ? 'pointer' : 'default',
+              opacity: hasSubRows ? 1 : 0.3,
+            }}
+          >
+            {hasSubRows ? (
+              row.getIsExpanded() ? (
+                <ChevronDown size={14} />
+              ) : (
+                <ChevronRight size={14} />
+              )
             ) : (
-              <ChevronRight size={16} />
-            )
-          ) : (
-            <div style={{ width: 16 }} />
-          )}
-          <Badge variant="secondary">{count || 1}</Badge>
-        </button>
+              <div style={{ width: 14 }} />
+            )}
+          </button>
+          <Badge
+            variant="outline"
+            className="bg-muted/30 border-border/50 h-5 min-w-[20px] px-1 font-mono text-[10px]"
+          >
+            {count || 1}
+          </Badge>
+        </div>
       )
     },
   },
   {
-    accessorKey: 'issue_id',
+    id: 'issue_id',
+    accessorKey: 'task.id',
     header: 'Ticket',
-    size: 60,
-    minSize: 50,
+    size: 100,
     cell: ({ row }) => {
+      const taskId = row.original.task?.id
+      const taskSubject = row.original.taskData?.title
       return (
         <Tooltip>
           <TooltipTrigger asChild>
             <Badge
-              variant="outline"
-              className="cursor-zoom-in font-mono tracking-tight"
+              variant="secondary"
+              className="cursor-help font-mono text-[11px] font-bold"
             >
-              #{row.original.issue_id}
+              #{taskId}
             </Badge>
           </TooltipTrigger>
-          <TooltipContent className="text-foreground bg-secondary border">
-            <p>MODULO 1 - REGRA DE NEGOCIO - BUG NO CAMPO N</p>
-          </TooltipContent>
+          {taskSubject && (
+            <TooltipContent side="right" className="max-w-[300px]">
+              <p className="text-xs font-medium">{taskSubject}</p>
+            </TooltipContent>
+          )}
         </Tooltip>
       )
     },
   },
   {
-    id: 'sincStatus',
-    header: 'Status',
+    id: 'syncStatus',
+    header: 'Sinc',
+    size: 50,
     cell: ({ row }) => {
-      const isParent = row.depth === 0
-      const subRows = row.subRows
-
-      if (isParent && subRows?.length) {
-        const statuses = subRows.map((r) => r.original.sincStatus)
-
-        const hasPending = statuses.includes('pending')
-        const hasFailed = statuses.includes('failed')
-        const allSynced = statuses.every((s) => s === 'synced')
-
+      const { syncedAt, conflicted, validationError } = row.original
+      if (conflicted)
         return (
-          <div className="flex items-center gap-1">
-            {allSynced && (
-              <CheckCircle
-                className="text-green-500"
-                size={16}
-                strokeWidth={1.5}
+          <Tooltip>
+            <TooltipTrigger>
+              <RefreshCcw
+                className="animate-spin-slow text-orange-500"
+                size={14}
               />
-            )}
-            {!allSynced && hasPending && (
-              <Pin className="text-zinc-500" size={16} strokeWidth={1.5} />
-            )}
-            {!allSynced && hasFailed && (
-              <AlertTriangle
-                className="text-red-500 dark:text-red-400"
-                size={16}
-                strokeWidth={1.5}
-              />
-            )}
-          </div>
+            </TooltipTrigger>
+            <TooltipContent>Conflito detectado</TooltipContent>
+          </Tooltip>
         )
-      }
-
-      const status = row.original.sincStatus
-      switch (status) {
-        case 'synced':
-          return (
-            <CheckCircle
-              className="text-green-500"
-              size={16}
-              strokeWidth={1.5}
-            />
-          )
-        case 'pending':
-          return <Pin className="text-zinc-500" size={16} strokeWidth={1.5} />
-        case 'failed':
-          return (
-            <AlertTriangle
-              className="text-red-500 dark:text-red-400"
-              size={16}
-              strokeWidth={1.5}
-            />
-          )
-        default:
-          return null
-      }
+      if (validationError)
+        return (
+          <Tooltip>
+            <TooltipTrigger>
+              <AlertCircle className="text-destructive" size={14} />
+            </TooltipTrigger>
+            <TooltipContent>Erro de validação</TooltipContent>
+          </Tooltip>
+        )
+      return syncedAt ? (
+        <Tooltip>
+          <TooltipTrigger>
+            <CheckCircle2 className="text-green-500" size={14} />
+          </TooltipTrigger>
+          <TooltipContent>
+            Sincronizado em {format(parseISO(syncedAt), 'HH:mm')}
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <Tooltip>
+          <TooltipTrigger>
+            <CloudOff className="text-muted-foreground/50" size={14} />
+          </TooltipTrigger>
+          <TooltipContent>Aguardando sincronização</TooltipContent>
+        </Tooltip>
+      )
     },
   },
   {
-    accessorKey: 'spent_on',
-    header: 'Data',
+    id: 'createdAt',
+    accessorKey: 'createdAt',
+    header: 'Criado em',
+    size: 110,
     cell: ({ row }) => {
-      const date = row.original.spent_on
-      const parsed = new Date(date)
+      const date = row.original.createdAt
       return (
-        <span className="font-mono">
-          {isNaN(parsed.getTime()) ? '—' : parsed.toLocaleDateString('pt-BR')}
+        <span className="text-muted-foreground font-mono text-[14px]">
+          {format(parseISO(date), 'dd/MM HH:mm')}
         </span>
       )
     },
   },
   {
-    accessorKey: 'hours',
-    header: 'Horas',
-    cell: ({ getValue }) => {
-      const hours = getValue() as number
-
-      return (
-        <span className="font-mono tracking-tighter">
-          {`${hours.toFixed(2)} h`}
-        </span>
-      )
-    },
-  },
-  {
-    accessorKey: 'activity_id',
+    id: 'activity',
+    accessorKey: 'activity.id',
     header: 'Atividade',
-    cell: ({ row }) => {
-      const activityId = row.original.activity_id
-      return activityId ? `#${activityId}` : '—'
-    },
+    size: 200,
   },
   {
+    id: 'comments',
     accessorKey: 'comments',
     header: 'Comentário',
-    cell: ({ row }) => {
-      return row.original.comments || '—'
-    },
+    size: 150,
+  },
+  {
+    id: 'hours',
+    accessorKey: 'timeSpent',
+    header: 'Tempo',
+    size: 260,
   },
 ]

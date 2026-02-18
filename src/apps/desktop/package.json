@@ -1,10 +1,41 @@
 {
   "private": true,
   "name": "@timelapse/desktop",
+  "productName": "timelapse",
   "version": "1.0.0",
   "description": "Timelapse Desktop App.",
   "main": "./out/main/index.js",
   "type": "module",
+  "build": {
+    "appId": "com.timelapse.desktop",
+    "productName": "timelapse",
+    "directories": {
+      "output": "dist"
+    },
+    "artifactName": "${productName}-${version}-setup.${ext}",
+    "files": [
+      "out/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",

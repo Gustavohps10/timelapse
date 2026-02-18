@@ -7,7 +7,6 @@ import {
   queryClient,
   SidebarProvider,
   ThemeProvider,
-  TimeEntriesContextProvider,
   TooltipProvider,
 } from '@timelapse/ui'
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v6'
@@ -21,15 +20,13 @@ export function AppDesktop() {
     <ClientProvider client={ipcClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <TooltipProvider>
-          <TimeEntriesContextProvider>
-            <SidebarProvider>
-              <QueryClientProvider client={queryClient}>
-                <NuqsAdapter>
-                  <RouterProvider router={router} />
-                </NuqsAdapter>
-              </QueryClientProvider>
-            </SidebarProvider>
-          </TimeEntriesContextProvider>
+          <SidebarProvider>
+            <QueryClientProvider client={queryClient}>
+              <NuqsAdapter>
+                <RouterProvider router={router} />
+              </NuqsAdapter>
+            </QueryClientProvider>
+          </SidebarProvider>
         </TooltipProvider>
       </ThemeProvider>
     </ClientProvider>
