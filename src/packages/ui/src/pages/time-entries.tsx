@@ -12,6 +12,7 @@ import {
   endOfDay,
   format,
   isSameDay,
+  isValid,
   parse,
   parseISO,
   startOfDay,
@@ -53,13 +54,13 @@ import {
 import React, {
   ElementType,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react'
 import { DateRange } from 'react-day-picker'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { DatePickerWithRange } from '@/components'
@@ -97,13 +98,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { TimeEntriesContext } from '@/contexts/TimeEntriesContext'
 import { SyncMetadataItem } from '@/db/schemas/metadata-sync-schema'
 import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 import { SyncTimeEntryRxDBDTO } from '@/db/schemas/time-entries-sync-schema'
 import { useAuth } from '@/hooks'
+import { useActiveTimer } from '@/hooks/use-active-timer'
 import { cn } from '@/lib'
 import { useSyncStore } from '@/stores/syncStore'
+import { useTimeEntryStore } from '@/stores/timeEntryStore'
 
 interface SuggestionRow extends Row {
   isSuggestion?: boolean
@@ -218,14 +220,13 @@ export function TimeEntries() {
   const db = useSyncStore((state) => state?.db)
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [editingRows, setEditingRows] = useState<Record<string, boolean>>({})
   const [tempData, setTempData] = useState<
     Record<string, Partial<SyncTimeEntryRxDBDTO>>
   >({})
   const [duplicatingRowId, setDuplicatingRowId] = useState<string | null>(null)
-
-  // Inicializa como objeto vazio para ser populado pelo Effect
   const [expandedRows, setExpandedRows] = useState<ExpandedState>({})
 
   const tempDataRef = useRef(tempData)
@@ -235,19 +236,38 @@ export function TimeEntries() {
 
   const getRowData = useCallback((id: string) => tempDataRef.current[id], [])
 
-  const todayDate = useMemo(() => new Date(new Date().toDateString()), [])
-  const [date, setDate] = useState<Date | undefined>(todayDate)
-  const [range, setRange] = useState<DateRange | undefined>({
-    from: subDays(todayDate, 6),
-    to: todayDate,
-  })
+  const range = useMemo(() => {
+    const from = searchParams.get('from')
+    const to = searchParams.get('to')
 
-  const {
-    activeTimeEntry,
-    amountSecondsPassed,
-    createNewTimeEntry,
-    stopCurrentTimeEntry,
-  } = useContext(TimeEntriesContext)
+    const parsedFrom = from ? parseISO(from) : null
+    const parsedTo = to ? parseISO(to) : null
+
+    if (parsedFrom && isValid(parsedFrom) && parsedTo && isValid(parsedTo)) {
+      return { from: parsedFrom, to: parsedTo }
+    }
+
+    return {
+      from: subDays(new Date(), 6),
+      to: new Date(),
+    }
+  }, [searchParams])
+
+  const handleRangeChange = (newRange: DateRange | undefined) => {
+    if (newRange?.from && newRange.to) {
+      setSearchParams({
+        from: newRange.from.toISOString(),
+        to: newRange.to.toISOString(),
+      })
+    }
+  }
+
+  const activeTimeEntry = useTimeEntryStore((s) => s.active)
+  const createNewTimeEntry = useTimeEntryStore((s) => s.createNewTimeEntry)
+  const stopCurrentTimeEntry = useTimeEntryStore((s) => s.stopCurrentTimeEntry)
+
+  const amountSecondsPassed = useActiveTimer()
+
   const timerDisplay = useMemo(
     () => decimalToHMS(amountSecondsPassed / 3600),
     [amountSecondsPassed],
@@ -263,17 +283,17 @@ export function TimeEntries() {
   const { data: timeEntriesResponse } = useQuery({
     queryKey: [
       'time-entries-range',
-      range?.from?.toISOString(),
-      range?.to?.toISOString(),
+      range.from.toISOString(),
+      range.to.toISOString(),
     ],
     queryFn: async () => {
-      if (!range?.from || !db?.timeEntries) return { data: [] }
+      if (!db?.timeEntries) return { data: [] }
       const results = await db.timeEntries
         .find({
           selector: {
             startDate: {
               $gte: startOfDay(range.from).toISOString(),
-              $lte: endOfDay(range.to || range.from).toISOString(),
+              $lte: endOfDay(range.to).toISOString(),
             },
           },
           sort: [{ startDate: 'desc' }],
@@ -281,7 +301,7 @@ export function TimeEntries() {
         .exec()
       return { data: results.map((doc) => doc.toMutableJSON()) }
     },
-    enabled: !!db?.timeEntries && !!range?.from,
+    enabled: !!db?.timeEntries,
   })
 
   const [activities, setActivities] = useState<SyncMetadataItem[]>([])
@@ -294,35 +314,27 @@ export function TimeEntries() {
   }, [db])
 
   const daysInRange = useMemo(() => {
-    if (!range?.from || !range?.to) return [date || todayDate]
     return eachDayOfInterval({ start: range.from, end: range.to }).reverse()
-  }, [range, date, todayDate])
+  }, [range])
 
-  // Lógica para Expandir Tudo por Padrão ao carregar novos dados
   useEffect(() => {
     if (timeEntriesResponse?.data) {
       setExpandedRows((prev) => {
         const nextExpanded = { ...(typeof prev === 'object' ? prev : {}) }
-
         daysInRange.forEach((day) => {
           const dayKey = format(day, 'yyyy-MM-dd')
           const entries = timeEntriesResponse.data.filter(
             (e: any) => e.startDate && isSameDay(parseISO(e.startDate), day),
           )
-
-          // Detecta chaves de grupo que seriam geradas pelo groupByIssue
           const groupKeys = new Set(
             entries.map((e: any) => `${dayKey}-${e.task?.id ?? 'sem-issue'}`),
           )
-
           groupKeys.forEach((key) => {
-            // Só expande se o ID ainda não estiver no estado (preserva fechamentos manuais)
             if (!(key in nextExpanded)) {
               nextExpanded[key] = true
             }
           })
         })
-
         return nextExpanded
       })
     }
@@ -330,7 +342,7 @@ export function TimeEntries() {
 
   const handleTimerAction = async () => {
     if (activeTimeEntry?.timeStatus === 'running') {
-      await stopCurrentTimeEntry()
+      await stopCurrentTimeEntry(db!)
       toast.success('Contagem finalizada')
       queryClient.invalidateQueries({ queryKey: ['time-entries-range'] })
       return
@@ -341,7 +353,7 @@ export function TimeEntries() {
     }
     if (timeEntryType === 'manual') {
       let decimalResult = 0
-      const baseDate = date || todayDate
+      const baseDate = new Date()
       const dStart = parse('09:00', 'HH:mm', baseDate)
       const dEnd = parse('10:00', 'HH:mm', baseDate)
       decimalResult = Number(
@@ -368,7 +380,7 @@ export function TimeEntries() {
       toast.success('Registro manual adicionado')
       setComments('')
     } else {
-      await createNewTimeEntry({
+      await createNewTimeEntry(db!, {
         taskId: selectedTask.id,
         activityId: selectedActivity,
         type: timeEntryType,
@@ -973,7 +985,7 @@ export function TimeEntries() {
       </Card>
 
       <div className="container py-8">
-        <DatePickerWithRange date={range} setDate={setRange} />
+        <DatePickerWithRange date={range} setDate={handleRangeChange} />
         <div className="mt-8 space-y-10">
           {daysInRange.map((day) => {
             const rawEntries = (timeEntriesResponse?.data ?? []).filter(

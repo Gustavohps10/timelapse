@@ -23,7 +23,7 @@ const mainItems = [
   { title: 'Métricas', path: '', icon: ChartColumnBig },
   { title: 'Anotações', path: 'notes', icon: FileEditIcon },
   { title: 'Configuração', path: 'settings', icon: Settings },
-  { title: 'Extensöes', path: 'settings', icon: ShoppingBagIcon },
+  { title: 'Extensöes', path: 'extensions', icon: ShoppingBagIcon },
 ]
 
 export function AppSidebarWorkspacesContent() {

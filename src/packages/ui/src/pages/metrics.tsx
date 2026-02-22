@@ -5,6 +5,7 @@ import {
   endOfMonth,
   format,
   isAfter,
+  isValid,
   parseISO,
   startOfMonth,
   startOfToday,
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { DateRange } from 'react-day-picker'
+import { useNavigate } from 'react-router'
 import {
   Bar,
   BarChart,
@@ -591,6 +593,7 @@ async function fetchQualityData(db: any, dateRange: DateRange) {
 
 export function Metrics() {
   const db = useSyncStore((state) => state?.db)
+  const navigate = useNavigate()
   const { workspace } = useWorkspace()
   const [date, setDate] = useState<DateRange | undefined>(() => {
     const today = new Date()
@@ -1040,20 +1043,40 @@ export function Metrics() {
                           return (
                             <LineChart
                               data={adjustedData}
+                              style={{ cursor: 'pointer' }}
+                              onClick={(data) => {
+                                if (
+                                  data?.activePayload &&
+                                  data.activePayload.length > 0
+                                ) {
+                                  const clickedDate =
+                                    data.activePayload[0].payload.date
+                                  navigate(
+                                    `/workspaces/${workspace?.id}/time-entries?from=${clickedDate}&to=${clickedDate}`,
+                                  )
+                                }
+                              }}
                               margin={{
                                 top: 5,
                                 right: 20,
                                 left: 0,
                                 bottom: 20,
                               }}
+                              className="cursor-pointer"
                             >
                               <CartesianGrid vertical={false} />
                               <XAxis
-                                dataKey="day"
+                                dataKey="date"
                                 tickLine={false}
                                 axisLine={false}
                                 height={50}
                                 interval="preserveStartEnd"
+                                tickFormatter={(value) => {
+                                  const date = parseISO(value)
+                                  return isValid(date)
+                                    ? format(date, 'dd/MM')
+                                    : value
+                                }}
                               />
                               <YAxis
                                 tickFormatter={(value) =>
@@ -1066,7 +1089,21 @@ export function Metrics() {
                               <ChartTooltip
                                 cursor={false}
                                 content={
-                                  <ChartTooltipContent indicator="dot" />
+                                  <ChartTooltipContent
+                                    indicator="dot"
+                                    formatter={(value) => {
+                                      const hours = Number(value)
+                                      return `${hours.toFixed(1)}h (${formatHours(hours)})`
+                                    }}
+                                    labelFormatter={(label) => {
+                                      const date = parseISO(label)
+                                      return isValid(date)
+                                        ? format(date, 'EEEE, dd/MM', {
+                                            locale: ptBR,
+                                          })
+                                        : label
+                                    }}
+                                  />
                                 }
                               />
                               <ReferenceLine
@@ -1083,9 +1120,7 @@ export function Metrics() {
                               <ReferenceLine
                                 y={acceptableHours}
                                 label={{
-                                  value: `Aceitável ${acceptableHours.toFixed(
-                                    1,
-                                  )}h`,
+                                  value: `Aceitável ${acceptableHours.toFixed(1)}h`,
                                   position: 'insideTopRight',
                                   fill: 'var(--muted-foreground)',
                                   fontSize: 12,

@@ -14,14 +14,14 @@ import { Footer } from '@/components/footer'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext'
-import { TimeEntriesContextProvider } from '@/providers'
 import { SyncProvider } from '@/stores/syncStore'
+import { TimeEntryProvider } from '@/stores/timeEntryStore'
 
 export function WorkspaceLayout() {
   return (
     <WorkspaceProvider>
       <SyncProvider>
-        <TimeEntriesContextProvider>
+        <TimeEntryProvider>
           <AuthProvider>
             <>
               <AppSidebar>
@@ -49,7 +49,7 @@ export function WorkspaceLayout() {
               </main>
             </>
           </AuthProvider>
-        </TimeEntriesContextProvider>
+        </TimeEntryProvider>
       </SyncProvider>
     </WorkspaceProvider>
   )
