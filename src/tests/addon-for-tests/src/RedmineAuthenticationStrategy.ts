@@ -1,3 +1,4 @@
+import { UnauthorizedError } from '@timelapse/cross-cutting/helpers'
 import {
   AppError,
   AuthenticationResult,
@@ -96,10 +97,8 @@ export class RedmineAuthenticationStrategy implements IAuthenticationStrategy<Re
       return Either.success(authenticationResult)
     } catch {
       return Either.failure(
-        new AppError(
+        UnauthorizedError.danger(
           'Não foi possível autenticar com Redmine. Verifique suas credenciais e a URL.',
-          '',
-          401,
         ),
       )
     }

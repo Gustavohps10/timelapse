@@ -22,7 +22,6 @@ import {
   BarChart2,
   Briefcase,
   CalendarCheck,
-  CalendarDaysIcon,
   CheckCircle,
   ClipboardCheck,
   ClockArrowDownIcon,
@@ -41,6 +40,7 @@ import {
   MoreHorizontal,
   Palette,
   Pause,
+  PlusIcon,
   Save,
   SearchCode,
   Settings,
@@ -80,7 +80,6 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   DropdownMenu,
@@ -90,11 +89,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -160,16 +154,40 @@ const iconMap: Record<string, ElementType> = {
 }
 
 function groupByIssue(data: SuggestionRow[]): SuggestionRow[] {
-  const groups: Record<string, SuggestionRow> = {}
+  const counts: Record<string, number> = {}
   for (const item of data) {
-    const key = String(item.task?.id ?? 'sem-issue')
-    if (!groups[key]) {
-      groups[key] = { ...item, timeSpent: 0, comments: '', subRows: [] }
-    }
-    groups[key].timeSpent += item.timeSpent
-    groups[key].subRows?.push(item)
+    const dayKey = format(parseISO(item.startDate ?? ''), 'yyyy-MM-dd')
+    const key = `${dayKey}-${item.task?.id ?? 'sem-issue'}`
+    counts[key] = (counts[key] || 0) + 1
   }
-  return Object.values(groups)
+
+  const groups: Record<string, SuggestionRow> = {}
+  const result: SuggestionRow[] = []
+
+  for (const item of data) {
+    const dayKey = format(parseISO(item.startDate ?? ''), 'yyyy-MM-dd')
+    const key = `${dayKey}-${item.task?.id ?? 'sem-issue'}`
+
+    if (counts[key] > 1) {
+      if (!groups[key]) {
+        groups[key] = {
+          ...item,
+          id: key,
+          timeSpent: 0,
+          comments: '',
+          subRows: [],
+        }
+        result.push(groups[key])
+      }
+      if (!item.isSuggestion) {
+        groups[key].timeSpent += item.timeSpent
+      }
+      groups[key].subRows?.push(item)
+    } else {
+      result.push({ ...item, subRows: [] })
+    }
+  }
+  return result
 }
 
 const MemoizedCommentInput = React.memo(
@@ -206,6 +224,8 @@ export function TimeEntries() {
     Record<string, Partial<SyncTimeEntryRxDBDTO>>
   >({})
   const [duplicatingRowId, setDuplicatingRowId] = useState<string | null>(null)
+
+  // Inicializa como objeto vazio para ser populado pelo Effect
   const [expandedRows, setExpandedRows] = useState<ExpandedState>({})
 
   const tempDataRef = useRef(tempData)
@@ -233,13 +253,9 @@ export function TimeEntries() {
     [amountSecondsPassed],
   )
 
-  const [manualStartTime, setManualStartTime] = useState('09:00')
-  const [manualEndTime, setManualEndTime] = useState('10:00')
-  const [manualDuration, setManualDuration] = useState('01:00:00')
   const [selectedTask, setSelectedTask] = useState<SyncTaskRxDBDTO | null>(null)
   const [comments, setComments] = useState('')
   const [selectedActivity, setSelectedActivity] = useState('')
-  const [manualMode, setManualMode] = useState<'range' | 'duration'>('range')
   const [timeEntryType, setTimeEntryType] = useState<
     'increasing' | 'decreasing' | 'manual'
   >('increasing')
@@ -282,6 +298,36 @@ export function TimeEntries() {
     return eachDayOfInterval({ start: range.from, end: range.to }).reverse()
   }, [range, date, todayDate])
 
+  // Lógica para Expandir Tudo por Padrão ao carregar novos dados
+  useEffect(() => {
+    if (timeEntriesResponse?.data) {
+      setExpandedRows((prev) => {
+        const nextExpanded = { ...(typeof prev === 'object' ? prev : {}) }
+
+        daysInRange.forEach((day) => {
+          const dayKey = format(day, 'yyyy-MM-dd')
+          const entries = timeEntriesResponse.data.filter(
+            (e: any) => e.startDate && isSameDay(parseISO(e.startDate), day),
+          )
+
+          // Detecta chaves de grupo que seriam geradas pelo groupByIssue
+          const groupKeys = new Set(
+            entries.map((e: any) => `${dayKey}-${e.task?.id ?? 'sem-issue'}`),
+          )
+
+          groupKeys.forEach((key) => {
+            // Só expande se o ID ainda não estiver no estado (preserva fechamentos manuais)
+            if (!(key in nextExpanded)) {
+              nextExpanded[key] = true
+            }
+          })
+        })
+
+        return nextExpanded
+      })
+    }
+  }, [timeEntriesResponse?.data, daysInRange])
+
   const handleTimerAction = async () => {
     if (activeTimeEntry?.timeStatus === 'running') {
       await stopCurrentTimeEntry()
@@ -296,25 +342,11 @@ export function TimeEntries() {
     if (timeEntryType === 'manual') {
       let decimalResult = 0
       const baseDate = date || todayDate
-      let startISO: string | undefined
-      let endISO: string | undefined
-
-      if (manualMode === 'range') {
-        const dStart = parse(manualStartTime, 'HH:mm', baseDate)
-        const dEnd = parse(manualEndTime, 'HH:mm', baseDate)
-        decimalResult = Number(
-          (differenceInSeconds(dEnd, dStart) / 3600).toFixed(4),
-        )
-        startISO = dStart.toISOString()
-        endISO = dEnd.toISOString()
-      } else {
-        decimalResult = hmsToDecimal(manualDuration)
-      }
-
-      if (decimalResult <= 0) {
-        toast.error('Duração inválida')
-        return
-      }
+      const dStart = parse('09:00', 'HH:mm', baseDate)
+      const dEnd = parse('10:00', 'HH:mm', baseDate)
+      decimalResult = Number(
+        (differenceInSeconds(dEnd, dStart) / 3600).toFixed(4),
+      )
 
       const id = crypto.randomUUID()
       await db?.timeEntries.insert({
@@ -323,8 +355,8 @@ export function TimeEntries() {
         task: { id: selectedTask.id },
         activity: { id: selectedActivity },
         user: { id: user?.id.toString() || 'local' },
-        startDate: startISO,
-        endDate: endISO,
+        startDate: dStart.toISOString(),
+        endDate: dEnd.toISOString(),
         timeSpent: decimalResult,
         timeStatus: 'finished',
         type: 'manual',
@@ -386,12 +418,17 @@ export function TimeEntries() {
       const now = new Date().toISOString()
       const edited = tempData[row.id] || {}
 
+      if (!row.task?.id && !edited.task?.id) {
+        toast.error('Selecione um ticket')
+        return
+      }
+
       await db.timeEntries.insert({
         _id: id,
         id,
-        task: { id: row.task.id },
+        task: { id: edited.task?.id || row.task.id },
         activity: { id: edited.activity?.id || row.activity.id },
-        user: { id: row.user.id },
+        user: { id: row.user?.id || user?.id.toString() || 'local' },
         startDate: edited.startDate || row.startDate,
         endDate: edited.endDate || row.endDate,
         timeSpent: edited.timeSpent ?? row.timeSpent,
@@ -410,9 +447,9 @@ export function TimeEntries() {
         return n
       })
       await queryClient.invalidateQueries({ queryKey: ['time-entries-range'] })
-      toast.success('Registro duplicado')
+      toast.success('Registro salvo')
     } catch (e) {
-      toast.error('Erro ao duplicar')
+      toast.error('Erro ao salvar')
     }
   }
 
@@ -429,11 +466,57 @@ export function TimeEntries() {
     ]
 
     const mapped = baseColumns.map((col) => {
+      if (col.id === 'issue_id') {
+        return {
+          ...col,
+          cell: ({ row }: { row: TanStackRow<SuggestionRow> }) => {
+            const original = row.original
+            const isEditing = editingRows[original.id] || original.isSuggestion
+            const data = getRowData(original.id)
+            const currentTaskId = data?.task?.id || original.task?.id
+
+            const badgeElement = (
+              <Badge
+                variant="outline"
+                className={cn(
+                  'font-mono text-[11px] font-bold transition-colors',
+                  isEditing
+                    ? 'border-primary/50 hover:bg-primary/5 cursor-pointer'
+                    : 'opacity-80',
+                )}
+              >
+                {currentTaskId ? `#${currentTaskId}` : '# Ticket'}
+              </Badge>
+            )
+
+            if (isEditing) {
+              return (
+                <TaskLookup
+                  currentUserId={user?.id.toString()}
+                  onSelect={(task) => {
+                    setTempData((p) => ({
+                      ...p,
+                      [original.id]: {
+                        ...p[original.id],
+                        task: { id: task.id },
+                      },
+                    }))
+                  }}
+                  trigger={badgeElement}
+                />
+              )
+            }
+
+            return badgeElement
+          },
+        }
+      }
+
       if (col.id === 'hours') {
         return {
           ...col,
           header: () => (
-            <div className="pr-8 text-right text-[10px] font-bold uppercase opacity-70">
+            <div className="text-right text-[10px] font-bold uppercase opacity-70">
               Tempo
             </div>
           ),
@@ -442,13 +525,14 @@ export function TimeEntries() {
             const isGroupMaster =
               (original.subRows?.length ?? 0) > 1 && !row.getParentRow()
             const rowData = getRowData(original.id) || {}
+
             return (
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center justify-end">
                 <TimeEntryInputs
                   startDate={rowData.startDate ?? original.startDate}
                   endDate={rowData.endDate ?? original.endDate}
                   timeSpent={rowData.timeSpent ?? original.timeSpent}
-                  disabled={isGroupMaster}
+                  disabled={isGroupMaster && !original.isSuggestion}
                   onChange={async (newData) => {
                     if (original.isSuggestion) {
                       setTempData((p) => ({
@@ -476,6 +560,7 @@ export function TimeEntries() {
           },
         }
       }
+
       if (col.id === 'activity') {
         return {
           ...col,
@@ -484,8 +569,8 @@ export function TimeEntries() {
             const isGroupMaster =
               (original.subRows?.length ?? 0) > 1 && !row.getParentRow()
             const isEditing =
-              !isGroupMaster &&
-              (original.isSuggestion || editingRows[original.id])
+              original.isSuggestion ||
+              (editingRows[original.id] && !isGroupMaster)
 
             if (isEditing) {
               const currentVal =
@@ -534,9 +619,9 @@ export function TimeEntries() {
                       key={act.id}
                       className={cn(
                         'absolute flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-medium shadow-sm transition-all',
-                        i === 0 && 'top-0 left-0 z-[3]',
-                        i === 1 && 'z-[2] translate-x-2 translate-y-1',
-                        i === 2 && 'z-[1] translate-x-4 translate-y-2',
+                        i === 0 && 'top-0 left-0 z-3',
+                        i === 1 && 'z-2 translate-x-2 translate-y-1',
+                        i === 2 && 'z-1 translate-x-4 translate-y-2',
                       )}
                       style={{
                         backgroundColor: act.colors.background,
@@ -560,12 +645,19 @@ export function TimeEntries() {
           },
         }
       }
+
       if (col.id === 'comments') {
         return {
           ...col,
           cell: ({ row }: { row: TanStackRow<SuggestionRow> }) => {
             const original = row.original
-            if (original.isSuggestion || editingRows[original.id]) {
+            const isGroupMaster =
+              (original.subRows?.length ?? 0) > 1 && !row.getParentRow()
+            const isEditing =
+              original.isSuggestion ||
+              (editingRows[original.id] && !isGroupMaster)
+
+            if (isEditing) {
               return (
                 <MemoizedCommentInput
                   initialValue={
@@ -581,7 +673,10 @@ export function TimeEntries() {
               )
             }
             return (
-              <span className="text-foreground/80 block truncate text-sm">
+              <span
+                className="text-foreground/80 block truncate text-sm"
+                title={original.comments || ''}
+              >
                 {original.comments || '-'}
               </span>
             )
@@ -594,12 +689,19 @@ export function TimeEntries() {
     const actionsCol: ColumnDef<SuggestionRow> = {
       id: 'actions',
       header: '',
-      size: 80,
+      size: 50,
+      minSize: 50,
+      maxSize: 50,
       cell: ({ row }) => {
         const original = row.original
+
+        const renderContainer = (content: React.ReactNode) => (
+          <div className="flex justify-end gap-1">{content}</div>
+        )
+
         if (original.isSuggestion) {
-          return (
-            <div className="flex w-[70px] justify-end gap-1">
+          return renderContainer(
+            <>
               <Button
                 size="icon"
                 variant="ghost"
@@ -623,77 +725,82 @@ export function TimeEntries() {
               >
                 <X size={14} />
               </Button>
-            </div>
+            </>,
           )
         }
+
         if ((original.subRows?.length ?? 0) > 1 && !row.getParentRow())
-          return null
-        return (
-          <div className="flex w-[70px] justify-end gap-1">
-            {editingRows[original.id] ? (
-              <>
+          return renderContainer(null)
+
+        return renderContainer(
+          editingRows[original.id] ? (
+            <>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-primary h-7 w-7"
+                onClick={() => handleSaveRow(original.id)}
+              >
+                <Save size={14} />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-destructive h-7 w-7"
+                onClick={() =>
+                  setEditingRows((p) => ({ ...p, [original.id]: false }))
+                }
+              >
+                <X size={14} />
+              </Button>
+            </>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button
-                  size="icon"
                   variant="ghost"
-                  className="text-primary h-7 w-7"
-                  onClick={() => handleSaveRow(original.id)}
+                  size="icon"
+                  className="h-7 w-7 opacity-60 hover:opacity-100"
                 >
-                  <Save size={14} />
+                  <MoreHorizontal size={14} />
                 </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-destructive h-7 w-7"
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="gap-2"
                   onClick={() =>
-                    setEditingRows((p) => ({ ...p, [original.id]: false }))
+                    setEditingRows((p) => ({ ...p, [original.id]: true }))
                   }
                 >
-                  <X size={14} />
-                </Button>
-              </>
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 opacity-60 hover:opacity-100"
-                  >
-                    <MoreHorizontal size={14} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    className="gap-2"
-                    onClick={() =>
-                      setEditingRows((p) => ({ ...p, [original.id]: true }))
-                    }
-                  >
-                    <EditIcon size={14} /> Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="gap-2"
-                    onClick={() => {
-                      setDuplicatingRowId(original.id)
-                      setExpandedRows((prev) => ({
-                        ...(typeof prev === 'object' ? prev : {}),
-                        [String(original.task.id)]: true,
-                      }))
-                    }}
-                  >
-                    <CopyIcon size={14} /> Duplicar
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive gap-2"
-                    onClick={() => handleDeleteEntry(original.id)}
-                  >
-                    <Trash2 size={14} /> Deletar
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
+                  <EditIcon size={14} /> Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2"
+                  onClick={() => {
+                    const dayKey = format(
+                      parseISO(original.startDate ?? ''),
+                      'yyyy-MM-dd',
+                    )
+                    const combinedKey = `${dayKey}-${original.task.id}`
+                    setDuplicatingRowId(original.id)
+                    setExpandedRows((prev) => ({
+                      ...(typeof prev === 'object' ? prev : {}),
+                      [combinedKey]: true,
+                    }))
+                  }}
+                >
+                  <CopyIcon size={14} /> Duplicar
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive gap-2"
+                  onClick={() => handleDeleteEntry(original.id)}
+                >
+                  <Trash2 size={14} /> Deletar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ),
         )
       },
     }
@@ -711,6 +818,7 @@ export function TimeEntries() {
     duplicatingRowId,
     tempData,
     queryClient,
+    user,
   ])
 
   return (
@@ -783,75 +891,42 @@ export function TimeEntries() {
             </Select>
             <div className="bg-border mx-1 h-6 w-px" />
             <div className="flex h-full items-center gap-3 pr-4">
-              {timeEntryType === 'manual' ? (
-                <div className="flex items-center gap-2">
-                  <TimeEntryInputs
-                    startDate={date?.toISOString()}
-                    timeSpent={0}
-                    onChange={() => {}}
-                    className="border-none bg-transparent"
-                  />
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 gap-1 px-2 text-xs opacity-70"
-                      >
-                        <CalendarDaysIcon className="h-3.5 w-3.5" />
-                        {format(date || new Date(), 'dd/MM')}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0" align="end">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={(d) => {
-                          setDate(d)
-                          if (d) setRange({ from: d, to: d })
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
+              <div className="flex items-center gap-3">
+                <div className="w-[100px] text-right font-mono text-xl font-medium">
+                  {activeTimeEntry ? timerDisplay : '00:00:00'}
                 </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <div className="w-[100px] text-right font-mono text-xl font-medium">
-                    {activeTimeEntry ? timerDisplay : '00:00:00'}
-                  </div>
-                  {!activeTimeEntry && (
-                    <ToggleGroup
-                      type="single"
-                      value={timeEntryType}
-                      onValueChange={(v: any) => v && setTimeEntryType(v)}
-                      className="scale-90 rounded-md border p-0.5"
+                {!activeTimeEntry && (
+                  <ToggleGroup
+                    type="single"
+                    value={timeEntryType}
+                    onValueChange={(v: any) => v && setTimeEntryType(v)}
+                    className="scale-90 rounded-md border p-0.5"
+                  >
+                    <ToggleGroupItem
+                      value="increasing"
+                      className={cn(
+                        'h-6 w-6 p-0',
+                        timeEntryType === 'increasing'
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground',
+                      )}
                     >
-                      <ToggleGroupItem
-                        value="increasing"
-                        className={cn(
-                          'h-6 w-6 p-0',
-                          timeEntryType === 'increasing'
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-muted-foreground',
-                        )}
-                      >
-                        <ClockArrowUpIcon className="h-3.5 w-3.5" />
-                      </ToggleGroupItem>
-                      <ToggleGroupItem
-                        value="decreasing"
-                        className={cn(
-                          'h-6 w-6 p-0',
-                          timeEntryType === 'decreasing'
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-muted-foreground',
-                        )}
-                      >
-                        <ClockArrowDownIcon className="h-3.5 w-3.5" />
-                      </ToggleGroupItem>
-                    </ToggleGroup>
-                  )}
-                </div>
-              )}
+                      <ClockArrowUpIcon className="h-3.5 w-3.5" />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="decreasing"
+                      className={cn(
+                        'h-6 w-6 p-0',
+                        timeEntryType === 'decreasing'
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground',
+                      )}
+                    >
+                      <ClockArrowDownIcon className="h-3.5 w-3.5" />
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                )}
+              </div>
               <Button
                 onClick={handleTimerAction}
                 className={cn(
@@ -923,6 +998,24 @@ export function TimeEntries() {
                 })
               }
             })
+
+            const dayId = format(day, 'yyyy-MM-dd')
+            if (duplicatingRowId === `new-${dayId}`) {
+              entriesWithSuggestion.push({
+                id: `suggestion-new-${dayId}`,
+                isSuggestion: true,
+                task: { id: '' },
+                activity: { id: activities[0]?.id || '' },
+                startDate: startOfDay(day).toISOString(),
+                endDate: endOfDay(day).toISOString(),
+                timeSpent: 0,
+                comments: '',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                subRows: [],
+              } as any)
+            }
+
             const grouped = groupByIssue(entriesWithSuggestion)
             return (
               <div key={day.toISOString()} className="space-y-3">
@@ -940,29 +1033,45 @@ export function TimeEntries() {
                       {format(day, 'dd MMM', { locale: ptBR })}
                     </span>
                   </div>
-                  {grouped.length > 0 && (
-                    <div className="bg-muted/40 flex items-center gap-2 rounded-md px-3 py-1.5 text-sm">
-                      <span className="text-muted-foreground">Total</span>
-                      <span className="font-mono font-semibold">
-                        {formatSecondsToHMDisplay(
-                          Math.round(totalDecimal * 3600),
-                        )}
-                      </span>
-                    </div>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setDuplicatingRowId(`new-${dayId}`)}
+                    className="text-muted-foreground m-0 h-[28px] px-[2px] text-xs"
+                  >
+                    <PlusIcon className="mr-1 h-3 w-3" />
+                    Adicionar
+                  </Button>
                 </div>
                 {grouped.length > 0 ? (
-                  <DataTable
-                    columns={tableColumns}
-                    data={grouped}
-                    expanded={expandedRows}
-                    onExpandedChange={setExpandedRows}
-                    getRowClassName={(row) =>
-                      row.isSuggestion
-                        ? 'bg-primary/5 border-dashed opacity-80 animate-pulse'
-                        : ''
-                    }
-                  />
+                  <>
+                    <DataTable
+                      columns={tableColumns}
+                      data={grouped}
+                      expanded={expandedRows}
+                      onExpandedChange={setExpandedRows}
+                      getRowClassName={(row) =>
+                        row.isSuggestion
+                          ? 'bg-primary/5 border-dashed opacity-80 animate-pulse'
+                          : ''
+                      }
+                    />
+                    <div className="flex justify-end pr-4">
+                      <div className="flex items-center gap-2 py-2">
+                        <span className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
+                          Total do Dia
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className="bg-muted/50 border-border font-mono text-sm font-bold"
+                        >
+                          {formatSecondsToHMDisplay(
+                            Math.round(totalDecimal * 3600),
+                          )}
+                        </Badge>
+                      </div>
+                    </div>
+                  </>
                 ) : (
                   <div className="text-muted-foreground py-4 text-center text-xs">
                     Nenhum registro.

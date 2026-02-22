@@ -42,29 +42,27 @@ export function DataTable<TData extends { subRows?: TData[]; id: string }>({
       expanded,
     },
     onExpandedChange,
+    autoResetExpanded: false,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getSubRows: (row) => row.subRows,
-    // 🔥 Crucial para que a expansão funcione quando a linha mestre muda de estado
     getRowId: (row) => row.id,
   })
 
   return (
-    <div className="bg-background overflow-hidden rounded-md border">
-      <Table>
-        <TableHeader className="bg-muted/50">
+    <div className="bg-background overflow-hidden rounded-md border shadow-sm">
+      <Table className="table-fixed">
+        <TableHeader className="bg-muted/30">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className="hover:bg-transparent">
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
                   style={{
-                    width:
-                      header.getSize() !== 150
-                        ? `${header.getSize()}px`
-                        : 'auto',
+                    width: `${header.getSize()}px`,
+                    maxWidth: `${header.getSize()}px`,
                   }}
-                  className="text-muted-foreground px-4 py-3 text-xs font-bold tracking-wider uppercase"
+                  className="text-muted-foreground px-4 py-3 text-[10px] font-bold tracking-wider uppercase"
                 >
                   {header.isPlaceholder
                     ? null
@@ -85,7 +83,7 @@ export function DataTable<TData extends { subRows?: TData[]; id: string }>({
                 data-state={row.getIsExpanded() ? 'expanded' : 'collapsed'}
                 className={cn(
                   'group transition-colors',
-                  row.getIsExpanded() && 'bg-muted/20',
+                  row.getIsExpanded() && 'bg-muted/10',
                   row.depth > 0 && 'bg-muted/5 italic',
                   getRowClassName?.(row.original),
                 )}
@@ -94,13 +92,12 @@ export function DataTable<TData extends { subRows?: TData[]; id: string }>({
                   <TableCell
                     key={cell.id}
                     style={{
-                      width:
-                        cell.column.getSize() !== 150
-                          ? `${cell.column.getSize()}px`
-                          : 'auto',
+                      width: `${cell.column.getSize()}px`,
+                      maxWidth: `${cell.column.getSize()}px`,
                     }}
                     className={cn(
-                      'border-border/40 border-b px-4 py-2 text-sm whitespace-nowrap',
+                      'border-border/40 overflow-hidden border-b py-2 text-sm whitespace-nowrap',
+                      cell.column.id === 'actions' ? 'px-0 pr-2' : 'px-4',
                       cell.column.getIndex() === 0 && row.depth > 0 && 'pl-10',
                     )}
                   >

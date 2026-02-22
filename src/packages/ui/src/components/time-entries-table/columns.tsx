@@ -27,17 +27,17 @@ export const columns: ColumnDef<Row>[] = [
   {
     id: 'expand',
     header: 'Apontamentos',
-    size: 100,
+    size: 60,
     cell: ({ row }) => {
       if (row.depth > 0) return null
       const count = row.original.subRows?.length ?? 0
       const hasSubRows = count > 1
 
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <button
             onClick={hasSubRows ? row.getToggleExpandedHandler() : undefined}
-            className="flex items-center justify-center transition-opacity"
+            className="flex items-center gap-2 transition-opacity"
             style={{
               cursor: hasSubRows ? 'pointer' : 'default',
               opacity: hasSubRows ? 1 : 0.3,
@@ -52,13 +52,14 @@ export const columns: ColumnDef<Row>[] = [
             ) : (
               <div style={{ width: 14 }} />
             )}
+
+            <Badge
+              variant="outline"
+              className="bg-muted/30 border-border/50 flex h-5 min-w-[20px] items-center px-1 font-mono text-[11px]"
+            >
+              {count || 1}
+            </Badge>
           </button>
-          <Badge
-            variant="outline"
-            className="bg-muted/30 border-border/50 h-5 min-w-[20px] px-1 font-mono text-[10px]"
-          >
-            {count || 1}
-          </Badge>
         </div>
       )
     },
@@ -67,7 +68,7 @@ export const columns: ColumnDef<Row>[] = [
     id: 'issue_id',
     accessorKey: 'task.id',
     header: 'Ticket',
-    size: 100,
+    size: 80,
     cell: ({ row }) => {
       const taskId = row.original.task?.id
       const taskSubject = row.original.taskData?.title
@@ -93,7 +94,7 @@ export const columns: ColumnDef<Row>[] = [
   {
     id: 'syncStatus',
     header: 'Sinc',
-    size: 50,
+    size: 40,
     cell: ({ row }) => {
       const { syncedAt, conflicted, validationError } = row.original
       if (conflicted)
@@ -140,11 +141,11 @@ export const columns: ColumnDef<Row>[] = [
     id: 'createdAt',
     accessorKey: 'createdAt',
     header: 'Criado em',
-    size: 110,
+    size: 100,
     cell: ({ row }) => {
       const date = row.original.createdAt
       return (
-        <span className="text-muted-foreground font-mono text-[14px]">
+        <span className="text-muted-foreground font-mono text-[13px]">
           {format(parseISO(date), 'dd/MM HH:mm')}
         </span>
       )
@@ -154,13 +155,14 @@ export const columns: ColumnDef<Row>[] = [
     id: 'activity',
     accessorKey: 'activity.id',
     header: 'Atividade',
-    size: 200,
+    size: 160,
   },
   {
     id: 'comments',
     accessorKey: 'comments',
     header: 'Comentário',
-    size: 150,
+    size: 400,
+    minSize: 250,
   },
   {
     id: 'hours',
