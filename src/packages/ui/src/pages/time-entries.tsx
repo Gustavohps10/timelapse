@@ -97,6 +97,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { SyncMetadataItem } from '@/db/schemas/metadata-sync-schema'
 import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
@@ -121,12 +122,6 @@ const decimalToHMS = (decimalHours: number) => {
     .padStart(2, '0')
   const s = (totalSeconds % 60).toString().padStart(2, '0')
   return `${h}:${m}:${s}`
-}
-
-const hmsToDecimal = (hms: string) => {
-  const [h, m, s] = hms.split(':').map(Number)
-  const totalSeconds = (h || 0) * 3600 + (m || 0) * 60 + (s || 0)
-  return Number((totalSeconds / 3600).toFixed(4))
 }
 
 const formatSecondsToHMDisplay = (totalSeconds: number) => {
@@ -192,6 +187,46 @@ function groupByIssue(data: SuggestionRow[]): SuggestionRow[] {
   return result
 }
 
+function TableSkeleton() {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between border-b pb-2">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <Skeleton className="h-7 w-20" />
+      </div>
+      <div className="rounded-md border">
+        <div className="bg-muted/50 border-b p-2">
+          <div className="flex gap-4">
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 flex-1" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+        </div>
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="flex items-center gap-4 border-b p-3 last:border-0"
+          >
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 flex-1" />
+            <Skeleton className="h-6 w-28" />
+            <Skeleton className="h-8 w-8 rounded-full" />
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-end pr-4">
+        <Skeleton className="h-8 w-32" />
+      </div>
+    </div>
+  )
+}
+
 const MemoizedCommentInput = React.memo(
   ({
     initialValue,
@@ -239,7 +274,6 @@ export function TimeEntries() {
   const range = useMemo(() => {
     const from = searchParams.get('from')
     const to = searchParams.get('to')
-
     const parsedFrom = from ? parseISO(from) : null
     const parsedTo = to ? parseISO(to) : null
 
@@ -280,7 +314,7 @@ export function TimeEntries() {
     'increasing' | 'decreasing' | 'manual'
   >('increasing')
 
-  const { data: timeEntriesResponse } = useQuery({
+  const { data: timeEntriesResponse, isLoading } = useQuery({
     queryKey: [
       'time-entries-range',
       range.from.toISOString(),
@@ -352,11 +386,10 @@ export function TimeEntries() {
       return
     }
     if (timeEntryType === 'manual') {
-      let decimalResult = 0
       const baseDate = new Date()
       const dStart = parse('09:00', 'HH:mm', baseDate)
       const dEnd = parse('10:00', 'HH:mm', baseDate)
-      decimalResult = Number(
+      const decimalResult = Number(
         (differenceInSeconds(dEnd, dStart) / 3600).toFixed(4),
       )
 
@@ -438,8 +471,8 @@ export function TimeEntries() {
       await db.timeEntries.insert({
         _id: id,
         id,
-        task: { id: edited.task?.id || row.task.id },
-        activity: { id: edited.activity?.id || row.activity.id },
+        task: { id: edited.task?.id || row.task?.id },
+        activity: { id: edited.activity?.id || row.activity?.id },
         user: { id: row.user?.id || user?.id.toString() || 'local' },
         startDate: edited.startDate || row.startDate,
         endDate: edited.endDate || row.endDate,
@@ -987,111 +1020,118 @@ export function TimeEntries() {
       <div className="container py-8">
         <DatePickerWithRange date={range} setDate={handleRangeChange} />
         <div className="mt-8 space-y-10">
-          {daysInRange.map((day) => {
-            const rawEntries = (timeEntriesResponse?.data ?? []).filter(
-              (e: SyncTimeEntryRxDBDTO) =>
-                e.startDate && isSameDay(parseISO(e.startDate), day),
-            )
-            const totalDecimal = rawEntries.reduce(
-              (acc, curr) => acc + curr.timeSpent,
-              0,
-            )
-            const entriesWithSuggestion: SuggestionRow[] = []
-            rawEntries.forEach((e) => {
-              entriesWithSuggestion.push({ ...e, subRows: [] })
-              if (duplicatingRowId === e.id) {
+          {isLoading ? (
+            <>
+              <TableSkeleton />
+              <TableSkeleton />
+            </>
+          ) : (
+            daysInRange.map((day) => {
+              const rawEntries = (timeEntriesResponse?.data ?? []).filter(
+                (e: SyncTimeEntryRxDBDTO) =>
+                  e.startDate && isSameDay(parseISO(e.startDate), day),
+              )
+              const totalDecimal = rawEntries.reduce(
+                (acc, curr) => acc + curr.timeSpent,
+                0,
+              )
+              const entriesWithSuggestion: SuggestionRow[] = []
+              rawEntries.forEach((e) => {
+                entriesWithSuggestion.push({ ...e, subRows: [] })
+                if (duplicatingRowId === e.id) {
+                  entriesWithSuggestion.push({
+                    ...e,
+                    id: `suggestion-${e.id}`,
+                    isSuggestion: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    subRows: [],
+                  })
+                }
+              })
+
+              const dayId = format(day, 'yyyy-MM-dd')
+              if (duplicatingRowId === `new-${dayId}`) {
                 entriesWithSuggestion.push({
-                  ...e,
-                  id: `suggestion-${e.id}`,
+                  id: `suggestion-new-${dayId}`,
                   isSuggestion: true,
+                  task: { id: '' },
+                  activity: { id: activities[0]?.id || '' },
+                  startDate: startOfDay(day).toISOString(),
+                  endDate: endOfDay(day).toISOString(),
+                  timeSpent: 0,
+                  comments: '',
                   createdAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString(),
                   subRows: [],
-                })
+                } as any)
               }
-            })
 
-            const dayId = format(day, 'yyyy-MM-dd')
-            if (duplicatingRowId === `new-${dayId}`) {
-              entriesWithSuggestion.push({
-                id: `suggestion-new-${dayId}`,
-                isSuggestion: true,
-                task: { id: '' },
-                activity: { id: activities[0]?.id || '' },
-                startDate: startOfDay(day).toISOString(),
-                endDate: endOfDay(day).toISOString(),
-                timeSpent: 0,
-                comments: '',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                subRows: [],
-              } as any)
-            }
-
-            const grouped = groupByIssue(entriesWithSuggestion)
-            return (
-              <div key={day.toISOString()} className="space-y-3">
-                <div
-                  className={cn(
-                    'flex items-center justify-between',
-                    grouped.length === 0 && 'border-b pb-2',
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold capitalize">
-                      {format(day, 'EEEE', { locale: ptBR })}
-                    </span>
-                    <span className="text-muted-foreground text-sm">
-                      {format(day, 'dd MMM', { locale: ptBR })}
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDuplicatingRowId(`new-${dayId}`)}
-                    className="text-muted-foreground m-0 h-[28px] px-[2px] text-xs"
+              const grouped = groupByIssue(entriesWithSuggestion)
+              return (
+                <div key={day.toISOString()} className="space-y-3">
+                  <div
+                    className={cn(
+                      'flex items-center justify-between',
+                      grouped.length === 0 && 'border-b pb-2',
+                    )}
                   >
-                    <PlusIcon className="mr-1 h-3 w-3" />
-                    Adicionar
-                  </Button>
-                </div>
-                {grouped.length > 0 ? (
-                  <>
-                    <DataTable
-                      columns={tableColumns}
-                      data={grouped}
-                      expanded={expandedRows}
-                      onExpandedChange={setExpandedRows}
-                      getRowClassName={(row) =>
-                        row.isSuggestion
-                          ? 'bg-primary/5 border-dashed opacity-80 animate-pulse'
-                          : ''
-                      }
-                    />
-                    <div className="flex justify-end pr-4">
-                      <div className="flex items-center gap-2 py-2">
-                        <span className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
-                          Total do Dia
-                        </span>
-                        <Badge
-                          variant="secondary"
-                          className="bg-muted/50 border-border font-mono text-sm font-bold"
-                        >
-                          {formatSecondsToHMDisplay(
-                            Math.round(totalDecimal * 3600),
-                          )}
-                        </Badge>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold capitalize">
+                        {format(day, 'EEEE', { locale: ptBR })}
+                      </span>
+                      <span className="text-muted-foreground text-sm">
+                        {format(day, 'dd MMM', { locale: ptBR })}
+                      </span>
                     </div>
-                  </>
-                ) : (
-                  <div className="text-muted-foreground py-4 text-center text-xs">
-                    Nenhum registro.
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDuplicatingRowId(`new-${dayId}`)}
+                      className="text-muted-foreground m-0 h-[28px] px-[2px] text-xs"
+                    >
+                      <PlusIcon className="mr-1 h-3 w-3" />
+                      Adicionar
+                    </Button>
                   </div>
-                )}
-              </div>
-            )
-          })}
+                  {grouped.length > 0 ? (
+                    <>
+                      <DataTable
+                        columns={tableColumns}
+                        data={grouped}
+                        expanded={expandedRows}
+                        onExpandedChange={setExpandedRows}
+                        getRowClassName={(row) =>
+                          row.isSuggestion
+                            ? 'bg-primary/5 border-dashed opacity-80 animate-pulse'
+                            : ''
+                        }
+                      />
+                      <div className="flex justify-end pr-4">
+                        <div className="flex items-center gap-2 py-2">
+                          <span className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
+                            Total do Dia
+                          </span>
+                          <Badge
+                            variant="secondary"
+                            className="bg-muted/50 border-border font-mono text-sm font-bold"
+                          >
+                            {formatSecondsToHMDisplay(
+                              Math.round(totalDecimal * 3600),
+                            )}
+                          </Badge>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-muted-foreground py-4 text-center text-xs">
+                      Nenhum registro.
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
     </>
