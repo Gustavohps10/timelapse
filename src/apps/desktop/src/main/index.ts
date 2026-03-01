@@ -189,7 +189,17 @@ app.whenReady().then(async () => {
   }
 
   createWindow()
-  createTray()
+
+  //ANALISAR FUTURAMENTE o uso no main process
+  // exposeIpcMainRxStorage({
+  //   key: 'main-storage',
+  //   storage: getRxStorageDexie({
+  //     indexedDB, // SALVA TUDO IN MEMORY com INDEXED FAKE
+  //     IDBKeyRange,
+  //   }),
+  //   ipcMain: ipcMain,
+  // })
+  // createTray()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

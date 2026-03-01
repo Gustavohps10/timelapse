@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import { readdirSync } from 'fs'
 import { resolve } from 'path'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const uiSubpaths = readdirSync(resolve(__dirname, '../../packages/ui/src'), {
   withFileTypes: true,
@@ -13,7 +14,17 @@ const uiSubpaths = readdirSync(resolve(__dirname, '../../packages/ui/src'), {
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [
+      externalizeDepsPlugin(),
+      viteStaticCopy({
+        targets: [
+          {
+            src: ['src/main/assets/timer-icon.png'],
+            dest: 'assets',
+          },
+        ],
+      }),
+    ],
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src'),

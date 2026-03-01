@@ -1,3 +1,4 @@
+import { electronAPI } from '@electron-toolkit/preload'
 import { IApplicationAPI } from '@timelapse/application'
 import { contextBridge } from 'electron'
 
@@ -35,11 +36,12 @@ const api: IApplicationAPI = {
 
 if (process.contextIsolated) {
   try {
+    contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
     console.error('Error while exposing API:', error)
   }
 } else {
-  // @ts-ignore
+  window.electron = electronAPI
   window.api = api
 }

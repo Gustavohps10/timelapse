@@ -15,17 +15,32 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
     checkpoint: { updatedAt: Date; id: string },
     batch: number,
   ): Promise<TaskDTO[]> {
+    console.log(
+      `[REDMINE_PULL] Iniciando pull para Member: ${memberId}, Batch: ${batch}`,
+    )
+    console.log(
+      `[REDMINE_PULL] Checkpoint atual: ID=${checkpoint.id}, UpdatedAt=${checkpoint.updatedAt.toISOString()}`,
+    )
+
     const client = await this.getAuthenticatedClient()
     const checkpointDate = checkpoint.updatedAt.toISOString().split('.')[0]
     const limitPerRequest = 100
 
     const fetchAllPages = async (queryParams: object): Promise<any[]> => {
+      const queryTag = JSON.stringify(queryParams)
+      console.log(
+        `[REDMINE_PULL][PAGINATION] Iniciando fetchAllPages para: ${queryTag}`,
+      )
+
       const allIssuesForFilter: any[] = []
       let offset = 0
       let keepFetching = true
 
       while (keepFetching) {
         try {
+          console.log(
+            `[REDMINE_PULL][PAGINATION] Request: issues.json | Offset: ${offset} | Limit: ${limitPerRequest}`,
+          )
           const response = await client.get('issues.json', {
             params: {
               ...queryParams,
@@ -36,30 +51,47 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
           })
 
           const receivedIssues = response.data.issues
+          const count = receivedIssues?.length || 0
+          console.log(
+            `[REDMINE_PULL][PAGINATION] Recebidos ${count} itens do Redmine.`,
+          )
+
           if (receivedIssues?.length) {
             allIssuesForFilter.push(...receivedIssues)
           }
 
           if (!receivedIssues || receivedIssues.length < limitPerRequest) {
+            console.log(
+              `[REDMINE_PULL][PAGINATION] Fim das páginas para esta query.`,
+            )
             keepFetching = false
           } else {
             offset += limitPerRequest
+            console.log(
+              `[REDMINE_PULL][PAGINATION] Avançando para próximo offset: ${offset}`,
+            )
           }
-        } catch (error) {
-          console.error('Erro ao buscar página de issues:', error)
+        } catch (error: any) {
+          console.error(
+            '[REDMINE_PULL][PAGINATION][ERROR] Falha na requisição:',
+            error.message,
+          )
           keepFetching = false
         }
       }
       return allIssuesForFilter
     }
 
-    const customFieldIds = [8, 9, 16, 24] // Responsaveis Teste, Revisao, Tarefa, Analise
+    const customFieldIds = [8, 9, 16, 24]
     const baseSearchParams = {
       updated_on: `>=${checkpointDate}`,
       sort: 'updated_on:asc,id:asc',
     }
     const trackerIdsToPull = [3, 5, 11, 12, 13, 19]
 
+    console.log(
+      `[REDMINE_PULL] Disparando Promise.all para queries paralelas...`,
+    )
     const fetchPromises = [
       fetchAllPages({ ...baseSearchParams, assigned_to_id: memberId }),
       fetchAllPages({ ...baseSearchParams, author_id: memberId }),
@@ -73,8 +105,19 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
     ]
 
     const resultsFromAllPages = await Promise.all(fetchPromises)
+    console.log(
+      `[REDMINE_PULL] Promise.all finalizado. Unificando resultados...`,
+    )
+
     const allIssues = resultsFromAllPages.flatMap((list) => list)
+    console.log(
+      `[REDMINE_PULL] Total de issues brutas (com duplicatas): ${allIssues.length}`,
+    )
+
     const uniqueIssuesMap = new Map(allIssues.map((issue) => [issue.id, issue]))
+    console.log(
+      `[REDMINE_PULL] Total de issues únicas: ${uniqueIssuesMap.size}`,
+    )
 
     const sortedUniqueIssues = Array.from(uniqueIssuesMap.values()).sort(
       (a, b) => {
@@ -88,24 +131,31 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
     const newTasksFound: TaskDTO[] = []
 
     const customFieldRoleMap = new Map<number, string>([
-      [8, '1'], // Responsavel Teste
-      [9, '2'], // Responsavel Revisao
-      [16, '3'], // Custom Responsavel Tarefa
-      [24, '4'], // Responsavel analise
+      [8, '1'],
+      [9, '2'],
+      [16, '3'],
+      [24, '4'],
     ])
+
+    console.log(
+      `[REDMINE_PULL] Iniciando processamento detalhado e filtro de checkpoint...`,
+    )
 
     for (const issue of sortedUniqueIssues) {
       const fullIssue = issue
-      // const { issue: fullIssue } = await client
-      //   .get(`issues/${issue.id}.json`, { params: { include: 'journals' } }) // Tentativa de resolver N+1
-      //   .then((r) => r.data)
 
       if (
         fullIssue.updated_on === checkpointDate &&
         Number(fullIssue.id) <= Number(checkpoint.id)
       ) {
+        // Log omitido para evitar flood, habilitar se necessário:
+        // console.log(`[REDMINE_PULL][SKIP] Issue ${fullIssue.id} já processada no checkpoint.`);
         continue
       }
+
+      console.log(
+        `[REDMINE_PULL][PROCESSING] Mapeando Issue ID: ${fullIssue.id}`,
+      )
 
       const statusChanges = (fullIssue.journals || [])
         .map((journal: any) => {
@@ -286,10 +336,21 @@ export class RedmineTaskQuery extends RedmineBase implements ITaskQuery {
       }
 
       newTasksFound.push(task)
+      console.log(
+        `[REDMINE_PULL][SUCCESS] Task ${fullIssue.id} adicionada ao lote atual.`,
+      )
 
-      if (newTasksFound.length >= batch) break
+      if (newTasksFound.length >= batch) {
+        console.log(
+          `[REDMINE_PULL] Batch atingido (${batch}). Interrompendo processamento.`,
+        )
+        break
+      }
     }
 
+    console.log(
+      `[REDMINE_PULL] Finalizado. Retornando ${newTasksFound.length} documentos.`,
+    )
     return newTasksFound.slice(0, batch)
   }
 

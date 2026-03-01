@@ -38,8 +38,8 @@ export function WorkspaceLayout() {
                 </AppSidebarFooter>
               </AppSidebar>
 
+              <Header />
               <main className="relative h-full flex-1 overflow-hidden">
-                <Header />
                 <ScrollArea className="h-full">
                   <section className="px-4 pt-12">
                     <Outlet />

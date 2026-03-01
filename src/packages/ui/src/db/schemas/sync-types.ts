@@ -2,6 +2,9 @@
 
 import { RxCollection, RxDatabase, RxError, RxJsonSchema } from 'rxdb'
 
+import { AutomationRxDBDTO } from '@/db/schemas/automations-schema'
+import { KanbanColumnRxDBDTO } from '@/db/schemas/kanban-column-schema'
+import { TaskKanbanColumnRxDBDTO } from '@/db/schemas/kanban-task-columns-schema'
 import { SyncMetadataRxDBDTO } from '@/db/schemas/metadata-sync-schema'
 
 import { SyncTaskRxDBDTO } from './tasks-sync-schema'
@@ -16,9 +19,19 @@ export type AppCollections = {
   timeEntries: RxCollection<SyncTimeEntryRxDBDTO>
   tasks: RxCollection<SyncTaskRxDBDTO>
   metadata: RxCollection<SyncMetadataRxDBDTO>
+  kanbanColumns: RxCollection<KanbanColumnRxDBDTO>
+  kanbanTaskColumns: RxCollection<TaskKanbanColumnRxDBDTO>
+  automations: RxCollection<AutomationRxDBDTO>
 }
 
+// Isso garante que o motor reconheça db.tasks, db.metadata, etc.
 export type AppDatabase = RxDatabase<AppCollections>
+
+export interface SyncState {
+  db: AppDatabase | null // Alterado de RxDatabase para AppDatabase
+  statuses: Record<string, ReplicationStatus>
+  isInitialized: boolean
+}
 
 // CONFIGURAÇÃO DE REPLICAÇÃO APRIMORADA ✨
 // Agora com opções específicas por coleção
@@ -38,14 +51,6 @@ export interface ReplicationConfig<RxDocType> {
     batchSize: number,
   ) => Promise<{ documents: RxDocType[]; checkpoint: ReplicationCheckpoint }>
   push: (rows: any[]) => Promise<any[]>
-}
-
-// TIPOS PARA O STORE ZUSTAND 🧠
-// O estado reativo que os componentes vão consumir
-export interface SyncState {
-  db: AppDatabase | null
-  statuses: Record<string, ReplicationStatus>
-  isInitialized: boolean
 }
 
 // As ações (funções) para interagir com o store

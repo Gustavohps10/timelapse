@@ -26,7 +26,6 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
-import { Timer } from '@/components/timer'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -96,7 +95,6 @@ export function TimerWidget() {
         >
           #51094
         </Badge>
-        <Timer size="medium" />
       </div>
 
       <div className="flex items-center justify-between gap-1">

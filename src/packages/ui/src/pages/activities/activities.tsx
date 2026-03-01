@@ -43,9 +43,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { KanbanColumnRxDBDTO } from '@/db/schemas/kanban-column-schema'
 import { TaskKanbanColumnRxDBDTO } from '@/db/schemas/kanban-task-columns-schema'
 import { SyncMetadataRxDBDTO } from '@/db/schemas/metadata-sync-schema'
+import { AppDatabase } from '@/db/schemas/sync-types'
 import { SyncTaskRxDBDTO } from '@/db/schemas/tasks-sync-schema'
 import { useAuth, useWorkspace } from '@/hooks'
-import { AppDatabase, useSyncStore } from '@/stores/syncStore'
+import { useSyncStore } from '@/stores/syncStore'
 
 type TaskWithTimeEntries = SyncTaskRxDBDTO & { timeEntries: any[] }
 

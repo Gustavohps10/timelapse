@@ -24,11 +24,9 @@ export interface AuthContextType {
   changeAvatar: (avatarUrl: string) => void
 }
 
-interface AuthProviderProps {
-  children: ReactNode
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const { workspace, isLoading: workspaceIsLoading } = useWorkspace()
   const client = useClient()
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -51,20 +49,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     [client, workspace?.id],
   )
 
+  const logout = useCallback(async () => {
+    if (!workspace?.id) return
+    // Importante: Primeiro limpamos o estado para interromper a sincronização
+    setIsAuthenticated(false)
+    setUser(null)
+
+    await client.modules.tokenStorage.deleteToken({
+      body: { service: 'timelapse', account: `jwt-${workspace.id}` },
+    })
+
+    // O destroy do banco deve ser chamado aqui explicitamente para garantir a ordem
+    await destroy()
+  }, [client, workspace?.id, destroy])
+
   const changeAvatar = useCallback((avatarUrl: string) => {
     setUser((currentUser) =>
       currentUser ? { ...currentUser, avatarUrl } : null,
     )
   }, [])
-
-  const logout = useCallback(async () => {
-    if (!workspace?.id) return
-    await client.modules.tokenStorage.deleteToken({
-      body: { service: 'timelapse', account: `jwt-${workspace.id}` },
-    })
-    setIsAuthenticated(false)
-    setUser(null)
-  }, [client, workspace?.id])
 
   useEffect(() => {
     if (!workspace?.id) return
@@ -90,8 +93,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         })
 
         if (response.isSuccess && response.data) {
-          setIsAuthenticated(true)
           setUser(response.data)
+          setIsAuthenticated(true)
         } else {
           setIsAuthenticated(false)
           setUser(null)
@@ -110,18 +113,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const handleForceLogout = () => logout()
     window.addEventListener('force-logout', handleForceLogout)
-    return () => {
-      window.removeEventListener('force-logout', handleForceLogout)
-    }
+    return () => window.removeEventListener('force-logout', handleForceLogout)
   }, [logout])
 
+  // ORQUESTRADOR DE SYNC SEGURO
   useEffect(() => {
+    // Só prossegue se terminou de carregar o workspace e a sessão
     if (isLoading || workspaceIsLoading) return
 
-    if (isAuthenticated) {
-      init()
-    } else {
-      destroy()
+    let isMounted = true
+
+    const manageSync = async () => {
+      if (isAuthenticated) {
+        // Aguarda um frame para garantir que qualquer fechamento anterior processou no Main
+        await new Promise((r) => setTimeout(r, 100))
+        if (isMounted) await init()
+      } else {
+        await destroy()
+      }
+    }
+
+    manageSync()
+
+    return () => {
+      isMounted = false
     }
   }, [isAuthenticated, isLoading, workspaceIsLoading, init, destroy])
 

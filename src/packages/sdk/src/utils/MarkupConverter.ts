@@ -2,99 +2,94 @@ import hljs from 'highlight.js'
 import textile from 'textile-js'
 import TurndownService from 'turndown'
 
-/**
- * Uma classe utilitária estática para converter diferentes formatos de
- * linguagem de marcação para um formato padronizado (Markdown).
- */
 export class MarkupConverter {
   private constructor() {}
 
   private static _detectCodeLanguage(codeText: string): string {
-    // Deixa o highlight.js fazer a detecção automática
     const result = hljs.highlightAuto(codeText)
-
-    // Usa a linguagem detectada se a confiança for razoável, senão 'plaintext'
     const relevanceThreshold = 8
-    if (result.language && result.relevance > relevanceThreshold) {
-      return result.language
-    }
-    return 'plaintext'
+    return result.language && result.relevance > relevanceThreshold
+      ? result.language
+      : 'plaintext'
   }
 
   public static fromTextile(
     textileString: string | null | undefined,
     baseUrl: string,
   ): string {
-    if (!textileString) {
-      return ''
-    }
+    if (!textileString) return ''
 
-    let processedText = textileString
+    const startTime = Date.now()
+    const traceSnippet =
+      textileString.substring(0, 30).replace(/\n/g, ' ') + '...'
 
-    processedText = processedText.replace(
-      /<pre.*?>([\s\S]*?)<\/pre>/g,
-      (match, codeContent) => {
-        const cleanContent = codeContent
-          .replace(/<code.*?>|<\/code>/g, '')
-          .trim()
-        const language = MarkupConverter._detectCodeLanguage(cleanContent)
-
-        // Se o highlight.js detectou JSON, nós o formatamos.
-        if (language === 'json') {
-          try {
-            const validJsonString = cleanContent.replace(/”|“|″/g, '"')
-            const jsonObject = JSON.parse(validJsonString)
-            const prettyJson = JSON.stringify(jsonObject, null, 2)
-            // Retorna o JSON formatado com a linguagem correta
-            return `\n\`\`\`json\n${prettyJson}\n\`\`\`\n`
-          } catch (e) {
-            // Se o parse falhar, retorna como texto simples para evitar erros.
-            return `\n\`\`\`plaintext\n${cleanContent}\n\`\`\`\n`
-          }
-        }
-
-        // Para todas as outras linguagens, retorna o conteúdo original com a linguagem detectada.
-        return `\n\`\`\`${language}\n${cleanContent}\n\`\`\`\n`
-      },
+    console.log(
+      `[MarkupConverter] 🚀 Iniciando conversão: "${traceSnippet}" (Tam: ${textileString.length} chars)`,
     )
 
-    const html = textile(processedText)
+    // 1. LIMPEZA NA FONTE
+    let processedText = textileString
+      .replace(/\u2192/g, '->')
+      .replace(/\u00A0/g, ' ')
+      .replace(/\r\n/g, '\n')
 
-    const turndownService = new TurndownService({
-      headingStyle: 'atx',
-      codeBlockStyle: 'fenced',
-    })
+    // Filtro global de caracteres que costumam quebrar Regex (UTF-8 exótico)
+    processedText = processedText.replace(
+      /[^\x00-\x7F\u00C0-\u00FF\s\-\*\#\:\(\)\[\]\.\,\?\!\@\%\&\=\+\_\/\\]/g,
+      ' ',
+    )
 
-    if (baseUrl) {
-      const cleanBaseUrl = baseUrl.endsWith('/')
-        ? baseUrl.slice(0, -1)
-        : baseUrl
-      turndownService.addRule('redmineImages', {
-        filter: 'img',
-        replacement: function (content, node) {
-          let src = (node as Element).getAttribute('src') || ''
-          if (src.startsWith('/')) {
-            src = `${cleanBaseUrl}${src}`
-          }
-          const alt = (node as Element).getAttribute('alt') || ''
-          return `![${alt}](${src})`
-        },
-      })
+    // 2. DISJUNTOR DE SEGURANÇA (CIRCUIT BREAKER)
+    // Contamos quantos itens de lista ("- ") existem no texto.
+    // O parser textile-js tem complexidade exponencial com listas aninhadas.
+    const listMarkers = (processedText.match(/^\s*[\-\*]\s+/gm) || []).length
+
+    if (listMarkers > 40 && processedText.length > 3000) {
+      console.warn(
+        `[MarkupConverter] 🛑 BLOQUEIO PREVENTIVO (Issue 70323 ou similar): ${listMarkers} itens de lista detectados. Ignorando parser para evitar loop infinito.`,
+      )
+      return (
+        '--- [AVISO: CONTEÚDO COMPLEXO DEMAIS PARA CONVERSÃO] ---\n\n' +
+        processedText
+      )
     }
 
-    turndownService.escape = (str) => str
-    let markdown = turndownService.turndown(html)
-    markdown = markdown.replace(/\\([*_\[\]])/g, '$1')
+    try {
+      // 3. PROCESSAMENTO DE BLOCOS <PRE> (Lógica original)
+      processedText = processedText.replace(
+        /<pre.*?>([\s\S]*?)<\/pre>/g,
+        (match, codeContent) => {
+          const cleanContent = codeContent
+            .replace(/<code.*?>|<\/code>/g, '')
+            .trim()
+          const language = MarkupConverter._detectCodeLanguage(cleanContent)
+          return `\n\`\`\`${language}\n${cleanContent}\n\`\`\`\n`
+        },
+      )
 
-    return markdown
-  }
+      // 4. CHAMADA AO PARSER (AQUI É ONDE TRAVAVA)
+      console.log(`[MarkupConverter] ⚙️ Chamando parser Textile...`)
+      const html = textile(processedText)
+      console.log(`[MarkupConverter] ✅ HTML gerado.`)
 
-  public static fromJiraWiki(
-    jiraWikiString: string | null | undefined,
-    baseUrl: string,
-  ): string {
-    if (!jiraWikiString) return ''
-    console.warn('Conversão de Jira Wiki ainda não implementada.')
-    return jiraWikiString
+      // 5. CONVERSÃO HTML -> MARKDOWN
+      const turndownService = new TurndownService({
+        headingStyle: 'atx',
+        codeBlockStyle: 'fenced',
+      })
+
+      turndownService.escape = (str) => str
+      let markdown = turndownService.turndown(html)
+      markdown = markdown.replace(/\\([*_\[\]])/g, '$1')
+
+      console.log(`[MarkupConverter] ✨ Sucesso em ${Date.now() - startTime}ms`)
+      return markdown
+    } catch (fatalError) {
+      console.error(
+        '[MarkupConverter] ❌ Falha catastrófica. Fallback para texto puro.',
+        fatalError,
+      )
+      return processedText
+    }
   }
 }

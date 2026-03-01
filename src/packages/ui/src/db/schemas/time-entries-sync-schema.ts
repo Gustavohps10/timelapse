@@ -17,8 +17,8 @@ export interface SyncTimeEntryRxDBDTO {
   createdAt: string
   updatedAt: string
   conflicted?: boolean
-  timeStatus: 'running' | 'paused' | 'finished'
-  type: 'increasing' | 'decreasing' | 'manual'
+  timeStatus?: 'running' | 'paused' | 'finished'
+  type?: 'increasing' | 'decreasing' | 'manual'
   conflictData?: { server?: any; local?: any }
   validationError?: any
   syncedAt?: string

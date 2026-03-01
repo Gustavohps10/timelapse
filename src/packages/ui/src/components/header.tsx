@@ -1,6 +1,8 @@
 'use client'
 
-import { Share2Icon } from 'lucide-react'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { Activity, Clock, Database, Share2Icon } from 'lucide-react'
 import { AiOutlineCloudSync } from 'react-icons/ai'
 
 import logoAtak from '@/assets/logo-atak.png'
@@ -14,6 +16,7 @@ import { Separator } from '@/components/ui/separator'
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useWorkspace } from '@/hooks'
@@ -37,125 +40,158 @@ export function Header() {
   const replicationNames = statuses ? Object.keys(statuses) : []
 
   return (
-    <header className="pointer-events-none absolute top-0 left-0 z-50 flex w-full justify-center bg-transparent p-2">
-      <div className="border-border bg-background/60 pointer-events-auto flex items-center justify-between gap-2 rounded-md border px-2 py-1 shadow-md backdrop-blur-md">
-        <div className="inline-block rounded-sm bg-zinc-200 p-1">
-          <img src={logoAtak} className="h-3 w-3" alt="Logo" />
-        </div>
+    <header className="pointer-events-none absolute top-0 left-0 z-50 flex w-full justify-center bg-transparent pl-[calc(72px+240px)]">
+      <div className="p-2">
+        <div className="border-border bg-background/80 pointer-events-auto flex items-center justify-between gap-3 rounded-md border px-1 shadow-sm backdrop-blur-xl">
+          {/* Workspace Info Section - Compacto */}
+          <div className="flex items-center gap-2">
+            <div className="flex h-5 w-5 items-center justify-center rounded-sm bg-zinc-100 p-1 shadow-sm">
+              <img
+                src={logoAtak}
+                className="h-full w-full object-contain"
+                alt="Logo"
+              />
+            </div>
+            <div className="flex min-w-max flex-col leading-tight">
+              <span className="text-foreground text-[10px] font-bold tracking-tight whitespace-nowrap">
+                {workspace?.name}
+              </span>
+              <span className="text-muted-foreground/70 font-mono text-[11px] whitespace-nowrap">
+                {workspace?.id}
+              </span>
+            </div>
+          </div>
 
-        <div className="flex flex-col">
-          <span className="text-uppercase font-sans text-xs leading-3 font-semibold tracking-tight">
-            {workspace?.name}
-          </span>
-          <span className="text-muted-foreground font-mono text-xs leading-3">
-            {workspace?.id}
-          </span>
-        </div>
+          <Separator orientation="vertical" className="h-5 opacity-50" />
 
-        <div className="flex items-center gap-1">
-          <Popover>
-            <PopoverTrigger asChild>
+          {/* Actions Section */}
+          <div className="flex items-center gap-0.5">
+            <TooltipProvider delayDuration={200}>
+              <Popover>
+                <Tooltip>
+                  <PopoverTrigger asChild>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="hover:bg-accent/50 relative h-6 w-6 rounded-sm"
+                      >
+                        <AiOutlineCloudSync
+                          size={16}
+                          className="text-foreground/80"
+                        />
+                        <span
+                          className={`border-background absolute right-0.5 bottom-0.5 h-2 w-2 rounded-full border ${getOverallStatusColor()}`}
+                        />
+                      </Button>
+                    </TooltipTrigger>
+                  </PopoverTrigger>
+                  <TooltipContent side="bottom" className="text-[10px]">
+                    Sincronização
+                  </TooltipContent>
+                </Tooltip>
+
+                <PopoverContent
+                  className="border-border bg-background/95 w-auto max-w-md min-w-[260px] rounded-md p-0 shadow-2xl backdrop-blur-sm"
+                  align="end"
+                  sideOffset={6}
+                >
+                  {/* Popover Header */}
+                  <div className="flex items-center gap-2 border-b px-3 py-2">
+                    <div className="rounded-sm bg-blue-500/10 p-1.5 text-blue-600">
+                      <Activity size={14} />
+                    </div>
+                    <div className="flex min-w-max flex-col">
+                      <h4 className="text-[11px] leading-none font-bold">
+                        Monitor de Sincronização
+                      </h4>
+                      <div className="text-muted-foreground mt-1 flex items-center gap-1 font-mono text-[9px] whitespace-nowrap">
+                        <Database size={10} className="shrink-0" />
+                        <span>{dbName || 'Conectando...'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* List of Replication */}
+                  <div className="max-h-[300px] overflow-y-auto p-1">
+                    <div className="space-y-0.5">
+                      {isInitialized && replicationNames.length > 0 ? (
+                        replicationNames.map((name) => {
+                          const status = statuses?.[name]
+                          if (!status) return null
+
+                          const dotStatusColor = status.error
+                            ? 'bg-red-500'
+                            : status.isPulling || status.isPushing
+                              ? 'bg-blue-500 animate-pulse'
+                              : 'bg-green-500'
+
+                          return (
+                            <div
+                              key={name}
+                              className="hover:bg-accent/30 rounded-sm border border-transparent px-2 py-1.5 transition-colors"
+                            >
+                              <div className="flex items-center justify-between gap-6">
+                                <span className="text-foreground/90 text-[10px] font-bold capitalize">
+                                  {name}
+                                </span>
+
+                                {/* Status Indicator */}
+                                <div className="flex items-center gap-1.5">
+                                  <span
+                                    className={`h-1.5 w-1.5 rounded-full ${dotStatusColor}`}
+                                  />
+                                  <span className="text-muted-foreground text-[9px] font-bold">
+                                    {status.error
+                                      ? 'Erro'
+                                      : status.isPulling
+                                        ? 'Buscando dados...'
+                                        : 'Sincronizado'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="text-muted-foreground mt-1 flex items-center gap-1 text-[8px] font-medium">
+                                <Clock size={8} className="shrink-0" />
+                                <span>
+                                  {status.lastReplication
+                                    ? format(
+                                        status.lastReplication,
+                                        "HH:mm:ss 'em' dd/MM",
+                                        { locale: ptBR },
+                                      )
+                                    : 'Pendente'}
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        })
+                      ) : (
+                        <div className="text-muted-foreground py-4 text-center text-[9px] italic">
+                          Inicializando...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     size="icon"
                     variant="ghost"
-                    aria-label="Status da Sincronização"
-                    className="hover:bg-accent/50 relative h-6 w-6"
+                    className="hover:bg-accent/50 h-6 w-6 rounded-sm"
                   >
-                    <AiOutlineCloudSync
-                      style={{
-                        width: 16,
-                        height: 16,
-                        color: 'rgb(var(--foreground))',
-                      }}
-                    />
-                    <span
-                      className={`border-background absolute right-1.5 bottom-0.5 h-2.5 w-2.5 rounded-full border-2 ${getOverallStatusColor()}`}
-                    />
+                    <Share2Icon size={14} className="text-foreground/70" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Ver status da sincronização</TooltipContent>
+                <TooltipContent side="bottom" className="text-[10px]">
+                  Compartilhar
+                </TooltipContent>
               </Tooltip>
-            </PopoverTrigger>
-
-            <PopoverContent
-              className="border-border w-72 rounded-lg border shadow-xl"
-              align="end"
-            >
-              <div className="flex flex-col gap-4">
-                <div>
-                  <h4 className="text-sm leading-none font-medium">
-                    Status da Sincronização
-                  </h4>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    {dbName ? `Banco: ${dbName}` : 'Não conectado'}
-                  </p>
-                </div>
-
-                <Separator />
-
-                <div className="flex flex-col gap-2">
-                  {isInitialized && replicationNames.length > 0 ? (
-                    replicationNames.map((name) => {
-                      const status = statuses?.[name]
-                      if (!status) return null
-
-                      const color = status.error
-                        ? 'text-red-500'
-                        : status.isPulling || status.isPushing
-                          ? 'text-blue-500'
-                          : 'text-green-500'
-
-                      const label = status.error
-                        ? 'Erro'
-                        : status.isPulling || status.isPushing
-                          ? 'Sincronizando...'
-                          : 'Ativo'
-
-                      return (
-                        <div
-                          key={name}
-                          className="flex items-center justify-between text-xs"
-                        >
-                          <span className="text-muted-foreground capitalize">
-                            {name}
-                          </span>
-                          <span className={`font-semibold ${color}`}>
-                            {label}
-                          </span>
-                        </div>
-                      )
-                    })
-                  ) : (
-                    <p className="text-muted-foreground text-xs">
-                      Sincronização inativa.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                aria-label="Compartilhar"
-                className="hover:bg-accent/50 h-6 w-6"
-              >
-                <Share2Icon
-                  style={{
-                    width: 14,
-                    height: 14,
-                    color: 'rgb(var(--foreground))',
-                  }}
-                />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Compartilhar</TooltipContent>
-          </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       </div>
     </header>

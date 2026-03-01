@@ -1,11 +1,6 @@
 'use client'
 
-import {
-  MetadataViewModel,
-  TaskViewModel,
-  TimeEntryViewModel,
-  ViewModel,
-} from '@timelapse/presentation/view-models'
+import { IApplicationAPI } from '@timelapse/application'
 import { createContext, ReactNode, useContext, useRef } from 'react'
 import {
   addRxPlugin,
@@ -13,7 +8,6 @@ import {
   RxCollection,
   RxDatabase,
   RxError,
-  RxJsonSchema,
 } from 'rxdb'
 import {
   replicateRxCollection,
@@ -21,20 +15,12 @@ import {
 } from 'rxdb/plugins/replication'
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie'
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv'
+import { Subscription } from 'rxjs'
 import { createStore, type StoreApi, useStore } from 'zustand'
 
-import {
-  AutomationRxDBDTO,
-  automationsSchema,
-} from '@/db/schemas/automations-schema'
-import {
-  KanbanColumnRxDBDTO,
-  kanbanColumnsSchema,
-} from '@/db/schemas/kanban-column-schema'
-import {
-  kanbanTaskColumnsSchema,
-  TaskKanbanColumnRxDBDTO,
-} from '@/db/schemas/kanban-task-columns-schema'
+import { automationsSchema } from '@/db/schemas/automations-schema'
+import { kanbanColumnsSchema } from '@/db/schemas/kanban-column-schema'
+import { kanbanTaskColumnsSchema } from '@/db/schemas/kanban-task-columns-schema'
 import {
   metadataSyncSchema,
   SyncMetadataRxDBDTO,
@@ -50,18 +36,15 @@ import {
 import { useWorkspace } from '@/hooks'
 import { useClient } from '@/hooks/use-client'
 
-export type ReplicationCheckpoint = {
-  updatedAt: string
-  id: string
-}
+export type ReplicationCheckpoint = { updatedAt: string; id: string }
 
 export type AppCollections = {
   timeEntries: RxCollection<SyncTimeEntryRxDBDTO>
   tasks: RxCollection<SyncTaskRxDBDTO>
   metadata: RxCollection<SyncMetadataRxDBDTO>
-  kanbanColumns: RxCollection<KanbanColumnRxDBDTO>
-  kanbanTaskColumns: RxCollection<TaskKanbanColumnRxDBDTO>
-  automations: RxCollection<AutomationRxDBDTO>
+  kanbanColumns: RxCollection<any>
+  kanbanTaskColumns: RxCollection<any>
+  automations: RxCollection<any>
 }
 
 export type AppDatabase = RxDatabase<AppCollections>
@@ -74,14 +57,12 @@ export interface ReplicationStatus {
   error: Error | RxError | null
 }
 
-export interface ReplicationConfig<RxDocType, CheckpointType> {
-  name: keyof AppCollections
-  schema: RxJsonSchema<RxDocType>
+export interface IReplicationStrategy<T, C> {
   pull: (
-    checkpoint: CheckpointType | undefined,
+    checkpoint: C | undefined,
     batchSize: number,
-  ) => Promise<{ documents: RxDocType[]; checkpoint: CheckpointType }>
-  push: (rows: any[]) => Promise<any[]>
+  ) => Promise<{ documents: T[]; checkpoint: C }>
+  push: (rows: unknown[]) => Promise<unknown[]>
 }
 
 export interface SyncState {
@@ -90,172 +71,317 @@ export interface SyncState {
   isInitialized: boolean
 }
 
-export interface SyncActions {
+export type SyncStore = SyncState & {
   init: () => Promise<void>
   destroy: () => Promise<void>
 }
 
-export type SyncStore = SyncState & SyncActions
+class MetadataStrategy implements IReplicationStrategy<
+  SyncMetadataRxDBDTO,
+  ReplicationCheckpoint
+> {
+  constructor(
+    private client: IApplicationAPI,
+    private workspaceId: string,
+  ) {}
 
-export const createSyncStore = (
-  workspaceId: string,
-  client: any,
-): StoreApi<SyncStore> => {
-  let replications: Record<string, RxReplicationState<any, any>> = {}
-  let reSyncInterval: NodeJS.Timeout | null = null
+  async pull(checkpoint: ReplicationCheckpoint | undefined, batchSize: number) {
+    if (checkpoint && checkpoint.id === 'metadata_fixed') {
+      return { documents: [], checkpoint }
+    }
 
-  const replicationConfigs: ReplicationConfig<any, ReplicationCheckpoint>[] = [
-    {
-      name: 'metadata',
-      schema: metadataSyncSchema,
-      pull: async (checkpoint, batchSize) => {
-        const response: ViewModel<MetadataViewModel> =
-          await client.services.metadata.pull({
-            body: {
-              batch: batchSize,
-              workspaceId,
-              checkpoint: {
-                ...checkpoint!,
-                updatedAt: new Date(checkpoint!.updatedAt),
-              },
-              memberId: '',
-            },
-          })
-        const data = response.data
-        if (!data) {
-          return { documents: [], checkpoint: checkpoint! }
-        }
-        const document: SyncMetadataRxDBDTO = {
-          _id: '1',
+    const response = await this.client.services.metadata.pull({
+      body: {
+        workspaceId: this.workspaceId,
+        memberId: '',
+        batch: batchSize,
+        checkpoint: {
+          id: checkpoint?.id || '',
+          updatedAt: new Date(checkpoint?.updatedAt || 0),
+        },
+      },
+    })
+
+    if (!response.data) return { documents: [], checkpoint: checkpoint! }
+
+    const document: SyncMetadataRxDBDTO = JSON.parse(
+      JSON.stringify({
+        _id: 'metadata_singleton',
+        _deleted: false,
+        participantRoles: response.data.participantRoles || [],
+        estimationTypes: response.data.estimationTypes || [],
+        trackStatuses: response.data.trackStatuses || [],
+        taskStatuses: response.data.taskStatuses || [],
+        taskPriorities: response.data.taskPriorities || [],
+        activities: response.data.activities || [],
+        syncedAt: '1970-01-01T00:00:00.000Z',
+      }),
+    )
+
+    return {
+      documents: [document],
+      checkpoint: {
+        updatedAt: '1970-01-01T00:00:00.000Z',
+        id: 'metadata_fixed',
+      },
+    }
+  }
+  async push() {
+    return []
+  }
+}
+
+class TasksStrategy implements IReplicationStrategy<
+  SyncTaskRxDBDTO,
+  ReplicationCheckpoint
+> {
+  constructor(
+    private client: IApplicationAPI,
+    private workspaceId: string,
+  ) {}
+
+  async pull(checkpoint: ReplicationCheckpoint | undefined, batchSize: number) {
+    const response = await this.client.services.tasks.pull({
+      body: {
+        workspaceId: this.workspaceId,
+        memberId: '',
+        batch: batchSize,
+        checkpoint: {
+          id: checkpoint?.id || '',
+          updatedAt: new Date(checkpoint?.updatedAt || 0),
+        },
+      },
+    })
+
+    const data = response.data || []
+    if (data.length === 0) return { documents: [], checkpoint: checkpoint! }
+
+    const lastItem = data[data.length - 1]
+    const documents: SyncTaskRxDBDTO[] = JSON.parse(
+      JSON.stringify(
+        data.map((item) => ({
+          ...item,
+          _id: item.id,
           _deleted: false,
-          participantRoles: data.participantRoles,
-          estimationTypes: data.estimationTypes,
-          trackStatuses: data.trackStatuses,
-          taskStatuses: data.taskStatuses,
-          taskPriorities: data.taskPriorities,
-          activities: data.activities,
-          syncedAt: new Date().toISOString(),
-        }
-        const newCheckpoint = {
-          updatedAt: new Date().toISOString(),
-          id: workspaceId,
-        }
-        return { documents: [document], checkpoint: newCheckpoint }
+          createdAt:
+            item.createdAt instanceof Date
+              ? item.createdAt.toISOString()
+              : item.createdAt,
+          updatedAt:
+            item.updatedAt instanceof Date
+              ? item.updatedAt.toISOString()
+              : item.updatedAt,
+          startDate: item.startDate
+            ? item.startDate instanceof Date
+              ? item.startDate.toISOString()
+              : item.startDate
+            : undefined,
+          dueDate: item.dueDate
+            ? item.dueDate instanceof Date
+              ? item.dueDate.toISOString()
+              : item.dueDate
+            : undefined,
+          timeEntryIds: [],
+          statusChanges: item.statusChanges?.map((change: any) => ({
+            ...change,
+            changedAt:
+              change.changedAt instanceof Date
+                ? change.changedAt.toISOString()
+                : change.changedAt,
+          })),
+        })),
+      ),
+    )
+
+    return {
+      documents,
+      checkpoint: {
+        updatedAt:
+          lastItem.updatedAt instanceof Date
+            ? lastItem.updatedAt.toISOString()
+            : lastItem.updatedAt,
+        id: lastItem.id!,
       },
-      push: async (rows) => {
-        return []
+    }
+  }
+  async push() {
+    return []
+  }
+}
+
+class TimeEntriesStrategy implements IReplicationStrategy<
+  SyncTimeEntryRxDBDTO,
+  ReplicationCheckpoint
+> {
+  constructor(
+    private client: IApplicationAPI,
+    private workspaceId: string,
+  ) {}
+
+  async pull(checkpoint: ReplicationCheckpoint | undefined, batchSize: number) {
+    const response = await this.client.services.timeEntries.pull({
+      body: {
+        workspaceId: this.workspaceId,
+        memberId: '',
+        batch: batchSize,
+        checkpoint: {
+          id: checkpoint?.id || '',
+          updatedAt: new Date(checkpoint?.updatedAt || 0),
+        },
       },
-    },
-    {
-      name: 'timeEntries',
-      schema: timeEntriesSyncSchema,
-      pull: async (checkpoint, batchSize) => {
-        const response: TimeEntryViewModel[] =
-          await client.services.timeEntries.pull({
-            body: {
-              workspaceId,
-              memberId: '',
-              checkpoint: {
-                ...checkpoint!,
-                updatedAt: new Date(checkpoint!.updatedAt),
-              },
-              batch: batchSize,
-            },
-          })
-        const data = response || []
-        const lastItem = data.reduce<TimeEntryViewModel | null>(
-          (prev, curr) =>
-            !prev || new Date(curr.updatedAt) > new Date(prev.updatedAt)
-              ? curr
-              : prev,
-          null,
-        )
-        const newCheckpoint: ReplicationCheckpoint = lastItem
-          ? { updatedAt: lastItem.updatedAt.toISOString(), id: lastItem.id! }
-          : checkpoint!
-        const documents: SyncTimeEntryRxDBDTO[] = data.map((item) => ({
+    })
+
+    const data = response || []
+    if (data.length === 0) return { documents: [], checkpoint: checkpoint! }
+
+    const lastItem = data[data.length - 1]
+    const documents: SyncTimeEntryRxDBDTO[] = JSON.parse(
+      JSON.stringify(
+        data.map((item) => ({
           ...item,
           _id: item.id!,
           _deleted: false,
-          startDate: item.startDate?.toISOString(),
-          endDate: item.endDate?.toISOString(),
-          createdAt: item.createdAt.toISOString(),
-          updatedAt: item.updatedAt.toISOString(),
-        }))
-        return { documents, checkpoint: newCheckpoint }
-      },
-      push: async (rows) => {
-        return []
-      },
-    },
-    {
-      name: 'tasks',
-      schema: tasksSyncSchema,
-      pull: async (checkpoint, batchSize) => {
-        const response: ViewModel<TaskViewModel[]> =
-          await client.services.tasks.pull({
-            body: {
-              workspaceId,
-              memberId: '',
-              checkpoint: {
-                ...checkpoint!,
-                updatedAt: new Date(checkpoint!.updatedAt),
-              },
-              batch: batchSize,
-            },
-          })
-        const data = response.data || []
-        const lastItem = data.reduce<TaskViewModel | null>(
-          (prev, curr) =>
-            !prev || new Date(curr.updatedAt) > new Date(prev.updatedAt)
-              ? curr
-              : prev,
-          null,
-        )
-        const newCheckpoint: ReplicationCheckpoint = lastItem
-          ? { updatedAt: lastItem.updatedAt.toISOString(), id: lastItem.id! }
-          : checkpoint!
-        const documents: SyncTaskRxDBDTO[] = data.map(
-          (item: TaskViewModel) => ({
-            _id: item.id,
-            _deleted: false,
-            id: item.id,
-            title: item.title,
-            description: item.description,
-            url: item.url,
-            projectName: item.projectName,
-            status: item.status,
-            tracker: item.tracker,
-            priority: item.priority,
-            author: item.author,
-            assignedTo: item.assignedTo,
-            doneRatio: item.doneRatio,
-            spentHours: item.spentHours,
-            estimatedTimes: item.estimatedTimes,
-            createdAt: item.createdAt.toISOString(),
-            updatedAt: item.updatedAt.toISOString(),
-            timeEntryIds: [],
-            startDate: item.startDate
+          id: item.id!,
+          task: { id: item.task.id },
+          activity: { id: item.activity.id, name: item.activity.name },
+          user: { id: item.user.id, name: item.user.name },
+          timeSpent: item.timeSpent,
+          comments: item.comments,
+          startDate: item.startDate
+            ? item.startDate instanceof Date
               ? item.startDate.toISOString()
-              : undefined,
-            dueDate: item.dueDate ? item.dueDate.toISOString() : undefined,
-            statusChanges: item.statusChanges?.map((change) => ({
-              fromStatus: change.fromStatus,
-              toStatus: change.toStatus,
-              description: change.description,
-              changedBy: change.changedBy,
-              changedAt: change.changedAt.toISOString(),
-            })),
-            participants: item.participants,
-          }),
-        )
-        return { documents, checkpoint: newCheckpoint }
+              : item.startDate
+            : undefined,
+          endDate: item.endDate
+            ? item.endDate instanceof Date
+              ? item.endDate.toISOString()
+              : item.endDate
+            : undefined,
+          createdAt:
+            item.createdAt instanceof Date
+              ? item.createdAt.toISOString()
+              : item.createdAt,
+          updatedAt:
+            item.updatedAt instanceof Date
+              ? item.updatedAt.toISOString()
+              : item.updatedAt,
+          syncedAt: new Date().toISOString(),
+        })),
+      ),
+    )
+
+    return {
+      documents,
+      checkpoint: {
+        updatedAt:
+          lastItem.updatedAt instanceof Date
+            ? lastItem.updatedAt.toISOString()
+            : lastItem.updatedAt,
+        id: lastItem.id!,
       },
-      push: async (rows) => {
-        return []
-      },
+    }
+  }
+  async push() {
+    return []
+  }
+}
+
+class ReplicationModule {
+  private instance?: RxReplicationState<unknown, unknown>
+  private subs: Subscription[] = []
+  private resyncInterval?: NodeJS.Timeout
+
+  constructor(
+    private collection: RxCollection,
+    private strategy: IReplicationStrategy<unknown, unknown>,
+    private options: {
+      identifier: string
+      batchSize?: number
+      resyncSeconds?: number
+      initialCheckpoint?: ReplicationCheckpoint
+      onStatusChange: (s: Partial<ReplicationStatus>) => void
     },
-  ]
+  ) {}
+
+  async start() {
+    if (this.instance) return
+
+    this.instance = replicateRxCollection({
+      collection: this.collection,
+      replicationIdentifier: this.options.identifier,
+      live: true,
+      retryTime: 15000,
+      pull: {
+        batchSize: this.options.batchSize || 25,
+        initialCheckpoint: this.options.initialCheckpoint,
+        handler: async (cp, batch) => {
+          // Ativa o estado de carregamento manualmente no início do handler
+          this.options.onStatusChange({ isPulling: true, error: null })
+
+          try {
+            const result = await this.strategy.pull(cp, batch)
+            return result
+          } finally {
+          }
+        },
+      },
+      push: {
+        batchSize: this.options.batchSize || 20,
+        handler: (rows) => {
+          this.options.onStatusChange({ isPushing: true, error: null })
+          return this.strategy.push(rows)
+        },
+      },
+    })
+
+    // --- MONITORAMENTO EM TEMPO REAL ---
+    this.subs.push(
+      // Monitora se a replicação está ocupada (trabalhando na rede)
+      this.instance.active$.subscribe((isActive) => {
+        // Se não está mais ativa, garante que pulling/pushing sejam falsos
+        if (!isActive) {
+          this.options.onStatusChange({
+            isActive,
+            isPulling: false,
+            isPushing: false,
+            lastReplication: new Date(),
+          })
+        } else {
+          this.options.onStatusChange({ isActive })
+        }
+      }),
+
+      // Captura erros de rede ou de permissão
+      this.instance.error$.subscribe((error) => {
+        console.error(`[SYNC ERROR] ${this.options.identifier}:`, error)
+        this.options.onStatusChange({
+          error,
+          isPulling: false,
+          isPushing: false,
+        })
+      }),
+    )
+
+    if (this.options.resyncSeconds && this.options.resyncSeconds > 0) {
+      this.resyncInterval = setInterval(() => {
+        this.instance?.reSync()
+      }, this.options.resyncSeconds * 1000)
+    }
+  }
+
+  async destroy() {
+    if (this.resyncInterval) clearInterval(this.resyncInterval)
+    this.subs.forEach((s) => s.unsubscribe())
+    if (this.instance) await this.instance.cancel()
+    this.instance = undefined
+  }
+}
+
+export const createSyncStore = (
+  workspaceId: string,
+  client: IApplicationAPI,
+): StoreApi<SyncStore> => {
+  const engineModules: Record<string, ReplicationModule> = {}
 
   return createStore<SyncStore>((set, get) => ({
     db: null,
@@ -263,12 +389,10 @@ export const createSyncStore = (
     isInitialized: false,
 
     destroy: async () => {
-      if (reSyncInterval) clearInterval(reSyncInterval)
-      await Promise.all(Object.values(replications).map((rep) => rep.cancel()))
-      replications = {}
-      const db = get().db
+      const { db } = get()
+      await Promise.all(Object.values(engineModules).map((m) => m.destroy()))
       if (db) await db.close()
-      set({ db: null, statuses: {}, isInitialized: false })
+      set({ db: null, isInitialized: false, statuses: {} })
     },
 
     init: async () => {
@@ -280,112 +404,92 @@ export const createSyncStore = (
       addRxPlugin(RxDBDevModePlugin)
       addRxPlugin(RxDBQueryBuilderPlugin)
 
-      const updateStatus = (
-        name: keyof AppCollections,
-        newStatus: Partial<ReplicationStatus>,
-      ) => {
-        set((state) => ({
-          statuses: {
-            ...state.statuses,
-            [name]: { ...state.statuses[name], ...newStatus },
-          },
-        }))
-      }
+      // Nao utilizado devido a falta de um storage gratuito para main process, Dexie funciona apenas no renderer
+      // const isElectron = typeof window !== 'undefined' && !!(window as any).electron
+      // console.log(isElectron, 'IS ELECTRON')
+
+      // const storageBase = (isElectron
+      //   ? getRxStorageIpcRenderer({
+      //       mode: 'database',
+      //       key: 'main-storage',
+      //       ipcRenderer: (window as any).electron.ipcRenderer,
+      //     })
+      //   : getRxStorageDexie()) as RxStorage<unknown, unknown>
 
       const db = await createRxDatabase<AppCollections>({
-        name: `${workspaceId}-data`,
-        storage: wrappedValidateAjvStorage({ storage: getRxStorageDexie() }),
+        name: `db-${workspaceId}`,
+        storage: wrappedValidateAjvStorage({
+          storage: getRxStorageDexie(),
+        }),
         ignoreDuplicate: true,
-        allowSlowCount: true,
+        multiInstance: false,
+        eventReduce: true,
       })
 
-      const collectionsToCreate = replicationConfigs.reduce(
-        (acc, config) => ({
-          ...acc,
-          [config.name]: { schema: config.schema },
-        }),
-        {} as Record<
-          keyof Pick<AppCollections, 'tasks' | 'metadata' | 'timeEntries'>,
-          { schema: RxJsonSchema<any> }
-        >,
-      )
-
-      const allCollectionsToCreate: Record<
-        keyof AppCollections,
-        { schema: RxJsonSchema<any> }
-      > = {
-        ...collectionsToCreate,
+      await db.addCollections({
+        metadata: { schema: metadataSyncSchema },
+        tasks: { schema: tasksSyncSchema },
+        timeEntries: { schema: timeEntriesSyncSchema },
         kanbanColumns: { schema: kanbanColumnsSchema },
         kanbanTaskColumns: { schema: kanbanTaskColumnsSchema },
         automations: { schema: automationsSchema },
+      })
+
+      const sixtyDaysAgo = new Date()
+      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
+      const initialCheckpoint = {
+        updatedAt: sixtyDaysAgo.toISOString(),
+        id: '',
       }
 
-      await db.addCollections(allCollectionsToCreate)
+      const configs = [
+        {
+          name: 'metadata',
+          strategy: new MetadataStrategy(client, workspaceId),
+          interval: 0,
+          batch: 1,
+        },
+        {
+          name: 'tasks',
+          strategy: new TasksStrategy(client, workspaceId),
+          interval: 300,
+          batch: 30,
+        },
+        {
+          name: 'timeEntries',
+          strategy: new TimeEntriesStrategy(client, workspaceId),
+          interval: 60,
+          batch: 30,
+        },
+      ] as const
+
+      for (const config of configs) {
+        const module = new ReplicationModule(
+          db[config.name as keyof AppCollections] as RxCollection,
+          config.strategy as IReplicationStrategy<unknown, unknown>,
+          {
+            identifier: `rep_${config.name}_${workspaceId}`,
+            resyncSeconds: config.interval,
+            batchSize: config.batch,
+            initialCheckpoint,
+            onStatusChange: (status) =>
+              set((state) => ({
+                statuses: {
+                  ...state.statuses,
+                  [config.name]: {
+                    ...state.statuses[config.name],
+                    ...(status as ReplicationStatus),
+                  },
+                },
+              })),
+          },
+        )
+
+        await module.start()
+        engineModules[config.name] = module
+      }
 
       set({ db, isInitialized: true })
-
-      for (const config of replicationConfigs) {
-        const replication = replicateRxCollection<any, ReplicationCheckpoint>({
-          collection: db[config.name],
-          replicationIdentifier: `${config.name}-replication-${workspaceId}`,
-          live: true,
-          retryTime: 10000,
-          pull: {
-            batchSize: 100,
-            initialCheckpoint: (() => {
-              const sixtyDaysAgo = new Date()
-              sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
-              return { updatedAt: sixtyDaysAgo.toISOString(), id: '' }
-            })(),
-            async handler(checkpoint, batchSize) {
-              updateStatus(config.name, { isPulling: true })
-              try {
-                const result = await config.pull(checkpoint, batchSize)
-                updateStatus(config.name, {
-                  lastReplication: new Date(),
-                  error: null,
-                })
-                return result
-              } catch (err: any) {
-                updateStatus(config.name, { error: err })
-                return {
-                  documents: [],
-                  checkpoint: checkpoint || { updatedAt: '', id: '' },
-                }
-              } finally {
-                updateStatus(config.name, { isPulling: false })
-              }
-            },
-          },
-          push: {
-            batchSize: 100,
-            async handler(rows) {
-              updateStatus(config.name, { isPushing: true })
-              try {
-                return await config.push(rows)
-              } catch (err: any) {
-                updateStatus(config.name, { error: err })
-                return []
-              } finally {
-                updateStatus(config.name, { isPushing: false })
-              }
-            },
-          },
-        })
-
-        replications[config.name] = replication
-        replication.error$.subscribe((err) =>
-          updateStatus(config.name, { error: err }),
-        )
-        replication.active$.subscribe((isActive) =>
-          updateStatus(config.name, { isActive }),
-        )
-      }
-
-      if (reSyncInterval) clearInterval(reSyncInterval)
-      reSyncInterval = setInterval(() => {
-        Object.values(replications).forEach((rep) => rep.reSync())
-      }, 30 * 1000)
     },
   }))
 }
@@ -394,14 +498,12 @@ const SyncStoreContext = createContext<StoreApi<SyncStore> | undefined>(
   undefined,
 )
 
-interface SyncProviderProps {
-  children: ReactNode
-}
-
-export const SyncProvider: React.FC<SyncProviderProps> = ({ children }) => {
+export const SyncProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const { workspace } = useWorkspace()
   const client = useClient()
-  const storeRef = useRef<StoreApi<SyncStore> | undefined>(undefined)
+  const storeRef = useRef<StoreApi<SyncStore> | null>(null)
 
   if (workspace && !storeRef.current) {
     storeRef.current = createSyncStore(workspace.id, client)
@@ -420,12 +522,18 @@ export const useSyncStore = <T,>(
   selector: (store: SyncStore) => T,
 ): T | undefined => {
   const storeApi = useContext(SyncStoreContext)
-  if (!storeApi) return undefined
-  return useStore(storeApi, selector)
+  return storeApi ? useStore(storeApi, selector) : undefined
 }
 
-export const useSyncActions = () => {
+export const useSyncActions = (): SyncStore => {
   const storeApi = useContext(SyncStoreContext)
-  if (!storeApi) return {} as SyncStore
+  if (!storeApi)
+    return {
+      db: null,
+      statuses: {},
+      isInitialized: false,
+      init: async () => {},
+      destroy: async () => {},
+    }
   return storeApi.getState()
 }

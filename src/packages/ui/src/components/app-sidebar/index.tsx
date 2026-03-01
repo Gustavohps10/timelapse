@@ -34,5 +34,5 @@ export function AppSidebarContent({
 }
 
 export function AppSidebarFooter({ children }: { children?: React.ReactNode }) {
-  return <SidebarFooter className="mb-4">{children}</SidebarFooter>
+  return <SidebarFooter className="mb-12">{children}</SidebarFooter>
 }
